@@ -125,7 +125,7 @@ systemctl status ki-werkstatt
 **Der Footer der Webseite ist deine Statusanzeige:**
 
 | Footer zeigt | Bedeutung |
-|---|---|
+| --- | --- |
 | ⚡ *KI-Chip aktiv (…hef)* | Hailo läuft — alles gut |
 | 🐢 *Demo-Modus ohne KI-Chip* | App läuft, aber Hailo fehlt → Abschnitt 9.3 |
 | 📷 *Pi-Kamera* | Kamera erkannt |
@@ -210,6 +210,7 @@ bash setup/kiosk.sh
 
   Danach startet Chromium bei jedem Boot vollbild auf der Beamer-Seite
   (inkl. Bildschirmschoner-Abschaltung). Wieder aus: `bash setup/kiosk.sh off`.
+
 - Die Zähler leben nur im Arbeitsspeicher; „♻️ Alles zurücksetzen" in der
   Moderationsleiste nullt auch sie.
 
@@ -257,6 +258,7 @@ nmcli connection show --active
 
   → `ki-werkstatt-hotspot` muss gelistet sein. Wenn nicht:
   `bash setup/hotspot.sh` erneut ausführen.
+
 - Läuft die App? `systemctl status ki-werkstatt` — wenn nicht:
 
 ```bash
@@ -294,22 +296,22 @@ Objekterkennung ist eingeschränkt. Zum Beheben, in dieser Reihenfolge:
 hailortcli fw-control identify
 ```
 
-3. `identify` schweigt, obwohl der Chip am PCIe-Bus hängt? Prüfe die
+1. `identify` schweigt, obwohl der Chip am PCIe-Bus hängt? Prüfe die
    **Chip-Generation** — sie braucht das jeweils passende Treiber-Paket:
 
 ```bash
 lspci | grep -i hailo
 ```
 
-   - **„Hailo-10H"** (AI HAT+ 2) → `sudo apt install -y hailo-h10-all`
-   - **„Hailo-8"** (AI Kit / AI HAT+) → `sudo apt install -y hailo-all`
+- **„Hailo-10H"** (AI HAT+ 2) → `sudo apt install -y hailo-h10-all`
+- **„Hailo-8"** (AI Kit / AI HAT+) → `sudo apt install -y hailo-all`
 
    Danach neu starten. Der Installer erkennt das inzwischen automatisch;
    dieser Fall betrifft vor allem ältere Installationen. (Genau dieser
    Fehler äußert sich übrigens auch als
    `HAILO_OUT_OF_PHYSICAL_DEVICES(74)` im Log.)
 
-4. Auch in `lspci` taucht nichts auf? Hardware prüfen:
+1. Auch in `lspci` taucht nichts auf? Hardware prüfen:
 
 ```bash
 dmesg | grep -i hailo
@@ -431,7 +433,7 @@ genau diese Grenze ist Lernstoff in Station 3.
 ## 10 · Spickzettel
 
 | Zweck | Befehl (auf dem Pi) |
-|---|---|
+| --- | --- |
 | Status der App | `systemctl status ki-werkstatt` |
 | App neu starten | `sudo systemctl restart ki-werkstatt` |
 | Live-Logs | `journalctl -u ki-werkstatt -f` |
@@ -452,5 +454,5 @@ genau diese Grenze ist Lernstoff in Station 3.
 Dieses Projekt ist Open Source unter der **MIT-Lizenz** (siehe
 [LICENSE](LICENSE)).
 
-© 2026 **Dan Verständig** · verstaendig@c3s.uni-frankfurt.de ·
+© 2026 **Dan Verständig** · <verstaendig@c3s.uni-frankfurt.de> ·
 [medienbildung.team](https://medienbildung.team)

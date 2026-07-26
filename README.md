@@ -12,7 +12,7 @@ into every station.
 ## The six stations
 
 | Station | What visitors do | What they learn |
-|---|---|---|
+| --- | --- | --- |
 | **Object&#160;Detective** | Live YOLO object detection with a confidence slider | Models pattern-match, they don't "understand"; the precision/recall trade-off |
 | **Train&#160;the&#160;AI** | Train a classifier on any two objects in ~1 minute | Learning from examples, bias from one-sided data, right to erasure (one-click delete) |
 | **Privacy&#160;Shield** | Faces get pixelated/blurred *at the source*; toggle it, break it | Detection ≠ recognition; tech can protect privacy; no shield is perfect |
@@ -20,20 +20,11 @@ into every station.
 | **Fool&#160;the&#160;AI** | Four challenges to fool the detector | AI limits, adversarial thinking, healthy scepticism |
 | **Skeleton&#160;Mirror** | Live pose estimation, a pose-challenge parcours, and a "ghost mode" showing skeletons without video | Body data is data: tracking works without images (gait, behaviour) |
 
-<table>
-  <tr>
-    <td><img src="assets/stations/detektiv_en.png" alt="Object Detective — What does the AI see?"></td>
-    <td><img src="assets/stations/trainer_en.png" alt="Train the AI — You are the coach"></td>
-  </tr>
-  <tr>
-    <td><img src="assets/stations/schild_en.png" alt="Privacy Shield — Protection built in"></td>
-    <td><img src="assets/stations/spur_en.png" alt="The Data Trail — What cameras collect"></td>
-  </tr>
-  <tr>
-    <td><img src="assets/stations/trick_en.png" alt="Fool the AI — Find its limits"></td>
-    <td><img src="assets/stations/pose_en.png" alt="Skeleton Mirror — Play without pictures"></td>
-  </tr>
-</table>
+| | |
+| --- | --- |
+| ![Object Detective — What does the AI see?](assets/stations/detektiv_en.png) | ![Train the AI — You are the coach](assets/stations/trainer_en.png) |
+| ![Privacy Shield — Protection built in](assets/stations/schild_en.png) | ![The Data Trail — What cameras collect](assets/stations/spur_en.png) |
+| ![Fool the AI — Find its limits](assets/stations/trick_en.png) | ![Skeleton Mirror — Play without pictures](assets/stations/pose_en.png) |
 
 Everything degrades gracefully: without the AI HAT (or on your laptop) the app
 runs in CPU demo mode, so the exhibit never shows a blank screen.
@@ -62,16 +53,16 @@ bash setup/install.sh
 sudo reboot
 ```
 
-3. After reboot the exhibit serves on port 80 and starts on every boot
+1. After reboot the exhibit serves on port 80 and starts on every boot
    (`systemctl status ki-werkstatt`).
-4. Start the student hotspot and print the poster:
+2. Start the student hotspot and print the poster:
 
 ```bash
 bash setup/hotspot.sh
 python3 setup/make_poster.py
 ```
 
-Visitors join Wi-Fi **KI-Werkstatt** and open **http://10.42.0.1**. Change
+Visitors join Wi-Fi **KI-Werkstatt** and open **<http://10.42.0.1>**. Change
 SSID/password in `setup/hotspot.sh` (and re-run the poster script).
 
 ## Try it on your laptop first (no Pi needed)
@@ -82,7 +73,7 @@ pip install -r dev/requirements-dev.txt
 python3 app/main.py --source webcam     # or --source fake for a test pattern
 ```
 
-Then open http://localhost:8080. `--source fake` needs no camera at all and
+Then open <http://localhost:8080>. `--source fake` needs no camera at all and
 even emits fake detections, so every station and the whole UI can be tested.
 
 ## Deploying changes
@@ -204,7 +195,7 @@ front backgrounds as 300 dpi PNGs for Photoshop.
 
 ## Architecture
 
-```
+```text
 app/main.py        entry point & CLI
 app/camera.py      frame sources: Pi camera / USB webcam / synthetic test pattern
 app/vision.py      Hailo YOLO detection, face guard, motion heatmap, teachable kNN
