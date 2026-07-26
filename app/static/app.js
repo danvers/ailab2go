@@ -1,5 +1,6 @@
 /* KI-Werkstatt client: polls /api/state, renders the active station,
- * sends control actions. Vanilla JS, fully offline.
+ * sends control actions. Vanilla JS, fully offline, bilingual (see i18n.js —
+ * all user-facing dynamic strings go through I18N.t()).
  *
  * Patterns used throughout:
  * - touched[]-guard: after a local interaction the poll must not snap the
@@ -14,10 +15,15 @@
 
 const $ = (sel) => document.querySelector(sel);
 const $$ = (sel) => document.querySelectorAll(sel);
+const t = (...args) => I18N.t(...args);
 
 let state = null;
 let lastLocalAction = 0; // suppress "someone else switched" toast after own clicks
-let adminPin = sessionStorage.getItem("kiw-pin") || null;
+
+// storage may THROW when the visitor blocks site data — never let that
+// kill the script (see i18n.js store helper for the localStorage side)
+let adminPin = null;
+try { adminPin = sessionStorage.getItem("kiw-pin"); } catch (e) { /* blocked */ }
 
 // ---------- helpers ---------------------------------------------------------
 
@@ -33,7 +39,7 @@ async function post(url, body) {
       body: JSON.stringify(body || {}),
     });
   } catch (err) {
-    toast("📡 Verbindung wackelt — bitte nochmal versuchen.");
+    toast(t("connError"));
     return { ok: false, status: 0 };
   }
 }
@@ -41,8 +47,7 @@ async function post(url, body) {
 let toastTimer = null;
 function toast(msg) {
   // The toast stays in the layout permanently (opacity/visibility only) —
-  // a display:none live region is not announced by screen readers, and
-  // unhiding + writing in the same task is too fast to count as a change.
+  // a display:none live region is not announced by screen readers.
   const el = $("#toast");
   el.classList.add("show");
   el.textContent = msg;
@@ -53,66 +58,74 @@ function toast(msg) {
   }, 3800);
 }
 
-const esc = (t) => String(t).replace(/[&<>"']/g, (c) => (
+const esc = (s) => String(s).replace(/[&<>"']/g, (c) => (
   { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
-function fmtDuration(s) {
-  const h = Math.floor(s / 3600);
-  const m = Math.floor((s % 3600) / 60);
-  if (h) return `${h} Std ${m} Min`;
-  if (m) return `${m} Min ${s % 60} Sek`;
-  return `${s} Sek`;
+// server strings that may need a client-side translation; the backend also
+// emits dynamic variants like "Hailo nicht verfügbar (SomeError)" — handle
+// the prefixes so the exception detail survives
+const trStatus = (s) => {
+  if (I18N.lang !== "en") return s;
+  return t("status")[s] ||
+    s.replace(/^Hailo nicht verfügbar/, "Hailo not available")
+     .replace(/^Pose nicht verfügbar/, "pose model not available");
+};
+// default teachable slot names are German ("Ding A") — display-translate
+// them; user-given names pass through untouched
+const trSlotName = (name) =>
+  I18N.lang === "en" ? String(name).replace(/^Ding( [A-C])$/, "Thing$1") : name;
+
+function fmtDuration(sec) {
+  const h = Math.floor(sec / 3600);
+  const m = Math.floor((sec % 3600) / 60);
+  return t("duration", h, m, sec % 60);
 }
 
-function videoNote(msg) {
+/* The note takes an i18n KEY (not text) so a language switch can repaint
+ * a note that is currently on screen. */
+let videoNoteKey = null;
+function videoNote(key) {
+  videoNoteKey = key || null;
   const el = $("#video-note");
-  if (msg) { el.textContent = msg; el.classList.remove("hidden"); }
+  if (key) { el.textContent = t(key); el.classList.remove("hidden"); }
   else el.classList.add("hidden");
 }
 
-/* Destructive, room-wide actions need a second tap ("arm" pattern). */
-function armButton(btn, label, action) {
+/* Destructive, room-wide actions need a second tap ("arm" pattern).
+ * labelKey is resolved through i18n on every paint, so the button follows
+ * the language switch. */
+const armButtons = [];
+function armButton(btn, labelKey, action) {
   let timer = null;
+  const idle = () => { btn.classList.remove("armed"); btn.textContent = t(labelKey); };
+  armButtons.push(idle);
   btn.addEventListener("click", async () => {
     if (!btn.classList.contains("armed")) {
       btn.classList.add("armed");
-      btn.textContent = "⚠️ Wirklich? Das gilt für ALLE — nochmal tippen";
-      timer = setTimeout(() => {
-        btn.classList.remove("armed");
-        btn.textContent = label;
-      }, 4000);
+      btn.textContent = t("armWarn");
+      timer = setTimeout(idle, 4000);
       return;
     }
     clearTimeout(timer);
-    btn.classList.remove("armed");
-    btn.textContent = label;
+    idle();
     await action();
   });
+  idle();
 }
 
 // ---------- station switching ----------------------------------------------
 
-const STREAM_ALT = {
-  start: "Live-Kamerabild",
-  detektiv: "Live-Kamerabild mit markierten erkannten Objekten",
-  trainer: "Live-Kamerabild mit Aufnahme-Rahmen und KI-Vermutung",
-  schild: "Live-Kamerabild mit unkenntlich gemachten Gesichtern",
-  spur: "Live-Kamerabild mit Wärmekarte der Bewegungen im Raum",
-  trick: "Live-Kamerabild mit markierten erkannten Objekten",
-  pose: "Live-Kamerabild mit erkannten Skelett-Punkten",
-};
-
 let shownMode = null;   // what the DOM currently displays (may be optimistic)
 function showMode(mode) {
   shownMode = mode;
-  $$("#tiles .tile").forEach((t) => {
-    const on = t.dataset.mode === mode;
-    t.classList.toggle("active", on);
-    t.setAttribute("aria-current", on ? "true" : "false");
+  $$("#tiles .tile").forEach((tile) => {
+    const on = tile.dataset.mode === mode;
+    tile.classList.toggle("active", on);
+    tile.setAttribute("aria-current", on ? "true" : "false");
   });
   $$(".station").forEach((s) =>
     s.classList.toggle("hidden", s.dataset.mode !== mode));
-  $("#stream").alt = STREAM_ALT[mode] || STREAM_ALT.start;
+  $("#stream").alt = t("alt")[mode] || t("alt").start;
   // Bring the active tile into view (remote switches can land off-screen).
   // Compare viewport rects — offsetLeft is relative to .tiles-wrap, not to
   // the scrolling nav, so mixing it with scrollLeft misfires once scrolled.
@@ -121,9 +134,8 @@ function showMode(mode) {
     const nav = $("#tiles").getBoundingClientRect();
     const box = tile.getBoundingClientRect();
     if (box.left < nav.left + 4 || box.right > nav.right - 4) {
-      // Smooth scrolling is driven by animation frames, which do not run in
-      // a hidden tab (phone in a pocket while others switch stations) — jump
-      // instantly there, and whenever reduced motion is requested.
+      // Smooth scrolling needs animation frames, which don't run in a hidden
+      // tab (phone in a pocket while others switch) — jump instantly there.
       const instant = document.hidden ||
         matchMedia("(prefers-reduced-motion: reduce)").matches;
       tile.scrollIntoView({ behavior: instant ? "auto" : "smooth",
@@ -139,9 +151,7 @@ async function setMode(mode) {
   showMode(mode); // optimistic — the next poll confirms or corrects
   const res = await post("/api/mode", { mode, pin: adminPin });
   if (!res.ok) {
-    if (res.status === 403) {
-      toast("🔒 Die Stationen sind gerade von der Moderation gesperrt.");
-    }
+    if (res.status === 403) toast(t("locked"));
     touched.mode = 0;                       // let the next poll reconcile
     if (state) showMode(state.mode);
   }
@@ -153,13 +163,11 @@ $$("#tiles .tile").forEach((tile) => {
 
 // ---------- header / banners ------------------------------------------------
 
-$("#privacy-badge").addEventListener("click", () =>
-  toast("🔒 Alles läuft auf einem Raspberry Pi in diesem Raum — es gibt " +
-        "nicht mal eine Internet-Verbindung. Der Quellcode ist offen."));
+$("#privacy-badge").addEventListener("click", () => toast(t("badgeToast")));
 
 $("#shared-hint-ok").addEventListener("click", () => {
-  localStorage.setItem("kiw-shared-ok", "1");
-  $("#shared-hint").classList.add("hidden");
+  $("#shared-hint").classList.add("hidden");   // DOM first, storage after
+  I18N.store.set("kiw-shared-ok", "1");
 });
 
 // ---------- detektiv / trick ------------------------------------------------
@@ -173,12 +181,13 @@ slider.addEventListener("change", () =>
   post("/api/params", { threshold: slider.value / 100 }));
 
 function renderDetections(listEl, detections) {
+  const en = I18N.lang === "en";
   const html = detections.length
     ? detections.map((d) =>
-        `<li><span aria-hidden="true">${d.emoji}</span><strong>${d.name}</strong>
+        `<li><span aria-hidden="true">${d.emoji}</span><strong>${en ? (d.name_en || d.name) : d.name}</strong>
          <span class="bar"><i style="width:${d.pct}%"></i></span>
          <span class="pct">${d.pct}%</span></li>`).join("")
-    : '<li class="muted">Gerade nichts erkannt — halte etwas in die Kamera!</li>';
+    : `<li class="muted">${t("noDetections")}</li>`;
   if (listEl._html !== html) { listEl._html = html; listEl.innerHTML = html; }
 }
 
@@ -186,33 +195,33 @@ function renderDetections(listEl, detections) {
 
 function renderTeach(teach) {
   const slotsEl = $("#teach-slots");
-  // Rebuild only when the slot set or the NAMES change. Counts change on
-  // every capture and are patched in place — rebuilding there would throw
-  // away keyboard focus and the button's "gespeichert!" feedback.
-  const key = JSON.stringify(teach.names);
+  // Rebuild only when the slot set or the NAMES change (language switch
+  // clears the cache). Counts are patched in place — rebuilding there would
+  // throw away keyboard focus and the button's "saved!" feedback.
+  const key = I18N.lang + JSON.stringify(teach.names);
   if (slotsEl._key !== key) {
     slotsEl._key = key;
     slotsEl.innerHTML = Object.keys(teach.names).map((s) => `
       <div class="slot" data-slot="${esc(s)}">
         <button type="button" class="name"
-          aria-label="Umbenennen: ${esc(teach.names[s])}">${esc(teach.names[s])}</button>
+          aria-label="${t("renameAria")}${esc(trSlotName(teach.names[s]))}">${esc(trSlotName(teach.names[s]))}</button>
         <span class="count"></span>
-        <button type="button" class="capture">📸 Beispiel aufnehmen</button>
+        <button type="button" class="capture">${t("capture")}</button>
       </div>`).join("");
 
     slotsEl.querySelectorAll(".slot .capture").forEach((btn) => {
       btn.addEventListener("click", async (ev) => {
         const slot = ev.target.closest(".slot").dataset.slot;
         const res = await post("/api/teach/capture", { slot, pin: adminPin });
-        btn.textContent = res.ok ? "✨ gespeichert!"
-          : (res.status === 403 ? "🔒 gesperrt" : "❌ nochmal tippen");
-        setTimeout(() => (btn.textContent = "📸 Beispiel aufnehmen"), 700);
+        btn.textContent = res.ok ? t("captureOk")
+          : (res.status === 403 ? t("captureLocked") : t("captureRetry"));
+        setTimeout(() => (btn.textContent = t("capture")), 700);
       });
     });
     slotsEl.querySelectorAll(".slot .name").forEach((el) => {
       el.addEventListener("click", async (ev) => {
         const slot = ev.target.closest(".slot").dataset.slot;
-        const name = prompt("Wie heißt dieses Ding?", teach.names[slot]);
+        const name = prompt(t("renamePrompt"), trSlotName(teach.names[slot]));
         if (name) await post("/api/teach/rename", { slot, name, pin: adminPin });
       });
     });
@@ -223,8 +232,7 @@ function renderTeach(teach) {
     const s = el.dataset.slot;
     const n = teach.counts[s] || 0;
     const trained = teach.trained.includes(s);
-    const label = `${n} Beispiel${n === 1 ? "" : "e"}` +
-      (trained ? " ✓" : ` (mind. ${teach.min})`);
+    const label = t("examples", n) + (trained ? " ✓" : t("minExamples", teach.min));
     const countEl = el.querySelector(".count");
     if (countEl.textContent !== label) countEl.textContent = label;
     el.classList.toggle("trained", trained);
@@ -232,20 +240,19 @@ function renderTeach(teach) {
 
   const predEl = $("#teach-prediction");
   const txt = teach.prediction
-    ? `Ich glaube, das ist: ${teach.prediction.name} (${teach.prediction.pct} % sicher)`
-    : `Noch nicht genug Beispiele — die KI braucht mindestens zwei Dinge ` +
-      `mit je ${teach.min} Beispielen.`;
+    ? t("prediction", trSlotName(teach.prediction.name), teach.prediction.pct)
+    : t("teachEmpty", teach.min);
   if (predEl._last !== txt) {
     predEl._last = txt;
     predEl.className = teach.prediction ? "prediction big" : "prediction muted";
-    predEl.textContent = txt;  // textContent only: no #teach-min to destroy
+    predEl.textContent = txt;
   }
 }
 
-armButton($("#teach-reset"), "🗑️ Alles vergessen lassen", async () => {
+armButton($("#teach-reset"), "teachResetLabel", async () => {
   const res = await post("/api/teach/reset", { pin: adminPin });
-  if (res.ok) toast("🗑️ Alle Trainingsdaten gelöscht. Recht auf Löschung ausgeübt!");
-  else if (res.status === 403) toast("🔒 Gerade von der Moderation gesperrt.");
+  if (res.ok) toast(t("teachResetToast"));
+  else if (res.status === 403) toast(t("paramLocked"));
 });
 
 // ---------- schild ----------------------------------------------------------
@@ -253,7 +260,7 @@ armButton($("#teach-reset"), "🗑️ Alles vergessen lassen", async () => {
 $("#privacy-on").addEventListener("change", async (ev) => {
   markTouched("privacy_on");
   const res = await post("/api/params", { privacy_on: ev.target.checked, pin: adminPin });
-  if (res.status === 403) toast("🔒 Der Schutz-Schalter ist gerade gesperrt.");
+  if (res.status === 403) toast(t("paramLocked"));
 });
 
 function paintStyleButtons(style) {
@@ -270,7 +277,7 @@ $$("#privacy-style button").forEach((btn) => {
     paintStyleButtons(btn.dataset.style);   // instant feedback, no 2 s wait
     const res = await post("/api/params", { privacy_style: btn.dataset.style, pin: adminPin });
     if (!res.ok) {
-      if (res.status === 403) toast("🔒 Gerade von der Moderation gesperrt.");
+      if (res.status === 403) toast(t("paramLocked"));
       touched.privacy_style = 0;
       if (state) paintStyleButtons(state.privacy.style);
     }
@@ -282,7 +289,7 @@ $$("#privacy-style button").forEach((btn) => {
 $("#pose-ghost").addEventListener("change", async (ev) => {
   markTouched("pose_ghost");
   const res = await post("/api/params", { pose_ghost: ev.target.checked, pin: adminPin });
-  if (res.status === 403) toast("🔒 Gerade von der Moderation gesperrt.");
+  if (res.status === 403) toast(t("paramLocked"));
 });
 
 function renderPose(pose) {
@@ -293,8 +300,10 @@ function renderPose(pose) {
   $("#pose-ch-idx").textContent = ch.idx;
   $("#pose-ch-total").textContent = ch.total;
   $("#pose-ch-emoji").textContent = ch.emoji;
-  const t = $("#pose-ch-text");
-  if (t._last !== ch.text) { t._last = ch.text; t.textContent = ch.text; }
+  const el = $("#pose-ch-text");
+  // challenge text by index from the local dictionary (server text is German)
+  const txt = t("poseCh")[ch.idx - 1] || ch.text;
+  if (el._last !== txt) { el._last = txt; el.textContent = txt; }
   const pct = Math.round(ch.progress * 100);
   $("#pose-progress").style.width = `${pct}%`;
   $("#pose-holdbar").setAttribute("aria-valuenow", pct);
@@ -305,34 +314,34 @@ function renderPose(pose) {
 
 // ---------- spur ------------------------------------------------------------
 
-armButton($("#heatmap-reset"), "🧹 Datenspur löschen", async () => {
+armButton($("#heatmap-reset"), "heatResetLabel", async () => {
   const res = await post("/api/heatmap/reset", { pin: adminPin });
-  if (res.ok) toast("🧹 Datenspur gelöscht — die Sammlung beginnt von vorn.");
-  else if (res.status === 403) toast("🔒 Gerade von der Moderation gesperrt.");
+  if (res.ok) toast(t("heatResetToast"));
+  else if (res.status === 403) toast(t("paramLocked"));
 });
 
 // ---------- admin -----------------------------------------------------------
 
 $("#admin-link").addEventListener("click", (ev) => {
   ev.preventDefault();
-  const pin = prompt("Moderations-PIN:");
+  const pin = prompt(t("pinPrompt"));
   if (!pin) return;
   adminPin = pin;
-  sessionStorage.setItem("kiw-pin", pin);
-  $("#admin-bar").classList.remove("hidden");
-  toast("🔧 Moderationsleiste eingeblendet.");
+  $("#admin-bar").classList.remove("hidden");  // DOM first, storage after
+  toast(t("adminShown"));
+  try { sessionStorage.setItem("kiw-pin", pin); } catch (e) { /* blocked */ }
 });
 
 $("#admin-lock").addEventListener("click", async () => {
   const action = state && state.locked ? "unlock" : "lock";
   const res = await post("/api/admin", { pin: adminPin, action });
-  if (res.status === 403) toast("❌ Falsche PIN.");
+  if (res.status === 403) toast(t("wrongPin"));
 });
 
 $("#admin-reset").addEventListener("click", async () => {
   const res = await post("/api/admin", { pin: adminPin, action: "reset_all" });
-  if (res.status === 403) toast("❌ Falsche PIN.");
-  else if (res.ok) toast("♻️ Trainingsdaten, Datenspur und Zähler zurückgesetzt.");
+  if (res.status === 403) toast(t("wrongPin"));
+  else if (res.ok) toast(t("adminResetToast"));
 });
 
 // ---------- render loop -----------------------------------------------------
@@ -356,7 +365,7 @@ function render(s) {
   if (s.mode !== shownMode && !isTouched("mode")) {
     showMode(s.mode);
     if (prevMode && s.mode !== prevMode && Date.now() - lastLocalAction > 3000) {
-      toast("👋 Jemand hat die Station gewechselt — ihr steuert gemeinsam!");
+      toast(t("modeSwitched"));
     }
   }
 
@@ -385,7 +394,7 @@ function render(s) {
 
   // shared-control one-time hint (skip on the start station, it explains itself)
   $("#shared-hint").classList.toggle("hidden",
-    s.mode === "start" || !!localStorage.getItem("kiw-shared-ok"));
+    s.mode === "start" || !!I18N.store.get("kiw-shared-ok"));
 
   // lock state: banner + dimmed tiles (moderators keep full contrast)
   const lockedForMe = s.locked && !adminPin;
@@ -394,19 +403,31 @@ function render(s) {
 
   // footer stats
   const ai = $("#stat-ai");
-  if (s.ai.ok) {
-    ai.textContent = `⚡ KI-Chip aktiv (${s.ai.status})`;
-    ai.className = "chip good";
-  } else {
-    ai.textContent = `🐢 Demo-Modus ohne KI-Chip — ${s.ai.status}`;
-    ai.className = "chip warn";
-  }
+  ai.textContent = s.ai.ok ? t("aiOk", trStatus(s.ai.status))
+                           : t("aiDemo", trStatus(s.ai.status));
+  ai.className = s.ai.ok ? "chip good" : "chip warn";
   $("#stat-fps").textContent = `${s.fps} fps`;
-  $("#stat-clients").textContent = `👀 ${s.clients} Gerät${s.clients === 1 ? "" : "e"}`;
-  $("#stat-source").textContent = `📷 ${s.source}`;
-  $("#stat-lock").classList.toggle("hidden", !s.locked);
-  $("#admin-lock").textContent = s.locked ? "🔓 Stationen freigeben" : "🔒 Stationen sperren";
+  $("#stat-clients").textContent = t("devices", s.clients);
+  $("#stat-source").textContent = `📷 ${t("source")[s.source] || s.source}`;
+  const lockChip = $("#stat-lock");
+  lockChip.textContent = t("lockedChip");
+  lockChip.classList.toggle("hidden", !s.locked);
+  $("#admin-lock").textContent = s.locked ? t("unlockBtn") : t("lockBtn");
 }
+
+// language switch: invalidate every change-guard cache, repaint idle labels,
+// re-render the last known state in the new language
+document.addEventListener("kiw:lang", () => {
+  ["#detections", "#detections-trick"].forEach((sel) => { $(sel)._html = null; });
+  $("#teach-slots")._key = null;
+  $("#teach-prediction")._last = null;
+  $("#pose-ch-text")._last = null;
+  armButtons.forEach((idle) => idle());
+  $("#admin-lock").textContent = t("lockBtn");
+  if (videoNoteKey) videoNote(videoNoteKey);   // repaint a visible note
+  if (state) render(state);
+  if (shownMode) $("#stream").alt = t("alt")[shownMode] || t("alt").start;
+});
 
 let pollFailures = 0;
 async function poll() {
@@ -414,12 +435,12 @@ async function poll() {
     const res = await fetch("/api/state");
     if (res.ok) {
       render(await res.json());
-      if (pollFailures >= 3) videoNote("");
+      if (pollFailures >= 3) videoNote(null);
       pollFailures = 0;
     }
   } catch (err) {
     pollFailures += 1;
-    if (pollFailures === 3) videoNote("📡 Verbindung wackelt — einen Moment…");
+    if (pollFailures === 3) videoNote("connNote");
   }
   setTimeout(poll, 800);
 }
@@ -443,10 +464,10 @@ updateNavChrome();
 // stream self-healing: reconnect on load errors and — crucial on phones,
 // which kill the connection whenever the screen locks — on tab re-focus
 $("#stream").addEventListener("error", () => {
-  videoNote("📷 Bild lädt neu…");
+  videoNote("imgReload");
   setTimeout(bumpStream, 1500);
 });
-$("#stream").addEventListener("load", () => videoNote(""));
+$("#stream").addEventListener("load", () => videoNote(null));
 document.addEventListener("visibilitychange", () => {
   if (!document.hidden) bumpStream();
 });

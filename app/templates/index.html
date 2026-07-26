@@ -8,6 +8,15 @@
 <link rel="icon" href="/static/logo-icon.png" sizes="256x256">
 <link rel="apple-touch-icon" href="/static/logo-icon.png">
 </head>
+<!--
+  Bilingual UI. German is the markup default (works without JavaScript);
+  English comes from static/i18n.js and is swapped in per device.
+  Rules for editing:
+    • every visitor-visible text carries data-i18n="key"
+    • NEVER put an element with an id inside a data-i18n block — the block is
+      replaced wholesale on a language switch, which would delete the element
+      that app.js talks to. Split the sentence instead (see trick.hint1/2).
+-->
 <body>
 
 <header>
@@ -16,21 +25,27 @@
     <span class="brand-rule" aria-hidden="true"></span>
     <h1>{{ event_name }}</h1>
   </div>
-  <button class="privacy-badge" id="privacy-badge" type="button">
-    <span aria-hidden="true">🔒</span> 100&nbsp;% lokal — keine Cloud, keine Fotos gespeichert
-    <span class="sr-only">Antippen für Details: Alle Berechnungen passieren auf einem kleinen Computer in diesem Raum.</span>
-  </button>
+  <div class="head-right">
+    <button class="privacy-badge" id="privacy-badge" type="button" data-i18n="ui.badge">
+      <span aria-hidden="true">🔒</span> 100&nbsp;% lokal — keine Cloud, keine Fotos gespeichert
+      <span class="sr-only">Antippen für Details: Alle Berechnungen passieren auf einem kleinen Computer in diesem Raum.</span>
+    </button>
+    <div class="langswitch" role="group" data-i18n-aria-label="ui.langAria" aria-label="Sprache wählen">
+      <button type="button" data-lang="de" lang="de" aria-pressed="true">DE</button>
+      <button type="button" data-lang="en" lang="en" aria-pressed="false">EN</button>
+    </div>
+  </div>
 </header>
 
 <div class="tiles-wrap">
-<nav id="tiles" aria-label="Stationen">
-  <button class="tile active" aria-current="true" data-mode="start" style="--accent:#8b949e"><span aria-hidden="true">🏠</span><span>Start</span></button>
-  <button class="tile" data-mode="detektiv" style="--accent:#4ea8ff"><span aria-hidden="true">🔍</span><span>Objekt-Detektiv</span></button>
-  <button class="tile" data-mode="trainer"  style="--accent:#b57bff"><span aria-hidden="true">🧠</span><span>Trainiere die KI</span></button>
-  <button class="tile" data-mode="schild"   style="--accent:#3ddc97"><span aria-hidden="true">🛡️</span><span>Privatsphäre-Schild</span></button>
-  <button class="tile" data-mode="spur"     style="--accent:#ffb347"><span aria-hidden="true">🗺️</span><span>Die Datenspur</span></button>
-  <button class="tile" data-mode="trick"    style="--accent:#ff5d8f"><span aria-hidden="true">🎭</span><span>Täusche die KI</span></button>
-  <button class="tile" data-mode="pose"     style="--accent:#2dd4bf"><span aria-hidden="true">🤸</span><span>Skelett-Spiegel</span></button>
+<nav id="tiles" data-i18n-aria-label="nav.aria" aria-label="Stationen">
+  <button class="tile active" aria-current="true" data-mode="start" style="--accent:#8b949e"><span aria-hidden="true">🏠</span><span data-i18n="tile.start">Start</span></button>
+  <button class="tile" data-mode="detektiv" style="--accent:#4ea8ff"><span aria-hidden="true">🔍</span><span data-i18n="tile.detektiv">Objekt-Detektiv</span></button>
+  <button class="tile" data-mode="trainer"  style="--accent:#b57bff"><span aria-hidden="true">🧠</span><span data-i18n="tile.trainer">Trainiere die KI</span></button>
+  <button class="tile" data-mode="schild"   style="--accent:#3ddc97"><span aria-hidden="true">🛡️</span><span data-i18n="tile.schild">Privatsphäre-Schild</span></button>
+  <button class="tile" data-mode="spur"     style="--accent:#ffb347"><span aria-hidden="true">🗺️</span><span data-i18n="tile.spur">Die Datenspur</span></button>
+  <button class="tile" data-mode="trick"    style="--accent:#ff5d8f"><span aria-hidden="true">🎭</span><span data-i18n="tile.trick">Täusche die KI</span></button>
+  <button class="tile" data-mode="pose"     style="--accent:#2dd4bf"><span aria-hidden="true">🤸</span><span data-i18n="tile.pose">Skelett-Spiegel</span></button>
 </nav>
 </div>
 
@@ -42,65 +57,67 @@
 
   <div id="panel">
 
-    <div id="locked-banner" class="banner hidden">🔒 Die Moderation hat die
-      Stationen gerade gesperrt — schau einfach zu!</div>
+    <div id="locked-banner" class="banner hidden" data-i18n="banner.locked">🔒 Die
+      Moderation hat die Stationen gerade gesperrt — schau einfach zu!</div>
 
-    <div id="shared-hint" class="banner hint-banner hidden">👥 Hier steuern
-      <strong>alle gemeinsam</strong> dieselbe Kamera — wundere dich nicht,
-      wenn sich etwas „von allein" bewegt!
-      <button id="shared-hint-ok" type="button">Alles klar</button></div>
+    <div id="shared-hint" class="banner hint-banner hidden"><span data-i18n="banner.shared">👥
+      Hier steuern <strong>alle gemeinsam</strong> dieselbe Kamera — wundere dich
+      nicht, wenn sich etwas „von allein“ bewegt!</span>
+      <button id="shared-hint-ok" type="button" data-i18n="banner.sharedOk">Alles klar</button></div>
 
     <!-- ══════════ START ══════════ -->
     <section class="station" data-mode="start" style="--accent:#8b949e">
-      <h2>👋 Willkommen in der KI-Werkstatt!</h2>
-      <p class="intro">Das Bild oben kommt live von einer Kamera in diesem Raum —
-        verarbeitet von einem Mini-Computer (Raspberry&nbsp;Pi&nbsp;5) mit einem
-        eigenen KI-Chip. Alles passiert <strong>hier vor Ort</strong>: Kein Bild
-        verlässt jemals diesen Raum.</p>
-      <ol class="steps">
+      <h2 data-i18n="start.h2">👋 Willkommen in der KI-Werkstatt!</h2>
+      <p class="intro" data-i18n="start.intro">Das Bild oben kommt live von einer
+        Kamera in diesem Raum — verarbeitet von einem Mini-Computer
+        (Raspberry&nbsp;Pi&nbsp;5) mit einem eigenen KI-Chip. Alles passiert
+        <strong>hier vor Ort</strong>: Kein Bild verlässt jemals diesen Raum.</p>
+      <ol class="steps" data-i18n="start.steps">
         <li>Wähle oben eine <strong>Station</strong>.</li>
         <li>Probiere alles aus — du kannst nichts kaputt machen.</li>
         <li>Achtung: Alle sehen dasselbe Bild. Ihr steuert die Stationen <em>gemeinsam</em>. 😉</li>
       </ol>
-      <div class="think">💭 <strong>Schon gewusst?</strong> Die meisten KI-Kameras schicken
-        deine Bilder an Rechenzentren irgendwo auf der Welt. Diese hier nicht.
-        Der Unterschied heißt <strong>„Edge AI“</strong> — und darum geht es heute.</div>
+      <div class="think" data-i18n="start.think">💭 <strong>Schon gewusst?</strong>
+        Die meisten KI-Kameras schicken deine Bilder an Rechenzentren irgendwo auf
+        der Welt. Diese hier nicht. Der Unterschied heißt <strong>„Edge AI“</strong>
+        — und darum geht es heute.</div>
     </section>
 
     <!-- ══════════ OBJEKT-DETEKTIV ══════════ -->
     <section class="station hidden" data-mode="detektiv" style="--accent:#4ea8ff">
-      <h2>🔍 Objekt-Detektiv</h2>
-      <p class="intro">Die KI sucht in jedem Bild nach <strong>80 Dingen</strong>,
-        die sie kennt: Menschen, Tassen, Bücher, Bananen… Halte etwas in die
-        Kamera — erkennt sie es?</p>
-      <p class="notice warn hidden" data-needs-ai>🐢 <strong>Demo-Modus:</strong>
-        Der KI-Chip fehlt gerade — es werden nur Gesichter als „Person"
-        erkannt. Frag die Moderation!</p>
+      <h2 data-i18n="det.h2">🔍 Objekt-Detektiv</h2>
+      <p class="intro" data-i18n="det.intro">Die KI sucht in jedem Bild nach
+        <strong>80 Dingen</strong>, die sie kennt: Menschen, Tassen, Bücher,
+        Bananen… Halte etwas in die Kamera — erkennt sie es?</p>
+      <p class="notice warn hidden" data-needs-ai data-i18n="ui.demoMode">🐢
+        <strong>Demo-Modus:</strong> Der KI-Chip fehlt gerade — es werden nur
+        Gesichter als „Person“ erkannt. Frag die Moderation!</p>
 
       <div class="control-row">
-        <label for="threshold">Wie sicher muss sich die KI sein?
-          <strong id="threshold-val">50&nbsp;%</strong></label>
+        <label for="threshold"><span data-i18n="det.thrLabel">Wie sicher muss sich
+          die KI sein?</span> <strong id="threshold-val">50&nbsp;%</strong></label>
         <input type="range" id="threshold" min="5" max="95" value="50">
-        <p class="hint">⬅️ Niedrig: Die KI rät mehr — auch Unsinn. &nbsp;
-          Hoch: Sie meldet nur, was sie sicher weiß — und übersieht dafür manches. ➡️<br>
-          Diesen Kompromiss müssen echte KI-Entwickler:innen ständig abwägen!</p>
+        <p class="hint" data-i18n="det.thrHint">⬅️ Niedrig: Die KI rät mehr — auch
+          Unsinn. &nbsp; Hoch: Sie meldet nur, was sie sicher weiß — und übersieht
+          dafür manches. ➡️<br>Diesen Kompromiss müssen echte KI-Entwickler:innen
+          ständig abwägen!</p>
       </div>
 
-      <h3>Gerade erkannt:</h3>
-      <ul id="detections" class="detections"><li class="muted">Noch nichts erkannt…</li></ul>
+      <h3 data-i18n="ui.nowDetected">Gerade erkannt:</h3>
+      <ul id="detections" class="detections"></ul>
 
       <details>
-        <summary>🔧 Wie funktioniert das?</summary>
-        <p>Ein <strong>neuronales Netz</strong> (YOLO) hat Millionen Beispielfotos
-          gesehen und dabei Muster gelernt: Kanten, Formen, Texturen. Es
-          <em>versteht</em> nicht, was eine Tasse ist — es erkennt Muster, die in
-          seinen Trainingsdaten „Tasse“ hießen. Die Berechnung läuft auf dem
-          <strong>Hailo-KI-Chip</strong> huckepack auf dem Raspberry&nbsp;Pi — viele
-          Milliarden Rechenschritte pro Sekunde.</p>
+        <summary data-i18n="ui.howSummary">🔧 Wie funktioniert das?</summary>
+        <p data-i18n="det.howBody">Ein <strong>neuronales Netz</strong> (YOLO) hat
+          Millionen Beispielfotos gesehen und dabei Muster gelernt: Kanten, Formen,
+          Texturen. Es <em>versteht</em> nicht, was eine Tasse ist — es erkennt
+          Muster, die in seinen Trainingsdaten „Tasse“ hießen. Die Berechnung läuft
+          auf dem <strong>Hailo-KI-Chip</strong> huckepack auf dem
+          Raspberry&nbsp;Pi — viele Milliarden Rechenschritte pro Sekunde.</p>
       </details>
       <details>
-        <summary>📋 Modellkarte (Steckbrief der KI)</summary>
-        <ul class="modelcard">
+        <summary data-i18n="det.cardSummary">📋 Modellkarte (Steckbrief der KI)</summary>
+        <ul class="modelcard" data-i18n="det.cardBody">
           <li><strong>Modell:</strong> YOLOv8 (Objekterkennung)</li>
           <li><strong>Trainiert mit:</strong> COCO — ca. 330.000 Fotos aus dem Internet</li>
           <li><strong>Kennt:</strong> genau 80 Alltagsobjekte, sonst nichts</li>
@@ -109,19 +126,19 @@
             Dinge, die in den Trainingsfotos kaum vorkamen</li>
         </ul>
       </details>
-      <div class="think">💭 <strong>Denk mal nach:</strong> Die KI kennt nur 80 Dinge —
-        wer hat eigentlich entschieden, <em>welche</em> 80? Was „sieht“ eine KI nie,
-        und wen könnte das benachteiligen?</div>
+      <div class="think" data-i18n="det.think">💭 <strong>Denk mal nach:</strong>
+        Die KI kennt nur 80 Dinge — wer hat eigentlich entschieden, <em>welche</em>
+        80? Was „sieht“ eine KI nie, und wen könnte das benachteiligen?</div>
     </section>
 
     <!-- ══════════ TRAINIERE DIE KI ══════════ -->
     <section class="station hidden" data-mode="trainer" style="--accent:#b57bff">
-      <h2>🧠 Trainiere die KI</h2>
-      <p class="intro">Jetzt bist <strong>du</strong> die KI-Trainerin bzw. der
-        KI-Trainer! Bring der Maschine in einer Minute bei, zwei Dinge zu
-        unterscheiden.</p>
+      <h2 data-i18n="trainer.h2">🧠 Trainiere die KI</h2>
+      <p class="intro" data-i18n="trainer.intro">Jetzt bist <strong>du</strong> die
+        KI-Trainerin bzw. der KI-Trainer! Bring der Maschine in einer Minute bei,
+        zwei Dinge zu unterscheiden.</p>
 
-      <ol class="steps">
+      <ol class="steps" data-i18n="trainer.steps">
         <li>Halte Gegenstand&nbsp;1 in den <strong>Rahmen</strong> im Bild und drücke
           mehrmals <em>Beispiel aufnehmen</em> — aus verschiedenen Winkeln!</li>
         <li>Dasselbe mit Gegenstand&nbsp;2 (Tipp: Namen antippen und umbenennen).</li>
@@ -130,122 +147,127 @@
 
       <div id="teach-slots" class="teach-slots"></div>
 
-      <div id="teach-prediction" class="prediction muted" aria-live="polite">Noch
-        nicht genug Beispiele — die KI braucht mindestens zwei Dinge mit je
-        5 Beispielen.</div>
+      <div id="teach-prediction" class="prediction muted" aria-live="polite"></div>
 
-      <button id="teach-reset" class="danger">🗑️ Alles vergessen lassen</button>
-      <p class="hint">Dein gutes Recht: In Europa kannst du verlangen, dass deine
-        Daten gelöscht werden („Recht auf Löschung“, DSGVO). Hier geht das per Knopfdruck.</p>
+      <button id="teach-reset" class="danger" data-i18n="trainer.reset">🗑️ Alles vergessen lassen</button>
+      <p class="hint" data-i18n="trainer.hint">Dein gutes Recht: In Europa kannst du
+        verlangen, dass deine Daten gelöscht werden („Recht auf Löschung“, DSGVO).
+        Hier geht das per Knopfdruck.</p>
 
       <details>
-        <summary>🔧 Wie funktioniert das?</summary>
-        <p>Aus jedem Beispiel berechnet der Computer ein <strong>Zahlen-Muster</strong>
-          (Helligkeitskanten, sog. HOG-Merkmale) — <em>kein Foto wird gespeichert!</em>
-          Beim Raten sucht die KI einfach: Welchen gespeicherten Mustern ist das
-          aktuelle Bild am ähnlichsten? Das nennt man
-          „k-Nächste-Nachbarn“ — maschinelles Lernen in seiner einfachsten Form.</p>
+        <summary data-i18n="ui.howSummary">🔧 Wie funktioniert das?</summary>
+        <p data-i18n="trainer.howBody">Aus jedem Beispiel berechnet der Computer ein
+          <strong>Zahlen-Muster</strong> (Helligkeitskanten, sog. HOG-Merkmale) —
+          <em>kein Foto wird gespeichert!</em> Beim Raten sucht die KI einfach:
+          Welchen gespeicherten Mustern ist das aktuelle Bild am ähnlichsten? Das
+          nennt man „k-Nächste-Nachbarn“ — maschinelles Lernen in seiner einfachsten
+          Form.</p>
       </details>
-      <div class="think">💭 <strong>Denk mal nach:</strong> Nimm alle Beispiele von
-        Ding&nbsp;1 nur vor hellem Hintergrund auf und Ding&nbsp;2 nur vor dunklem.
-        Was lernt die KI dann <em>wirklich</em>? Genau so entsteht
-        <strong>Bias</strong> — Verzerrung durch einseitige Trainingsdaten. Das
-        passiert auch großen KI-Firmen!</div>
+      <div class="think" data-i18n="trainer.think">💭 <strong>Denk mal nach:</strong>
+        Nimm alle Beispiele von Ding&nbsp;1 nur vor hellem Hintergrund auf und
+        Ding&nbsp;2 nur vor dunklem. Was lernt die KI dann <em>wirklich</em>? Genau
+        so entsteht <strong>Bias</strong> — Verzerrung durch einseitige
+        Trainingsdaten. Das passiert auch großen KI-Firmen!</div>
     </section>
 
     <!-- ══════════ PRIVATSPHÄRE-SCHILD ══════════ -->
     <section class="station hidden" data-mode="schild" style="--accent:#3ddc97">
-      <h2>🛡️ Privatsphäre-Schild</h2>
-      <p class="intro">Diese Kamera macht Gesichter unkenntlich, <strong>bevor</strong>
-        das Bild auf euren Bildschirmen landet. Das nennt man
-        <em>Anonymisierung an der Quelle</em>.</p>
+      <h2 data-i18n="schild.h2">🛡️ Privatsphäre-Schild</h2>
+      <p class="intro" data-i18n="schild.intro">Diese Kamera macht Gesichter
+        unkenntlich, <strong>bevor</strong> das Bild auf euren Bildschirmen landet.
+        Das nennt man <em>Anonymisierung an der Quelle</em>.</p>
 
-      <p class="notice error hidden" id="privacy-warn">⚠️ <strong>Achtung:</strong>
-        Die Gesichtserkennung ist auf diesem Gerät nicht verfügbar — es wird
-        gerade <em>nichts</em> unkenntlich gemacht. Bitte die Moderation
-        informieren!</p>
+      <p class="notice error hidden" id="privacy-warn" data-i18n="schild.warn">⚠️
+        <strong>Achtung:</strong> Die Gesichtserkennung ist auf diesem Gerät nicht
+        verfügbar — es wird gerade <em>nichts</em> unkenntlich gemacht. Bitte die
+        Moderation informieren!</p>
 
       <div class="control-row">
         <label class="switch-row">
           <input type="checkbox" id="privacy-on" checked>
-          <span>Schutz aktiv</span>
+          <span data-i18n="schild.on">Schutz aktiv</span>
         </label>
         <div class="segmented" id="privacy-style" role="group"
-             aria-label="Art der Unkenntlichmachung">
-          <button data-style="pixel" class="active" aria-pressed="true">🟦 Pixel</button>
-          <button data-style="blur" aria-pressed="false">🌫️ Weichzeichner</button>
-          <button data-style="smiley" aria-pressed="false">🙂 Smiley</button>
+             data-i18n-aria-label="schild.styleAria" aria-label="Art der Unkenntlichmachung">
+          <button data-style="pixel" class="active" aria-pressed="true" data-i18n="schild.pixel">🟦 Pixel</button>
+          <button data-style="blur" aria-pressed="false" data-i18n="schild.blur">🌫️ Weichzeichner</button>
+          <button data-style="smiley" aria-pressed="false" data-i18n="schild.smiley">🙂 Smiley</button>
         </div>
-        <p class="hint">Der gewählte Schutz gilt an <strong>allen</strong>
-          Stationen, nicht nur hier.</p>
+        <p class="hint" data-i18n="schild.hint">Der gewählte Schutz gilt an
+          <strong>allen</strong> Stationen, nicht nur hier.</p>
       </div>
 
       <div class="stat-cards">
-        <div class="stat"><span id="faces-now">0</span><label>Gesichter gerade geschützt</label></div>
-        <div class="stat"><span id="faces-events">0</span><label>Schutz-Momente heute</label></div>
-        <div class="stat"><span>0</span><label>Fotos gespeichert — heute und immer</label></div>
+        <div class="stat"><span id="faces-now">0</span><label data-i18n="schild.stat1">Gesichter gerade geschützt</label></div>
+        <div class="stat"><span id="faces-events">0</span><label data-i18n="schild.stat2">Schutz-Momente heute</label></div>
+        <div class="stat"><span>0</span><label data-i18n="schild.stat3">Fotos gespeichert — heute und immer</label></div>
       </div>
 
       <details>
-        <summary>🔧 Erkennen ≠ Wiedererkennen — der wichtige Unterschied</summary>
-        <p><strong>Gesichts-Erkennung</strong> sagt nur: „Da ist <em>ein</em> Gesicht.“<br>
-          <strong>Gesichts-Wiedererkennung</strong> sagt: „Das ist <em>Anna Müller</em>.“<br>
-          Diese Station macht nur Ersteres — und nutzt es sogar, um dich zu
-          <em>schützen</em>. Dieselbe Grundtechnik kann also überwachen <em>oder</em>
-          Privatsphäre wahren. Es kommt darauf an, wie man sie einsetzt.</p>
+        <summary data-i18n="schild.recSummary">🔧 Erkennen ≠ Wiedererkennen — der wichtige Unterschied</summary>
+        <p data-i18n="schild.recBody"><strong>Gesichts-Erkennung</strong> sagt nur:
+          „Da ist <em>ein</em> Gesicht.“<br><strong>Gesichts-Wiedererkennung</strong>
+          sagt: „Das ist <em>Anna Müller</em>.“<br>Diese Station macht nur Ersteres —
+          und nutzt es sogar, um dich zu <em>schützen</em>. Dieselbe Grundtechnik kann
+          also überwachen <em>oder</em> Privatsphäre wahren. Es kommt darauf an, wie
+          man sie einsetzt.</p>
       </details>
       <details>
-        <summary>⚠️ Ehrliche Warnung: Der Schutz ist nicht perfekt</summary>
-        <p>Dreh dein Gesicht zur Seite — der Schutz versagt! Der Gesichtsfinder
-          wurde vor allem mit frontalen Gesichtern trainiert. Auch das ist eine
-          Lektion: <strong>Verlass dich nie blind auf ein KI-Versprechen.</strong>
-          Frag immer: Wie gut funktioniert es wirklich, und für wen?</p>
+        <summary data-i18n="schild.limitSummary">⚠️ Ehrliche Warnung: Der Schutz ist nicht perfekt</summary>
+        <p data-i18n="schild.limitBody">Dreh dein Gesicht zur Seite — der Schutz
+          versagt! Der Gesichtsfinder wurde vor allem mit frontalen Gesichtern
+          trainiert. Auch das ist eine Lektion: <strong>Verlass dich nie blind auf
+          ein KI-Versprechen.</strong> Frag immer: Wie gut funktioniert es wirklich,
+          und für wen?</p>
       </details>
-      <div class="think">💭 <strong>Denk mal nach:</strong> Wo wäre so ein eingebauter
-        Schutz sinnvoll? Türklingel-Kameras? Kameras in der Schule? Und wer sollte
-        den Schutz an- oder ausschalten dürfen?</div>
+      <div class="think" data-i18n="schild.think">💭 <strong>Denk mal nach:</strong>
+        Wo wäre so ein eingebauter Schutz sinnvoll? Türklingel-Kameras? Kameras in
+        der Schule? Und wer sollte den Schutz an- oder ausschalten dürfen?</div>
     </section>
 
     <!-- ══════════ DIE DATENSPUR ══════════ -->
     <section class="station hidden" data-mode="spur" style="--accent:#ffb347">
-      <h2>🗺️ Die Datenspur</h2>
-      <p class="intro">Kleine Überraschung: Während ihr an den anderen Stationen
-        gespielt habt, hat diese Kamera <strong>nebenbei mitgezählt</strong>, wo im
-        Raum Bewegung war. Ohne ein einziges Foto zu speichern. Das Ergebnis siehst
-        du als Wärmekarte im Bild.</p>
+      <h2 data-i18n="spur.h2">🗺️ Die Datenspur</h2>
+      <p class="intro" data-i18n="spur.intro">Kleine Überraschung: Während ihr an den
+        anderen Stationen gespielt habt, hat diese Kamera <strong>nebenbei
+        mitgezählt</strong>, wo im Raum Bewegung war. Ohne ein einziges Foto zu
+        speichern. Das Ergebnis siehst du als Wärmekarte im Bild.</p>
 
       <div class="stat-cards">
-        <div class="stat"><span id="heatmap-since">0 Sek</span><label>wird hier schon gesammelt</label></div>
+        <div class="stat"><span id="heatmap-since">0</span><label data-i18n="spur.stat">wird hier schon gesammelt</label></div>
       </div>
-      <button id="heatmap-reset" class="danger">🧹 Datenspur löschen</button>
+      <button id="heatmap-reset" class="danger" data-i18n="spur.reset">🧹 Datenspur löschen</button>
 
       <details>
-        <summary>🔧 Wie funktioniert das?</summary>
-        <p>Ganz ohne „schlaue“ KI: Der Computer vergleicht einfach jedes Bild mit
-          dem vorherigen und merkt sich, <em>wo</em> sich etwas verändert hat.
-          Solche Nebendaten heißen <strong>Metadaten</strong> — Daten <em>über</em>
-          dein Verhalten statt Bilder <em>von</em> dir.</p>
+        <summary data-i18n="ui.howSummary">🔧 Wie funktioniert das?</summary>
+        <p data-i18n="spur.howBody">Ganz ohne „schlaue“ KI: Der Computer vergleicht
+          einfach jedes Bild mit dem vorherigen und merkt sich, <em>wo</em> sich etwas
+          verändert hat. Solche Nebendaten heißen <strong>Metadaten</strong> — Daten
+          <em>über</em> dein Verhalten statt Bilder <em>von</em> dir.</p>
       </details>
-      <div class="think">💭 <strong>Denk mal nach:</strong> Was verrät die Karte über
-        diesen Raum — die beliebteste Ecke? Laufwege? Jetzt stell dir das über
-        Wochen vor, in einem Supermarkt oder auf einem Schulhof. Auch
-        <em>ohne</em> dein Gesicht verrät dein Verhalten eine Menge über dich.
+      <div class="think" data-i18n="spur.think">💭 <strong>Denk mal nach:</strong> Was
+        verrät die Karte über diesen Raum — die beliebteste Ecke? Laufwege? Jetzt
+        stell dir das über Wochen vor, in einem Supermarkt oder auf einem Schulhof.
+        Auch <em>ohne</em> dein Gesicht verrät dein Verhalten eine Menge über dich.
         Deshalb gilt beim Datenschutz: <strong>Was nicht gesammelt wird, kann nicht
         missbraucht werden.</strong></div>
     </section>
 
     <!-- ══════════ TÄUSCHE DIE KI ══════════ -->
     <section class="station hidden" data-mode="trick" style="--accent:#ff5d8f">
-      <h2>🎭 Täusche die KI</h2>
-      <p class="intro">KI wirkt schlau — bis man ihre Grenzen findet. Genau das ist
-        jetzt deine Aufgabe. Schaffst du eine dieser Challenges?</p>
-      <p class="notice warn hidden" data-needs-ai>🐢 <strong>Demo-Modus:</strong>
-        Der KI-Chip fehlt gerade — es werden nur Gesichter als „Person"
-        erkannt. Frag die Moderation!</p>
-      <p class="hint">Angezeigt wird ab <strong id="threshold-trick">50&nbsp;%</strong>
-        Sicherheit — den Regler dafür findest du beim 🔍 Objekt-Detektiv.</p>
+      <h2 data-i18n="trick.h2">🎭 Täusche die KI</h2>
+      <p class="intro" data-i18n="trick.intro">KI wirkt schlau — bis man ihre Grenzen
+        findet. Genau das ist jetzt deine Aufgabe. Schaffst du eine dieser
+        Challenges?</p>
+      <p class="notice warn hidden" data-needs-ai data-i18n="ui.demoMode">🐢
+        <strong>Demo-Modus:</strong> Der KI-Chip fehlt gerade — es werden nur
+        Gesichter als „Person“ erkannt. Frag die Moderation!</p>
+      <p class="hint"><span data-i18n="trick.hint1">Angezeigt wird ab</span>
+        <strong id="threshold-trick">50&nbsp;%</strong>
+        <span data-i18n="trick.hint2">Sicherheit — den Regler dafür findest du beim
+        🔍 Objekt-Detektiv.</span></p>
 
-      <ul class="challenges">
+      <ul class="challenges" data-i18n="trick.challenges">
         <li>🥷 <strong>Unsichtbar:</strong> Bleib im Bild, aber sorge dafür, dass die KI
           dich <em>nicht</em> als Person erkennt. (Verstecken gilt nicht — sei kreativ!)</li>
         <li>🎩 <strong>Verwechslung:</strong> Bring die KI dazu, ein Ding für etwas
@@ -256,71 +278,74 @@
           nicht da ist. (Tipp: Bilder auf Handys oder T-Shirts…)</li>
       </ul>
 
-      <h3>Gerade erkannt:</h3>
-      <ul id="detections-trick" class="detections"><li class="muted">Noch nichts erkannt…</li></ul>
+      <h3 data-i18n="ui.nowDetected">Gerade erkannt:</h3>
+      <ul id="detections-trick" class="detections"></ul>
 
       <details>
-        <summary>🔧 Warum lässt sich KI täuschen?</summary>
-        <p>Die KI hat nie gelernt, was ein Mensch <em>ist</em> — nur, wie Menschen
-          auf ihren Trainingsfotos <em>aussahen</em>. Alles, was davon abweicht
-          (seltsame Posen, Verkleidungen, Bilder im Bild), bringt sie durcheinander.
-          Forschende nennen gezielte Täuschungen
-          <strong>„Adversarial Attacks“</strong> — schon ein bedruckter Aufkleber
-          kann manche KI austricksen.</p>
+        <summary data-i18n="trick.howSummary">🔧 Warum lässt sich KI täuschen?</summary>
+        <p data-i18n="trick.howBody">Die KI hat nie gelernt, was ein Mensch
+          <em>ist</em> — nur, wie Menschen auf ihren Trainingsfotos <em>aussahen</em>.
+          Alles, was davon abweicht (seltsame Posen, Verkleidungen, Bilder im Bild),
+          bringt sie durcheinander. Forschende nennen gezielte Täuschungen
+          <strong>„Adversarial Attacks“</strong> — schon ein bedruckter Aufkleber kann
+          manche KI austricksen.</p>
       </details>
-      <div class="think">💭 <strong>Denk mal nach:</strong> Wenn ein T-Shirt-Aufdruck
-        eine KI verwirren kann — wie viel Verantwortung darf man dann einer KI
-        allein überlassen? Beim Auto? Bei der Polizei? Im Bewerbungsgespräch?</div>
+      <div class="think" data-i18n="trick.think">💭 <strong>Denk mal nach:</strong>
+        Wenn ein T-Shirt-Aufdruck eine KI verwirren kann — wie viel Verantwortung darf
+        man dann einer KI allein überlassen? Beim Auto? Bei der Polizei? Im
+        Bewerbungsgespräch?</div>
     </section>
 
     <!-- ══════════ SKELETT-SPIEGEL ══════════ -->
     <section class="station hidden" data-mode="pose" style="--accent:#2dd4bf">
-      <h2>🤸 Skelett-Spiegel</h2>
-      <p class="intro">Die KI verwandelt dich in ein Strichmännchen: Sie schätzt
-        <strong>17 Körperpunkte</strong> — Schultern, Ellbogen, Knie… Stell dich
-        vor die Kamera und beweg dich!</p>
+      <h2 data-i18n="pose.h2">🤸 Skelett-Spiegel</h2>
+      <p class="intro" data-i18n="pose.intro">Die KI verwandelt dich in ein
+        Strichmännchen: Sie schätzt <strong>17 Körperpunkte</strong> — Schultern,
+        Ellbogen, Knie… Stell dich vor die Kamera und beweg dich!</p>
 
-      <div id="pose-unavailable" class="prediction muted hidden">Das Pose-Modell
-        ist auf diesem Gerät nicht verfügbar — diese Station braucht den KI-Chip.</div>
+      <div id="pose-unavailable" class="prediction muted hidden" data-i18n="pose.unavailable">Das
+        Pose-Modell ist auf diesem Gerät nicht verfügbar — diese Station braucht den
+        KI-Chip.</div>
 
       <div id="pose-content">
         <div class="challenge-card">
-          <div class="challenge-head">Posen-Parcours · Aufgabe
+          <div class="challenge-head"><span data-i18n="pose.head">Posen-Parcours · Aufgabe</span>
             <span id="pose-ch-idx">1</span>/<span id="pose-ch-total">4</span></div>
           <div class="challenge-task" aria-live="polite"><span id="pose-ch-emoji" aria-hidden="true">👋</span>
             <strong id="pose-ch-text">…</strong></div>
           <div class="holdbar" id="pose-holdbar" role="progressbar"
-               aria-label="Pose gehalten" aria-valuemin="0" aria-valuemax="100"
+               data-i18n-aria-label="pose.holdAria" aria-label="Pose gehalten"
+               aria-valuemin="0" aria-valuemax="100"
                aria-valuenow="0"><i id="pose-progress"></i></div>
-          <div class="challenge-foot">Halte die Pose kurz still!
-            Geschafft bisher: <strong id="pose-done">0</strong></div>
+          <div class="challenge-foot"><span data-i18n="pose.foot">Halte die Pose kurz
+            still! Geschafft bisher:</span> <strong id="pose-done">0</strong></div>
         </div>
 
         <label class="switch-row" style="margin-top:10px">
           <input type="checkbox" id="pose-ghost">
-          <span>👻 Geist-Modus: nur Skelette, kein Kamerabild</span>
+          <span data-i18n="pose.ghost">👻 Geist-Modus: nur Skelette, kein Kamerabild</span>
         </label>
-        <p class="hint">Fällt dir was auf? Auch <em>ohne</em> Video sieht man
-          genau, wer sich wie bewegt. Genau so funktionieren Spielkonsolen-Kameras
-          und Sturz-Sensoren in Pflegeheimen.</p>
+        <p class="hint" data-i18n="pose.hint">Fällt dir was auf? Auch <em>ohne</em>
+          Video sieht man genau, wer sich wie bewegt. Genau so funktionieren
+          Spielkonsolen-Kameras und Sturz-Sensoren in Pflegeheimen.</p>
 
         <div class="stat-cards">
-          <div class="stat"><span id="pose-persons">0</span><label>Skelette gerade im Bild</label></div>
+          <div class="stat"><span id="pose-persons">0</span><label data-i18n="pose.stat">Skelette gerade im Bild</label></div>
         </div>
       </div>
 
       <details>
-        <summary>🔧 Wie funktioniert das?</summary>
-        <p>Ein neuronales Netz (YOLOv8-Pose) wurde mit Fotos trainiert, auf denen
-          Menschen Punkt für Punkt markiert wurden. Es schätzt für jede Person
-          17 Gelenkpunkte samt Unsicherheit — bei dir gerade zig Mal pro Sekunde,
-          direkt auf dem KI-Chip. Aus den Punkten prüft ein simples Stück
+        <summary data-i18n="ui.howSummary">🔧 Wie funktioniert das?</summary>
+        <p data-i18n="pose.howBody">Ein neuronales Netz (YOLOv8-Pose) wurde mit Fotos
+          trainiert, auf denen Menschen Punkt für Punkt markiert wurden. Es schätzt
+          für jede Person 17 Gelenkpunkte samt Unsicherheit — bei dir gerade zig Mal
+          pro Sekunde, direkt auf dem KI-Chip. Aus den Punkten prüft ein simples Stück
           Mathematik, ob deine Handgelenke über der Nase sind. Kein Hexenwerk!</p>
       </details>
-      <div class="think">💭 <strong>Denk mal nach:</strong> Im Geist-Modus wird
-        kein Bild von dir gezeigt — trotzdem könnte man dich beobachten: wie
-        schnell du gehst, wie oft du zappelst, sogar dein Gang ist so einzigartig
-        wie ein Fingerabdruck. Sind „nur Skelett-Daten" wirklich harmlos?
+      <div class="think" data-i18n="pose.think">💭 <strong>Denk mal nach:</strong> Im
+        Geist-Modus wird kein Bild von dir gezeigt — trotzdem könnte man dich
+        beobachten: wie schnell du gehst, wie oft du zappelst, sogar dein Gang ist so
+        einzigartig wie ein Fingerabdruck. Sind „nur Skelett-Daten“ wirklich harmlos?
         Wer sollte sie bekommen dürfen — Ärztin? Versicherung? Chef?</div>
     </section>
 
@@ -329,24 +354,26 @@
 
 <footer>
   <div class="stats">
-    <span id="stat-ai" class="chip">⏳ KI-Chip…</span>
+    <span id="stat-ai" class="chip">⏳ …</span>
     <span id="stat-fps" class="chip">– fps</span>
     <span id="stat-clients" class="chip">👀 –</span>
     <span id="stat-source" class="chip">📷 –</span>
-    <span id="stat-lock" class="chip hidden">🔒 Stationen gesperrt</span>
+    <span id="stat-lock" class="chip hidden"></span>
   </div>
   <div class="foot-links">
-    <span>Raspberry&nbsp;Pi&nbsp;5 + AI&nbsp;HAT · Open&nbsp;Source · läuft ohne Internet</span>
-    <a href="#" id="admin-link">Moderator:in</a>
+    <span data-i18n="foot.info">Raspberry&nbsp;Pi&nbsp;5 + AI&nbsp;HAT ·
+      Open&nbsp;Source · läuft ohne Internet</span>
+    <a href="#" id="admin-link" data-i18n="foot.admin">Moderator:in</a>
   </div>
   <div id="admin-bar" class="admin-bar hidden">
-    <button id="admin-lock">🔒 Stationen sperren</button>
-    <button id="admin-reset" class="danger">♻️ Alles zurücksetzen</button>
+    <button id="admin-lock"></button>
+    <button id="admin-reset" class="danger" data-i18n="foot.resetAll">♻️ Alles zurücksetzen</button>
   </div>
 </footer>
 
-<div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
 
+<script src="/static/i18n.js"></script>
 <script src="/static/app.js"></script>
 </body>
 </html>

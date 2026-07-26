@@ -189,8 +189,11 @@ class Pipeline:
             elif mode == "pose":
                 frame = self._pose_frame(frame)
             elif mode == "start":
+                # the video frame is shared by every viewer → bilingual
                 cv2.putText(frame, "Willkommen! Waehle eine Station.",
-                            (14, 30), FONT, 0.7, (255, 255, 255), 2, cv2.LINE_AA)
+                            (14, 30), FONT, 0.65, (255, 255, 255), 2, cv2.LINE_AA)
+                cv2.putText(frame, "Welcome! Pick a station.",
+                            (14, 58), FONT, 0.55, (200, 200, 200), 1, cv2.LINE_AA)
 
             # Face shield: global best-effort anonymisation in every mode.
             # Only skipped in *working* ghost mode, where the frame is fully
@@ -301,9 +304,9 @@ class Pipeline:
 
         self._pose_challenge(persons)
         if time.time() < self._ch_flash_until:
-            text = "GESCHAFFT!"
-            (tw, _), _ = cv2.getTextSize(text, FONT, 1.3, 3)
-            cv2.putText(frame, text, ((w - tw) // 2, h // 2), FONT, 1.3,
+            text = "GESCHAFFT! - DONE!"   # shared frame → bilingual
+            (tw, _), _ = cv2.getTextSize(text, FONT, 1.2, 3)
+            cv2.putText(frame, text, ((w - tw) // 2, h // 2), FONT, 1.2,
                         (90, 255, 120), 3, cv2.LINE_AA)
         return frame
 
@@ -334,8 +337,10 @@ class Pipeline:
         for class_id, conf, _ in sorted(detections, key=lambda d: -d[1])[:8]:
             if conf < self.threshold:
                 continue
-            _, name_de, emoji = class_info(class_id)
-            panel.append({"emoji": emoji, "name": name_de, "pct": int(conf * 100)})
+            name_en, name_de, emoji = class_info(class_id)
+            panel.append({"emoji": emoji, "name": name_de,
+                          "name_en": name_en.capitalize(),
+                          "pct": int(conf * 100)})
 
         prediction = getattr(self, "_last_prediction", None)
         teach_pred = None

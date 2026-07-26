@@ -51,6 +51,28 @@ header {
   background: var(--border);
 }
 h1 { font-size: 1.1rem; letter-spacing: 0.4px; line-height: 1.1; }
+.head-right { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.langswitch {
+  display: flex;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.langswitch button {
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  font: inherit;
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  padding: 6px 10px;
+  cursor: pointer;
+}
+.langswitch button.active {
+  background: var(--accent);
+  color: #0b0f14;
+}
 .privacy-badge {
   background: linear-gradient(135deg, rgba(61, 220, 151, 0.18), rgba(78, 168, 255, 0.14));
   border: 1px solid rgba(61, 220, 151, 0.45);
@@ -507,6 +529,7 @@ body.locked #tiles .tile:not(.active) {
 
   .tile { padding: 9px 14px; min-height: 44px; font-size: 1.05rem; }
   .tile span { font-size: 0.85rem; }
+  .langswitch button { min-height: 40px; padding: 8px 13px; font-size: 0.8rem; }
 
   .station { padding: 15px; gap: 12px; }
   h2 { font-size: 1.15rem; }

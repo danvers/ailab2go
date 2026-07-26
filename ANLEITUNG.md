@@ -5,6 +5,8 @@ Ausstellung — und hilft, wenn etwas klemmt. Für die inhaltliche
 Moderation (Stationen, Lernziele, Diskussion) siehe
 [workshop/leitfaden.md](workshop/leitfaden.md).
 
+> 🇬🇧 English version: [MANUAL.md](MANUAL.md)
+
 ---
 
 ## 1 · Was du brauchst

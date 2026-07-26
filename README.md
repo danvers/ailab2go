@@ -32,8 +32,8 @@ runs in CPU demo mode, so the exhibit never shows a blank screen.
 - Camera Module 3 (recommended; autofocus is handled) — or any USB webcam
 - microSD ≥ 16 GB, a small tripod/mount, ideally a case with HAT clearance
 
-> 🇩🇪 **Schritt-für-Schritt-Anleitung** (Aufbau, Betrieb,
-> Fehlerbehebung): [ANLEITUNG.md](ANLEITUNG.md)
+> Step-by-step guide (assembly, operation, troubleshooting):
+> 🇬🇧 [MANUAL.md](MANUAL.md) · 🇩🇪 [ANLEITUNG.md](ANLEITUNG.md)
 
 ## Install (on the Pi)
 
@@ -121,8 +121,15 @@ app/camera.py      frame sources: Pi camera / USB webcam / synthetic test patter
 app/vision.py      Hailo YOLO detection, face guard, motion heatmap, teachable kNN
 app/stations.py    the pipeline: one camera thread → overlays → JPEG + state dict
 app/webserver.py   Flask: MJPEG stream (/stream.mjpg) + JSON API (/api/*)
-app/templates+static  the German single-page UI (offline, no CDNs)
+app/templates+static  the bilingual single-page UI (offline, no CDNs)
 ```
+
+The UI is bilingual: German is the default in the markup (works without
+JS), English lives in `app/static/i18n.js`; a DE/EN toggle in the header
+switches per device (localStorage). To edit copy: change the German in
+`index.html` and its English twin under the same `data-i18n` key in
+`i18n.js`. Never place an element with an `id` inside a `data-i18n` block —
+the language swap replaces that block's HTML wholesale.
 
 One processing thread serves every viewer the same stream — visitors control
 the stations *together* (that's a feature: shared experience, and a moderator
@@ -138,5 +145,6 @@ counter. There is nothing *to* leak.
   via `--hef` or `HEF_CANDIDATES`
 - Add a station: one mode in `app/stations.py`, one `<section>` in
   `index.html` — the tile/panel wiring is generic
-- Translate: all student-facing strings live in `index.html`, `app.js` and
-  the overlay texts in `stations.py`
+- Add a language: extend the dictionaries in `app/static/i18n.js` and add a
+  button to the `.langswitch` group in `index.html`; video-overlay texts
+  (shared by all viewers) live in `stations.py`
