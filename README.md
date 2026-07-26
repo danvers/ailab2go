@@ -13,12 +13,12 @@ into every station.
 
 | Station | What visitors do | What they learn |
 |---|---|---|
-| 🔍 **Object-Detective** | Live YOLO object detection with a confidence slider | Models pattern-match, they don't "understand"; the precision/recall trade-off |
-| 🧠 **Train the AI** | Train a classifier on any two objects in ~1 minute | Learning from examples, bias from one-sided data, right to erasure (one-click delete) |
-| 🛡️ **Privacy-Shield** | Faces get pixelated/blurred *at the source*; toggle it, break it | Detection ≠ recognition; tech can protect privacy; no shield is perfect |
-| 🗺️ **The Data Trail** | Reveal a motion heatmap collected *while they played* | Metadata: behaviour profiles without a single photo |
-| 🎭 **Fool the AI** | Four challenges to fool the detector | AI limits, adversarial thinking, healthy scepticism |
-| 🤸 **Skeleton Mirror** | Live pose estimation, a pose-challenge parcours, and a "ghost mode" showing skeletons without video | Body data is data: tracking works without images (gait, behaviour) |
+| **Object-Detective** | Live YOLO object detection with a confidence slider | Models pattern-match, they don't "understand"; the precision/recall trade-off |
+| **Train the AI** | Train a classifier on any two objects in ~1 minute | Learning from examples, bias from one-sided data, right to erasure (one-click delete) |
+| **Privacy-Shield** | Faces get pixelated/blurred *at the source*; toggle it, break it | Detection ≠ recognition; tech can protect privacy; no shield is perfect |
+| **The Data Trail** | Reveal a motion heatmap collected *while they played* | Metadata: behaviour profiles without a single photo |
+| **Fool the AI** | Four challenges to fool the detector | AI limits, adversarial thinking, healthy scepticism |
+| **Skeleton Mirror** | Live pose estimation, a pose-challenge parcours, and a "ghost mode" showing skeletons without video | Body data is data: tracking works without images (gait, behaviour) |
 
 <table>
   <tr>
