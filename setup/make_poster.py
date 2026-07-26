@@ -178,8 +178,10 @@ def build(s: dict) -> str:
               box-shadow: inset 0 -1.1mm 0 rgba(255,214,102,.85); }}
 
   /* ── QR steps ───────────────────────────────────────────────────── */
+  /* margin-top clears the badges, which stick 4.4mm above the cards and
+     would otherwise crowd the hook line that `space-between` sits above */
   .steps {{ display: flex; gap: 7mm; align-items: stretch;
-            justify-content: center; }}
+            justify-content: center; margin-top: 7mm; }}
   .step {{
     flex: 1 1 0; max-width: 76mm;
     background: #fff; border: 0.6mm solid #141a33; border-radius: 6mm;
