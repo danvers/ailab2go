@@ -94,6 +94,22 @@ bash setup/deploy.sh              # or: bash setup/deploy.sh dan@10.42.0.1
 Syncs the project, installs it to `/opt/ki-werkstatt`, restarts the service
 and prints the startup status lines (camera, AI chip, pose model, face guard).
 
+## Authoring tools (posters, cards, images)
+
+These run on your laptop, never on the Pi. Homebrew and Debian Python refuse
+`pip install` into the system (PEP 668), so one helper sets up a local venv
+(`.venv-tools`, git-ignored) and runs the generators:
+
+```bash
+bash setup/tools.sh              # posters + card deck + station images
+bash setup/tools.sh poster       # or just one of them: poster | cards | stations
+```
+
+Dependencies live in [dev/requirements-tools.txt](dev/requirements-tools.txt)
+(qrcode, pillow). Running a generator with a plain `python3` works too — as
+long as those two packages are importable; otherwise each script prints the
+exact commands to fix it.
+
 ## Station advertising cards
 
 [assets/stations/](assets/stations/) holds ready-made promo images
@@ -160,16 +176,21 @@ Moderator functions (lock stations, reset everything) are behind the
 - [workshop/diskussionskarten-privatsphaere.md](workshop/diskussionskarten-privatsphaere.md)
   — discussion cards for the closing round
 
-Both card sets are also available as a **printable A5 postcard deck** —
-front: icon + glitch-styled title + both logos, back: the text:
+Both card sets are also available as a printable **DIN A6 postcard deck
+(148 × 105 mm) in German and English** — front: icon + glitch-styled title +
+both logos, back: the text:
 
 ```bash
-python3 setup/make_cards.py     # → setup/cards_de.html (12 cards, 24 A5 pages)
+bash setup/tools.sh cards              # → setup/cards_de.html + cards_en.html
+bash setup/tools.sh cards --editable   # + editable PowerPoint decks
 ```
 
-Print double-sided on A5 and **flip on the short edge** (landscape pages
-come out upside down with the usual long-edge setting). On A4, choose
-"2 pages per sheet" and cut in the middle.
+Print double-sided on A6 and **flip on the short edge** (landscape pages come
+out upside down with the usual long-edge setting); on A4 use "4 pages per
+sheet" and cut twice. The `--editable` run writes
+[assets/cards/editable/](assets/cards/editable/): `cards_de.pptx` /
+`cards_en.pptx` with 24 A6 slides each — every text a real text box — plus the
+front backgrounds as 300 dpi PNGs for Photoshop.
 
 ## Architecture
 

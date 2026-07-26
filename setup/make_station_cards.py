@@ -23,7 +23,17 @@ import random
 import sys
 from pathlib import Path
 
-from PIL import Image, ImageDraw, ImageFilter, ImageFont
+try:
+    from PIL import Image, ImageDraw, ImageFilter, ImageFont
+except ImportError:
+    sys.exit(
+        "Missing dependency: pillow\n\n"
+        "Easiest fix — the helper sets up a local venv and runs this for you:\n"
+        "    bash setup/tools.sh stations        # add --editable for layer exports\n\n"
+        "Or by hand (system Python refuses pip installs, PEP 668):\n"
+        "    python3 -m venv .venv-tools\n"
+        "    .venv-tools/bin/pip install -r dev/requirements-tools.txt\n"
+        "    .venv-tools/bin/python3 setup/make_station_cards.py")
 
 ROOT = Path(__file__).parent.parent
 OUT = ROOT / "assets" / "stations"

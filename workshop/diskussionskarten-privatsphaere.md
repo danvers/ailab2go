@@ -4,10 +4,13 @@ Für die Abschlussrunde: Kleingruppen ziehen je eine Karte. 5 Minuten
 diskutieren, dann ein 1-Satz-Fazit vorstellen. Es gibt keine „richtigen"
 Antworten — es gibt gute Begründungen.
 
-> 🖨️ **Als A5-Postkarten drucken:** `python3 setup/make_cards.py` erzeugt
-> `setup/cards_de.html` — alle Stations- und Diskussionskarten im
-> A5-Querformat, vorne das Motiv mit Glitch-Look und beiden Logos, hinten
-> dieser Text. Doppelseitig drucken, **an der kurzen Seite spiegeln**.
+> 🖨️ **Als A6-Postkarten drucken (DE + EN):**
+> `bash setup/tools.sh cards` erzeugt `setup/cards_de.html` und
+> `setup/cards_en.html` — DIN A6 quer (148 × 105 mm), vorne das Motiv mit
+> Glitch-Look und beiden Logos, hinten dieser Text. Doppelseitig drucken,
+> **an der kurzen Seite spiegeln**.
+> Editierbar (PowerPoint, 300-dpi-Hintergründe):
+> `bash setup/tools.sh cards --editable` → `assets/cards/editable/`
 
 
 ---

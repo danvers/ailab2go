@@ -1,6 +1,7 @@
 __pycache__/
 *.pyc
 .venv/
+.venv-tools/
 setup/poster_*.html
 setup/cards_*.html
 .DS_Store

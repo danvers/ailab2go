@@ -3,7 +3,7 @@
 
     python3 setup/make_poster.py
     → setup/poster_de.html   (title: KI-Werkstatt)
-    → setup/poster_en.html   (title: AI-Lab2Go)
+    → setup/poster_en.html   (title: AI-Lab2go)
 
 Open in a browser and print on A4. Keep SSID/PASSWORD in sync with
 setup/hotspot.sh — the QR code encodes them, so a mismatch means visitors
@@ -28,7 +28,16 @@ URL = "http://10.42.0.1"
 try:
     import qrcode
 except ImportError:
-    sys.exit("Missing dependency: sudo apt install python3-qrcode python3-pil")
+    sys.exit(
+        "Missing dependency: qrcode\n\n"
+        "Easiest fix — the helper sets up a local venv and runs this for you:\n"
+        "    bash setup/tools.sh poster\n\n"
+        "Or by hand (Homebrew/Debian Python refuse installing into the system,\n"
+        "PEP 668, so use a venv):\n"
+        "    python3 -m venv .venv-tools\n"
+        "    .venv-tools/bin/pip install -r dev/requirements-tools.txt\n"
+        "    .venv-tools/bin/python3 setup/make_poster.py\n\n"
+        "On Raspberry Pi OS: sudo apt install python3-qrcode python3-pil")
 
 
 def qr_data_uri(payload: str) -> str:
@@ -85,11 +94,11 @@ STRINGS = {
                    "Cloud, kein Internet, keine gespeicherten Fotos — und alles, "
                    "was du der KI beibringst, kannst du selbst wieder löschen.",
         "footer": "Raspberry Pi 5 + KI-Chip · Open Source (MIT) · Fragen? "
-                  "Sprich uns an!<br>© Dan Verständig · aiwarenesslab.io",
+                  "Sprich uns an!<br>medienbildung.team · aiwarenesslab.io",
     },
     "en": {
         "lang": "en",
-        "title": "AI-Lab2Go",
+        "title": "AI-Lab2go",
         "hook": "Train a real AI, trick it —<br>and find out "
                 "<em>what cameras really know about you</em>.",
         "badge1": "1️⃣ &nbsp;Join the Wi-Fi",
@@ -114,7 +123,7 @@ STRINGS = {
                    "cloud, no internet, no stored photos — and everything you "
                    "teach the AI, you can delete yourself.",
         "footer": "Raspberry Pi 5 + AI chip · open source (MIT) · Questions? "
-                  "Just ask us!<br>© Dan Verständig · aiwarenesslab.io",
+                  "Just ask us!<br>medienbildung.team · aiwarenesslab.io",
     },
 }
 
@@ -163,7 +172,7 @@ def build(s: dict) -> str:
             -webkit-background-clip: text; background-clip: text;
             color: transparent; }}
 
-  .hook {{ text-align: center; font-size: 5mm; line-height: 1.5;
+  .hook {{ text-align: center; font-size: 4mm; line-height: 1.5;
            font-weight: 600; max-width: 155mm; margin: 0 auto; }}
   .hook em {{ font-style: normal;
               box-shadow: inset 0 -1.1mm 0 rgba(255,214,102,.85); }}

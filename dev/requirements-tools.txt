@@ -1,0 +1,6 @@
+# Authoring tools (poster, station cards, card deck) — run on your laptop,
+# never on the Pi. Install into a local venv:
+#   bash setup/tools.sh            (creates .venv-tools and installs these)
+qrcode>=7.4
+pillow>=10.0
+python-pptx>=1.0

@@ -1,0 +1,112 @@
+{
+  "stations": [
+    {
+      "no": 1,
+      "title": "Object Detective",
+      "tag": "What does the AI see?",
+      "steps": [
+        "Hold things from the box up to the camera. Which ones does the AI recognise, which ones not?",
+        "Push the “How sure does the AI have to be?” slider all the way to the left. What nonsense suddenly pops up?",
+        "Push it all the way to the right. What does the AI miss now?"
+      ],
+      "rally": "Find an object the AI recognises with over 80% — and one it ignores completely.",
+      "think": "The AI knows exactly 80 things. Who decided that — and what does it mean for everything it doesn’t know?"
+    },
+    {
+      "no": 2,
+      "title": "Train the AI",
+      "tag": "You are the coach",
+      "steps": [
+        "Pick two objects. Give them real names on the screen (tap the name).",
+        "Capture 8–10 examples of each — from different angles and distances!",
+        "Test it: does the AI recognise both reliably?"
+      ],
+      "rally": "<em>The bias experiment:</em> train it badly on purpose — capture one thing only from the front, the other only from the back. Then turn both around. What happens, and what is this problem called in real AIs?",
+      "think": "Here you can delete all the data at the push of a button. Where on the internet would you like that too?"
+    },
+    {
+      "no": 3,
+      "title": "Privacy Shield",
+      "tag": "Protection built in",
+      "steps": [
+        "Look into the camera — your face is made unrecognisable straight away.",
+        "Try all three shield styles. Switch the shield off for a moment: how does the difference feel?",
+        "Test the limits: turn your head, hand over half your face, sunglasses…"
+      ],
+      "rally": "Find two ways the shield fails. Write it down: why is that a problem for a “protection promise”?",
+      "think": "Detection (“there is a face”) is not recognition (“that is Ali from class 8B”). Why does this difference matter so much?"
+    },
+    {
+      "no": 4,
+      "title": "The Data Trail",
+      "tag": "What cameras collect",
+      "steps": [
+        "Open the station and look at the heat map. This data was collected on the side while you were playing!",
+        "Walk a particular route as a group — can you see your trail appear?",
+        "Press “Erase the data trail”. Who should have that button in real life?"
+      ],
+      "rally": "Name three things you could read off a map like this about a room and its people — with no faces at all.",
+      "think": "“I’ve got nothing to hide” — does that hold for your walking routes, your habits, your favourite corner too?"
+    },
+    {
+      "no": 5,
+      "title": "Fool the AI",
+      "tag": "Find its limits",
+      "steps": [
+        "The four challenges are on the screen: Invisible 🥷 · Mix-up 🎩 · Bullseye 💯 · Ghosts 👻"
+      ],
+      "rally": "Crack at least two challenges and note down <em>how</em> — your trick is the insight!",
+      "think": "You outsmarted an AI in a few minutes. What does that mean for places where AIs decide on their own — border control, job applications, self-driving cars?"
+    },
+    {
+      "no": 6,
+      "title": "Skeleton Mirror",
+      "tag": "Play without pictures",
+      "steps": [
+        "Stand in front of the camera — you turn into a stick figure with 17 points.",
+        "Play the pose course: who can do all four poses fastest?",
+        "Switch on <strong>Ghost mode</strong>: no more video, just skeletons. Can you still tell who is who?"
+      ],
+      "rally": "In ghost mode, find three things you can work out about a person even though you never see their face.",
+      "think": "Games consoles, fall sensors in care homes, pool cameras that spot someone drowning — all skeleton tracking. When is it care, when is it surveillance? And who decides that?"
+    }
+  ],
+  "discussion": [
+    {
+      "no": 1,
+      "title": "The smart doorbell",
+      "scenario": "The Yilmaz family has a camera doorbell. It automatically films the pavement too — so all the neighbours, the postal worker, kids playing. The recordings end up on the manufacturer’s servers in the USA.",
+      "ask": "Whose privacy counts here? What would you change if you got to <em>build</em> the doorbell? (Tip: today you saw a camera that makes faces unrecognisable <em>before</em> anything is stored…)"
+    },
+    {
+      "no": 2,
+      "title": "The stadium",
+      "scenario": "A football stadium wants face recognition at the entrance: known violent offenders are to be spotted automatically. To do that, <em>every</em> face of all 50,000 visitors is scanned and compared against a database.",
+      "ask": "49,990 uninvolved people get scanned to find 10 — fair or not? And what if the AI gets it wrong (you know by now that it does)?"
+    },
+    {
+      "no": 3,
+      "title": "The school camera",
+      "scenario": "Your school is thinking about putting up AI cameras that are supposed to report “suspicious behaviour” — scuffles, vandalism. Supposedly nothing is stored, only an alarm is sent.",
+      "ask": "Would you feel safer — or watched? Does a camera change how you behave, even if it “stores nothing”? (Think back to The Data Trail station!)"
+    },
+    {
+      "no": 4,
+      "title": "The free filter",
+      "scenario": "A photo app makes funny AI filters — for free. In the small print: all uploaded faces may be used to train new AI models.",
+      "ask": "Today you trained an AI yourself — with data you could delete afterwards. Why don’t most apps offer that? What would be a fair trade for a free filter?"
+    },
+    {
+      "no": 5,
+      "title": "The supermarket",
+      "scenario": "A supermarket uses cameras to count anonymously where customers walk and where they stop — like our heat map, no faces. Shelves get rearranged and prices placed to match.",
+      "ask": "Is that okay because nobody is identifiable? Where does the line run for you between “anonymous statistics” and “manipulation”?"
+    },
+    {
+      "no": 6,
+      "title": "You’re in charge",
+      "scenario": "Imagine: you get to write the rules for all AI cameras in your city. Today you saw what is possible — detecting, tracking, but also protecting and deleting.",
+      "ask": "<strong>Write down three rules together</strong> that every AI camera would have to follow. Compare with the other groups: which rule comes up everywhere?"
+    }
+  ]
+}
