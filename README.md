@@ -200,7 +200,7 @@ app/camera.py      frame sources: Pi camera / USB webcam / synthetic test patter
 app/vision.py      Hailo YOLO detection, face guard, motion heatmap, teachable kNN
 app/stations.py    the pipeline: one camera thread → overlays → JPEG + state dict
 app/webserver.py   Flask: MJPEG stream (/stream.mjpg) + JSON API (/api/*)
-app/templates+static  the bilingual single-page UI (offline, no CDNs)
+app/templates      the bilingual single-page UI (offline, no CDNs)
 ```
 
 The UI is bilingual: German is the default in the markup (works without
