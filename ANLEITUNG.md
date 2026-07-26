@@ -7,6 +7,28 @@ Moderation (Stationen, Lernziele, Diskussion) siehe
 
 > 🇬🇧 English version: [MANUAL.md](MANUAL.md)
 
+![Sechs Stationen. Eine Kamera. Deine Daten.](assets/stations/overview_de.png)
+
+## Die Stationen auf einen Blick
+
+<table>
+  <tr>
+    <td><img src="assets/stations/detektiv_de.png" alt="Objekt-Detektiv — Was sieht die KI?"></td>
+    <td><img src="assets/stations/trainer_de.png" alt="Trainiere die KI — Du bist der Coach"></td>
+  </tr>
+  <tr>
+    <td><img src="assets/stations/schild_de.png" alt="Privatsphäre-Schild — Schutz eingebaut"></td>
+    <td><img src="assets/stations/spur_de.png" alt="Die Datenspur — Was Kameras sammeln"></td>
+  </tr>
+  <tr>
+    <td><img src="assets/stations/trick_de.png" alt="Täusche die KI — Finde ihre Grenzen"></td>
+    <td><img src="assets/stations/pose_de.png" alt="Skelett-Spiegel — Spiel ohne Bild"></td>
+  </tr>
+</table>
+
+*Alle Bilder liegen in [assets/stations/](assets/stations/) (DE + EN) und
+werden mit `python3 setup/make_station_cards.py` neu erzeugt.*
+
 ---
 
 ## 1 · Was du brauchst

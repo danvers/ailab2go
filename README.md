@@ -7,6 +7,8 @@ their own phones or laptops — no app, no internet, no cloud, and (by design)
 **no stored images**. Privacy literacy isn't a chapter at the end; it's baked
 into every station.
 
+![Six stations. One camera. Your data.](assets/stations/overview_en.png)
+
 ## The six stations
 
 | Station | What visitors do | What they learn |
@@ -17,6 +19,21 @@ into every station.
 | 🗺️ **Die Datenspur** | Reveal a motion heatmap collected *while they played* | Metadata: behaviour profiles without a single photo |
 | 🎭 **Täusche die KI** | Four challenges to fool the detector | AI limits, adversarial thinking, healthy scepticism |
 | 🤸 **Skelett-Spiegel** | Live pose estimation, a pose-challenge parcours, and a "ghost mode" showing skeletons without video | Body data is data: tracking works without images (gait, behaviour) |
+
+<table>
+  <tr>
+    <td><img src="assets/stations/detektiv_en.png" alt="Object Detective — What does the AI see?"></td>
+    <td><img src="assets/stations/trainer_en.png" alt="Train the AI — You are the coach"></td>
+  </tr>
+  <tr>
+    <td><img src="assets/stations/schild_en.png" alt="Privacy Shield — Protection built in"></td>
+    <td><img src="assets/stations/spur_en.png" alt="The Data Trail — What cameras collect"></td>
+  </tr>
+  <tr>
+    <td><img src="assets/stations/trick_en.png" alt="Fool the AI — Find its limits"></td>
+    <td><img src="assets/stations/pose_en.png" alt="Skeleton Mirror — Play without pictures"></td>
+  </tr>
+</table>
 
 Everything degrades gracefully: without the AI HAT (or on your laptop) the app
 runs in CPU demo mode, so the exhibit never shows a blank screen.

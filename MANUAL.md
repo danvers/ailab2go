@@ -7,6 +7,28 @@ exhibit — and helps you out when something gets stuck. For the content
 side of running the show (stations, learning goals, discussion), see
 [workshop/leitfaden.md](workshop/leitfaden.md) (German only for now).
 
+![Six stations. One camera. Your data.](assets/stations/overview_en.png)
+
+## The stations at a glance
+
+<table>
+  <tr>
+    <td><img src="assets/stations/detektiv_en.png" alt="Object Detective — What does the AI see?"></td>
+    <td><img src="assets/stations/trainer_en.png" alt="Train the AI — You are the coach"></td>
+  </tr>
+  <tr>
+    <td><img src="assets/stations/schild_en.png" alt="Privacy Shield — Protection built in"></td>
+    <td><img src="assets/stations/spur_en.png" alt="The Data Trail — What cameras collect"></td>
+  </tr>
+  <tr>
+    <td><img src="assets/stations/trick_en.png" alt="Fool the AI — Find its limits"></td>
+    <td><img src="assets/stations/pose_en.png" alt="Skeleton Mirror — Play without pictures"></td>
+  </tr>
+</table>
+
+*All images live in [assets/stations/](assets/stations/) (DE + EN) and are
+regenerated with `python3 setup/make_station_cards.py`.*
+
 ---
 
 ## 1 · What you need
