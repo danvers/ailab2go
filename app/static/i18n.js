@@ -187,7 +187,8 @@ window.I18N = (() => {
       "fidget, even your gait is as unique as a fingerprint. Is “just skeleton " +
       "data” really harmless? Who should get it — your doctor? An insurer? Your boss?",
 
-    "foot.info": "Raspberry&nbsp;Pi&nbsp;5 + AI&nbsp;HAT · open source · runs without internet",
+    "foot.info": "© Dan&nbsp;Verständig · medienbildung.team · " +
+      "open source (MIT) · runs without internet",
     "foot.admin": "Moderator",
     "foot.resetAll": "♻️ Reset everything",
   };

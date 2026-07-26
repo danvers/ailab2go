@@ -194,7 +194,8 @@ html = f"""<!DOCTYPE html>
     kannst du selbst wieder löschen.</p>
   </div>
 
-  <footer>Raspberry Pi 5 + KI-Chip · Open Source · Fragen? Sprich uns an!</footer>
+  <footer>Raspberry Pi 5 + KI-Chip · Open Source (MIT) · Fragen? Sprich uns an!<br>
+    © Dan Verständig · medienbildung.team</footer>
 </div>
 </body></html>
 """

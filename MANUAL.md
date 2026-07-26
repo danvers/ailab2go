@@ -403,3 +403,14 @@ exact limitation is teaching material in station 3.
 | Fresh start | Power off/on — starts fully automatically |
 
 **Address for guests:** Wi-Fi "KI-Werkstatt" → `http://10.42.0.1`
+
+---
+
+## License & Contact
+
+This project is open source under the **MIT license** (see
+[LICENSE](LICENSE)).
+
+© 2026 **Dan Verständig** · <verstaendig@c3s.uni-frankfurt.de> ·
+[medienbildung.team](https://medienbildung.team) ·
+[aiwarenesslab.io](https://aiwarenesslab.io)

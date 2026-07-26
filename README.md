@@ -77,6 +77,21 @@ bash setup/deploy.sh              # or: bash setup/deploy.sh dan@10.42.0.1
 Syncs the project, installs it to `/opt/ki-werkstatt`, restarts the service
 and prints the startup status lines (camera, AI chip, pose model, face guard).
 
+## Station advertising cards
+
+[assets/stations/](assets/stations/) holds ready-made promo images
+(1600×900 PNG) for every station in German and English —
+`<station>_{de,en}.png` plus an `overview_{de,en}.png` banner. Use them in
+the manuals, on social media or in print. They are generated (macOS only,
+uses system fonts) by:
+
+```bash
+python3 setup/make_station_cards.py
+```
+
+Edit titles/taglines/scenes there and re-run; the SKILL logo is picked up
+from `app/static/logo.png` automatically.
+
 ## Branding
 
 The header, favicon and poster use the SKILL logo from `app/static/`:
@@ -138,6 +153,18 @@ lock exists for rowdy groups).
 Privacy by architecture: frames live only in RAM; the teachable machine
 stores HOG feature vectors, never images; the heatmap stores a 160×90 motion
 counter. There is nothing *to* leak.
+
+## License & author
+
+MIT — see [LICENSE](LICENSE).
+
+© 2026 **Dan Verständig** · <verstaendig@c3s.uni-frankfurt.de> ·
+[medienbildung.team](https://medienbildung.team) ·
+[aiwarenesslab.io](https://aiwarenesslab.io)
+
+(The bundled YuNet face-detection model in `app/models/` comes from the
+OpenCV Zoo under its own MIT license; the SKILL logo remains the property
+of its owner and is not covered by the MIT license.)
 
 ## Extending it
 

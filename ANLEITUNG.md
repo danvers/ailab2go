@@ -392,3 +392,13 @@ genau diese Grenze ist Lernstoff in Station 3.
 | Alles neu | Strom aus/an — startet vollautomatisch |
 
 **Adresse für Gäste:** WLAN „KI-Werkstatt“ → `http://10.42.0.1`
+
+---
+
+## Lizenz & Kontakt
+
+Dieses Projekt ist Open Source unter der **MIT-Lizenz** (siehe
+[LICENSE](LICENSE)).
+
+© 2026 **Dan Verständig** · verstaendig@c3s.uni-frankfurt.de ·
+[medienbildung.team](https://medienbildung.team)
