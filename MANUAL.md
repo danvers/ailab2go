@@ -33,7 +33,7 @@ regenerated with `python3 setup/make_station_cards.py`.*
 
 ## 1 · What you need
 
-**Hardware**
+### Hardware
 
 - Raspberry Pi 5 (with at least 4 GB) + the official 27 W USB-C power
   supply (weaker supplies cause trouble with the AI HAT + camera!)
@@ -126,7 +126,7 @@ network, open `http://raspberrypi.local` (or the Pi's IP address).
 **The footer of the web page is your status display:**
 
 | Footer shows | Meaning |
-|---|---|
+| --- | --- |
 | ⚡ *AI chip active (…hef)* | Hailo is running — all good |
 | 🐢 *Demo mode without AI chip* | App is running, but Hailo is missing → section 9.3 |
 | 📷 *Pi camera* | Camera detected |
@@ -217,6 +217,7 @@ bash setup/kiosk.sh
 
   Chromium then starts full-screen on the wall page on every boot (screen
   blanking disabled). Turn off again: `bash setup/kiosk.sh off`.
+
 - The counters live in RAM only; "♻️ Reset everything" in the moderation
   bar clears them too.
 
@@ -264,6 +265,7 @@ nmcli connection show --active
 
   → `ki-werkstatt-hotspot` must be listed. If not:
   run `bash setup/hotspot.sh` again.
+
 - Is the app running? `systemctl status ki-werkstatt` — if not:
 
 ```bash
@@ -301,7 +303,7 @@ the object detection is limited. To fix it, in this order:
 hailortcli fw-control identify
 ```
 
-3. `identify` stays silent even though the chip is on the PCIe bus?
+1. `identify` stays silent even though the chip is on the PCIe bus?
    Check the **chip generation** — each one needs its matching driver
    package:
 
@@ -309,15 +311,15 @@ hailortcli fw-control identify
 lspci | grep -i hailo
 ```
 
-   - **"Hailo-10H"** (AI HAT+ 2) → `sudo apt install -y hailo-h10-all`
-   - **"Hailo-8"** (AI Kit / AI HAT+) → `sudo apt install -y hailo-all`
+- **"Hailo-10H"** (AI HAT+ 2) → `sudo apt install -y hailo-h10-all`
+- **"Hailo-8"** (AI Kit / AI HAT+) → `sudo apt install -y hailo-all`
 
    Then reboot. The installer detects this automatically these days;
    this case mainly affects older installations. (By the way, this
    exact error also shows up as
    `HAILO_OUT_OF_PHYSICAL_DEVICES(74)` in the log.)
 
-4. Nothing shows up in `lspci` either? Check the hardware:
+1. Nothing shows up in `lspci` either? Check the hardware:
 
 ```bash
 dmesg | grep -i hailo
@@ -442,7 +444,7 @@ exact limitation is teaching material in station 3.
 ## 10 · Cheat sheet
 
 | Purpose | Command (on the Pi) |
-|---|---|
+| --- | --- |
 | App status | `systemctl status ki-werkstatt` |
 | Restart the app | `sudo systemctl restart ki-werkstatt` |
 | Live logs | `journalctl -u ki-werkstatt -f` |

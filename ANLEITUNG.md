@@ -33,7 +33,7 @@ werden mit `python3 setup/make_station_cards.py` neu erzeugt.*
 
 ## 1 · Was du brauchst
 
-**Hardware**
+### Hardware
 
 - Raspberry Pi 5 (mit min. 4 GB) + offizielles 27-W-USB-C-Netzteil
   (schwächere Netzteile machen mit AI HAT + Kamera Probleme!)
