@@ -25,6 +25,7 @@ from PIL import Image, ImageDraw, ImageFilter, ImageFont
 ROOT = Path(__file__).parent.parent
 OUT = ROOT / "assets" / "stations"
 LOGO = ROOT / "app" / "static" / "logo.png"
+LOGO2 = ROOT / "app" / "static" / "logo2.png"   # aiwareness Lab
 
 W, H = 1600, 900          # final card size
 S = 2                     # supersampling factor for crisp vector shapes
@@ -330,15 +331,18 @@ def make_card(key, icon, accent, scene, names, lang):
     d.text((lx, ty), title, font=tf, fill=TEXT)
     d.text((lx, ty + tf.size + 18 * S), tag, font=font(44 * S, "medium"), fill=accent)
 
-    # footer: SKILL logo as-is (transparent, has its own contour) + claim
-    if LOGO.exists():
-        logo = Image.open(LOGO).convert("RGBA")
-        lh = 56 * S
-        logo = logo.resize((int(logo.width * lh / logo.height), lh), Image.LANCZOS)
-        ly_ = ch - 150 * S
-        cv.alpha_composite(logo, (int(lx), int(ly_)))
-        d.text((lx + logo.width + 40 * S, ly_ + lh / 2 - 18 * S), FOOT[lang],
-               font=font(30 * S), fill=MUTED)
+    # footer: SKILL + aiwareness Lab logos as-is (transparent), nothing else —
+    # a text line here would crowd the mock screen on the right
+    fx = lx
+    ly_ = ch - 150 * S
+    lh = 56 * S
+    for path in (LOGO, LOGO2):
+        if path.exists():
+            logo = Image.open(path).convert("RGBA")
+            logo = logo.resize((int(logo.width * lh / logo.height), lh),
+                               Image.LANCZOS)
+            cv.alpha_composite(logo, (int(fx), int(ly_)))
+            fx += logo.width + 36 * S
 
     # ---- right: mock live screen ------------------------------------------
     sx0, sy0 = int(cw * 0.52), int(ch * 0.16)
@@ -373,11 +377,19 @@ def make_overview(lang):
     glow(cv, cw * 0.5, 0, 420 * S, (120, 80, 200), 40)
     d = ImageDraw.Draw(cv)
 
-    if LOGO.exists():
-        logo = Image.open(LOGO).convert("RGBA")
-        lh = 62 * S
-        logo = logo.resize((int(logo.width * lh / logo.height), lh), Image.LANCZOS)
-        cv.alpha_composite(logo, ((cw - logo.width) // 2, 52 * S))
+    logos = []
+    lh = 62 * S
+    for path in (LOGO, LOGO2):
+        if path.exists():
+            logo = Image.open(path).convert("RGBA")
+            logos.append(logo.resize((int(logo.width * lh / logo.height), lh),
+                                     Image.LANCZOS))
+    gap = 48 * S
+    total = sum(l.width for l in logos) + gap * (len(logos) - 1)
+    px = (cw - total) // 2
+    for logo in logos:
+        cv.alpha_composite(logo, (px, 52 * S))
+        px += logo.width + gap
 
     # brand accent top bar ties the banner to the card set
     for x in range(cw):

@@ -41,11 +41,15 @@ def qr_data_uri(payload: str) -> str:
 wifi_qr = qr_data_uri(f"WIFI:T:WPA;S:{SSID};P:{PASSWORD};;")
 url_qr = qr_data_uri(URL)
 
-# The poster must stay a single self-contained file → embed the logo.
-LOGO_PATH = Path(__file__).parent.parent / "app" / "static" / "logo.png"
-logo_uri = ("data:image/png;base64," +
-            base64.b64encode(LOGO_PATH.read_bytes()).decode()) \
-    if LOGO_PATH.exists() else ""
+# The poster must stay a single self-contained file → embed the logos.
+def _data_uri(path):
+    return ("data:image/png;base64," +
+            base64.b64encode(path.read_bytes()).decode()) \
+        if path.exists() else ""
+
+_static = Path(__file__).parent.parent / "app" / "static"
+logo_uri = _data_uri(_static / "logo.png")        # SKILL
+logo2_uri = _data_uri(_static / "logo2.png")      # aiwareness Lab
 
 STATIONS = [
     ("🔍", "Objekt-Detektiv", "Was sieht die KI?", "#2f6fe0"),
@@ -87,11 +91,12 @@ html = f"""<!DOCTYPE html>
   @media screen {{ .page {{ box-shadow: 0 10px 40px rgba(20,26,51,.25);
                            border-radius: 6px; }} }}
 
-  /* ── header: logo and title share one optical middle line ───────── */
-  header {{ display: flex; align-items: center; justify-content: center;
-            gap: 6mm; }}
-  .brandmark {{ height: 15mm; width: auto; }}
-  .rule {{ width: 0.5mm; height: 11mm; background: #c9d0e2; border-radius: 1mm; }}
+  /* ── header: logo row on top, full-size title beneath ───────────── */
+  header {{ display: flex; flex-direction: column; align-items: center;
+            gap: 4mm; }}
+  .logos {{ display: flex; align-items: center; gap: 6mm; }}
+  .brandmark {{ height: 12mm; width: auto; }}
+  .rule {{ width: 0.5mm; height: 10mm; background: #c9d0e2; border-radius: 1mm; }}
   h1 {{ font-size: 11mm; line-height: 1; letter-spacing: 0.3mm;
         background: linear-gradient(90deg, #400b67, #c32683);
         -webkit-background-clip: text; background-clip: text; color: transparent; }}
@@ -156,8 +161,11 @@ html = f"""<!DOCTYPE html>
 <div class="page">
 
   <header>
-    <img class="brandmark" src="{logo_uri}" alt="SKILL">
-    <span class="rule"></span>
+    <div class="logos">
+      <img class="brandmark" src="{logo_uri}" alt="SKILL">
+      <span class="rule"></span>
+      <img class="brandmark" src="{logo2_uri}" alt="aiwareness Lab">
+    </div>
     <h1>{TITLE}</h1>
   </header>
 
