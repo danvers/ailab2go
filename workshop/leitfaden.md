@@ -9,7 +9,7 @@ eigenen Handys/Laptops, es ist keine App-Installation nötig.
 
 ## Die Idee in einem Satz
 
-> Besucher:innen spielen mit einer echten KI-Kamera, verstehen dabei, *wie*
+> Besucher:innen oder Teilnehemde spielen mit einer echten KI-Kamera, verstehen dabei, *wie*
 > Maschinen lernen und sehen — und erleben am eigenen Körper, warum
 > Datenschutz kein Verbotsthema ist, sondern gestaltbar.
 
