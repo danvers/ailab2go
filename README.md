@@ -13,7 +13,7 @@ into every station.
 
 | Station | What visitors do | What they learn |
 |---|---|---|
-| **Object-Detective** | Live YOLO object detection with a confidence slider | Models pattern-match, they don't "understand"; the precision/recall trade-off |
+| **Object&#160;Detective** | Live YOLO object detection with a confidence slider | Models pattern-match, they don't "understand"; the precision/recall trade-off |
 | **Train&#160;the&#160;AI** | Train a classifier on any two objects in ~1 minute | Learning from examples, bias from one-sided data, right to erasure (one-click delete) |
 | **Privacy&#160;Shield** | Faces get pixelated/blurred *at the source*; toggle it, break it | Detection ≠ recognition; tech can protect privacy; no shield is perfect |
 | **The&#160;Data&#160;Trail** | Reveal a motion heatmap collected *while they played* | Metadata: behaviour profiles without a single photo |
