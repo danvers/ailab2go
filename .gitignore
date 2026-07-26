@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+.venv/
+setup/poster.html
+.DS_Store
+.claude

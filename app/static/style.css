@@ -1,0 +1,543 @@
+/* KI-Werkstatt exhibit UI — dark, colourful, touch-friendly, offline-only. */
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #0d1117;
+  --bg2: #161b27;
+  --card: rgba(255, 255, 255, 0.055);
+  --border: rgba(255, 255, 255, 0.12);
+  --text: #e6edf3;
+  --muted: #8b949e;
+  --accent: #4ea8ff;
+}
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  background: radial-gradient(1200px 600px at 80% -10%, #1c2440 0%, var(--bg) 55%) fixed;
+  color: var(--text);
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+:focus-visible { outline: 3px solid #fff; outline-offset: 2px; }
+
+.sr-only {
+  position: absolute; width: 1px; height: 1px;
+  padding: 0; margin: -1px; overflow: hidden;
+  clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+
+/* ── header ─────────────────────────────────────────── */
+header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 9px 16px 5px;
+}
+/* Logo and title share one line and one optical middle — the SKILL wordmark
+   is vertically centred in the file, so align-items:center lines them up. */
+.brand { display: flex; align-items: center; gap: 10px; }
+.logo { display: inline-flex; }
+.logo img { display: block; height: 26px; width: auto; }
+.brand-rule {
+  width: 1px; height: 20px; border-radius: 1px;
+  background: var(--border);
+}
+h1 { font-size: 1.1rem; letter-spacing: 0.4px; line-height: 1.1; }
+.privacy-badge {
+  background: linear-gradient(135deg, rgba(61, 220, 151, 0.18), rgba(78, 168, 255, 0.14));
+  border: 1px solid rgba(61, 220, 151, 0.45);
+  color: #7ef0bd;
+  border-radius: 999px;
+  padding: 6px 12px;
+  font: inherit;
+  font-size: 0.74rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: left;
+}
+
+/* ── station tiles ──────────────────────────────────── */
+nav#tiles {
+  display: flex;
+  gap: 6px;
+  padding: 6px 16px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  overflow-anchor: none;  /* keep the browser from nudging scrollLeft itself */
+}
+/* Edge fades signal "there is more — scroll!". Applied as overlays and only
+   on the side that actually has hidden content, so the last tile is never
+   clipped and focus rings stay crisp. */
+.tiles-wrap { position: relative; }
+.tiles-wrap::before,
+.tiles-wrap::after {
+  content: "";
+  position: absolute;
+  top: 0; bottom: 0;
+  width: 34px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  z-index: 1;
+}
+.tiles-wrap::before { left: 0; background: linear-gradient(90deg, var(--bg), transparent); }
+.tiles-wrap::after { right: 0; background: linear-gradient(270deg, var(--bg), transparent); }
+.tiles-wrap.fade-left::before,
+.tiles-wrap.fade-right::after { opacity: 1; }
+nav#tiles::-webkit-scrollbar { display: none; }
+.tile {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.95rem;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1.5px solid var(--border);
+  background: var(--card);
+  color: var(--text);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+.tile span { font-size: 0.78rem; font-weight: 600; }
+.tile:hover { border-color: var(--accent); transform: translateY(-1px); }
+.tile.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #0b0f14;
+  box-shadow: 0 0 18px color-mix(in srgb, var(--accent) 55%, transparent);
+}
+
+/* ── main layout ────────────────────────────────────── */
+main {
+  flex: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 4fr);
+  gap: 12px;
+  padding: 4px 16px 12px;
+  align-items: start;
+}
+@media (max-width: 920px) {
+  main { grid-template-columns: 1fr; }
+}
+
+/* Laptop/desktop: one fixed console screen. Header, station tiles, video and
+   footer stay put; only the station's own text scrolls. No page scrolling —
+   which is what made the UI feel oversized on a 13" screen. */
+@media (min-width: 921px) and (min-height: 560px) {
+  html { height: 100%; overflow: hidden; }
+  body { height: 100dvh; overflow: hidden; }
+  main {
+    min-height: 0;
+    grid-template-rows: minmax(0, 1fr);
+    align-items: stretch;
+  }
+  .video-wrap { align-self: start; position: static; }
+  #panel { min-height: 0; overflow-y: auto; scrollbar-width: thin; }
+  #panel::-webkit-scrollbar { width: 8px; }
+  #panel::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.16); border-radius: 4px;
+  }
+}
+
+.video-wrap {
+  position: sticky;
+  top: 8px;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  background: #000;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.45);
+}
+@media (max-width: 920px) {
+  /* tile bar and video stick as a stack: switching is always one tap away.
+     --nav-h is measured in JS so the offset always matches reality. */
+  .tiles-wrap { position: sticky; top: 0; z-index: 7; background: var(--bg); }
+  .video-wrap { position: sticky; top: var(--nav-h, 58px); z-index: 5; }
+}
+@media (max-height: 500px) {
+  /* high zoom / tiny landscape: never let the video obscure the content */
+  .video-wrap { position: static; }
+}
+#stream { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: cover; }
+.video-note {
+  position: absolute;
+  left: 10px; bottom: 10px;
+  background: rgba(0, 0, 0, 0.65);
+  padding: 5px 10px;
+  border-radius: 8px;
+  font-size: 0.78rem;
+}
+
+/* ── station panel ──────────────────────────────────── */
+.station {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-top: 3px solid var(--accent);
+  border-radius: 14px;
+  padding: 13px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  animation: fadein 0.25s ease;
+}
+@keyframes fadein { from { opacity: 0; transform: translateY(6px); } }
+.hidden { display: none !important; }
+
+h2 { font-size: 1.05rem; }
+h3 { font-size: 0.82rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+.intro { line-height: 1.45; font-size: 0.9rem; }
+.hint { color: var(--muted); font-size: 0.78rem; line-height: 1.45; }
+.muted { color: var(--muted); }
+
+.steps { padding-left: 20px; display: flex; flex-direction: column; gap: 4px;
+         line-height: 1.4; font-size: 0.88rem; }
+
+.think {
+  background: rgba(255, 214, 102, 0.09);
+  border: 1px solid rgba(255, 214, 102, 0.35);
+  border-radius: 10px;
+  padding: 9px 11px;
+  line-height: 1.45;
+  font-size: 0.83rem;
+}
+
+details {
+  background: rgba(0, 0, 0, 0.22);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 8px 11px;
+  font-size: 0.85rem;
+}
+details summary { cursor: pointer; font-weight: 600; }
+details p, details ul { margin-top: 8px; line-height: 1.45; font-size: 0.83rem; }
+.modelcard { padding-left: 20px; display: flex; flex-direction: column; gap: 4px; }
+
+/* controls */
+.control-row { display: flex; flex-direction: column; gap: 6px; }
+input[type="range"] { width: 100%; accent-color: var(--accent); height: 26px; }
+.switch-row { display: flex; align-items: center; gap: 9px; font-weight: 600; font-size: 0.92rem; }
+.switch-row input { width: 19px; height: 19px; accent-color: var(--accent); }
+
+.segmented { display: flex; gap: 6px; flex-wrap: wrap; }
+.segmented button {
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text);
+  border-radius: 9px;
+  padding: 6px 11px;
+  min-height: 34px;
+  cursor: pointer;
+  font-size: 0.83rem;
+}
+.segmented button.active { background: var(--accent); color: #0b0f14; border-color: var(--accent); font-weight: 700; }
+
+button.danger {
+  align-self: flex-start;
+  background: rgba(248, 81, 73, 0.15);
+  border: 1px solid rgba(248, 81, 73, 0.5);
+  color: #ff8b85;
+  border-radius: 9px;
+  padding: 7px 12px;
+  cursor: pointer;
+  font-size: 0.83rem;
+}
+button.danger:active { transform: scale(0.97); }
+
+/* detections list */
+.detections { list-style: none; display: flex; flex-direction: column; gap: 5px; }
+.detections li {
+  display: flex; align-items: center; gap: 9px;
+  background: rgba(0, 0, 0, 0.25);
+  border-radius: 9px;
+  padding: 5px 10px;
+  font-size: 0.88rem;
+}
+.detections .pct {
+  margin-left: auto;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  color: var(--accent);
+}
+.detections .bar {
+  flex: 1; height: 6px; border-radius: 3px;
+  background: rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+}
+.detections .bar i { display: block; height: 100%; background: var(--accent); }
+
+/* challenges */
+.challenges { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+.challenges li {
+  background: rgba(0, 0, 0, 0.22);
+  border-radius: 9px;
+  padding: 7px 10px;
+  line-height: 1.4;
+  font-size: 0.83rem;
+}
+
+/* teachable slots */
+.teach-slots { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; }
+@media (max-width: 460px) { .teach-slots { grid-template-columns: 1fr; } }
+.slot {
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: stretch;
+  text-align: center;
+}
+.slot.trained { border-color: var(--accent); }
+.slot button.name {
+  background: none;
+  border: none;
+  color: var(--text);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: underline dotted var(--muted);
+  padding: 6px 0;
+}
+.slot .count { font-size: 0.74rem; color: var(--muted); }
+.slot button.capture {
+  background: var(--accent);
+  border: none;
+  color: #0b0f14;
+  font-weight: 700;
+  border-radius: 9px;
+  padding: 7px 6px;
+  min-height: 34px;
+  cursor: pointer;
+  font-size: 0.8rem;
+}
+.slot button.capture:active { transform: scale(0.96); }
+
+.prediction {
+  font-size: 0.95rem;
+  background: rgba(0, 0, 0, 0.25);
+  border-radius: 10px;
+  padding: 10px;
+  text-align: center;
+  line-height: 1.4;
+}
+.prediction.big { font-size: 1.2rem; font-weight: 800; color: #9be89b; }
+
+/* pose challenge */
+.challenge-card {
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  padding: 11px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  text-align: center;
+}
+.challenge-head { color: var(--muted); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 1px; }
+.challenge-task { font-size: 1.05rem; display: flex; gap: 9px; justify-content: center; align-items: center; }
+.challenge-task span { font-size: 1.6rem; }
+.challenge-foot { color: var(--muted); font-size: 0.78rem; }
+.holdbar {
+  height: 8px; border-radius: 4px;
+  background: rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+}
+.holdbar i {
+  display: block; height: 100%; width: 0;
+  background: var(--accent);
+  transition: width 0.15s linear;
+}
+
+/* stat cards */
+.stat-cards { display: flex; gap: 8px; flex-wrap: wrap; }
+.stat {
+  flex: 1 1 110px;
+  background: rgba(0, 0, 0, 0.25);
+  border-radius: 10px;
+  padding: 9px;
+  text-align: center;
+}
+.stat span { font-size: 1.3rem; font-weight: 800; color: var(--accent); }
+.stat label { display: block; color: var(--muted); font-size: 0.7rem; margin-top: 2px; line-height: 1.3; }
+
+/* ── footer ─────────────────────────────────────────── */
+footer {
+  border-top: 1px solid var(--border);
+  padding: 7px 16px 9px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: rgba(0, 0, 0, 0.25);
+}
+.stats { display: flex; gap: 8px; flex-wrap: wrap; }
+.chip {
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 3px 10px;
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+.chip.good { color: #7ef0bd; border-color: rgba(61, 220, 151, 0.5); }
+.chip.warn { color: #ffd666; border-color: rgba(255, 214, 102, 0.5); }
+.foot-links {
+  display: flex; justify-content: space-between; gap: 10px;
+  color: var(--muted); font-size: 0.75rem;
+}
+.foot-links a { color: var(--muted); }
+.admin-bar { display: flex; gap: 8px; }
+.admin-bar button {
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--text);
+  border-radius: 10px;
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+/* toast */
+/* Stays in the layout permanently so the aria-live region works; only
+   opacity/visibility change. Empty text = nothing rendered. */
+.toast {
+  position: fixed;
+  left: 50%; bottom: calc(24px + env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  max-width: min(92vw, 480px);
+  background: #21262d;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 10px 18px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+  z-index: 50;
+  font-size: 0.9rem;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s ease;
+}
+.toast.show { opacity: 1; visibility: visible; }
+
+/* banners above the station panel */
+.banner {
+  background: rgba(255, 214, 102, 0.12);
+  border: 1px solid rgba(255, 214, 102, 0.45);
+  border-radius: 10px;
+  padding: 9px 12px;
+  font-size: 0.84rem;
+  line-height: 1.45;
+  margin-bottom: 9px;
+}
+.hint-banner {
+  background: rgba(78, 168, 255, 0.10);
+  border-color: rgba(78, 168, 255, 0.45);
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.hint-banner button {
+  margin-left: auto;
+  background: var(--card);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 9px;
+  padding: 6px 12px;
+  min-height: 32px;
+  cursor: pointer;
+  font-size: 0.79rem;
+}
+
+/* inline notices inside stations */
+.notice {
+  border-radius: 9px;
+  padding: 8px 10px;
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+.notice.warn {
+  background: rgba(255, 214, 102, 0.1);
+  border: 1px solid rgba(255, 214, 102, 0.4);
+  color: #ffd666;
+}
+.notice.error {
+  background: rgba(248, 81, 73, 0.12);
+  border: 1px solid rgba(248, 81, 73, 0.55);
+  color: #ff8b85;
+}
+
+/* armed (second-tap) state for destructive buttons */
+button.danger.armed {
+  background: rgba(248, 81, 73, 0.85);
+  color: #fff;
+  border-color: #ff8b85;
+}
+
+/* moderator lock: dim what guests can't use right now */
+body.locked #tiles .tile:not(.active) {
+  opacity: 0.45;
+  filter: saturate(0.4);
+}
+
+/* bigger tap area for the small moderator link, layout unchanged */
+.foot-links a { display: inline-block; padding: 12px 10px; margin: -12px -10px; }
+
+/* stronger boundaries on interactive controls (non-text contrast) */
+.tile, .segmented button, .admin-bar button, .hint-banner button {
+  border-color: rgba(255, 255, 255, 0.35);
+}
+
+/* ── touch devices ──────────────────────────────────────────────────
+   The base scale above is tuned for laptops (13" screens, mouse/trackpad).
+   Phones and tablets get the finger-friendly sizes back: ≥44 px targets
+   and slightly larger type, since visitors hold the device at arm's length. */
+@media (pointer: coarse), (max-width: 560px) {
+  .logo img { height: 30px; }
+  h1 { font-size: 1.2rem; }
+  .privacy-badge { font-size: 0.78rem; padding: 8px 13px; }
+
+  .tile { padding: 9px 14px; min-height: 44px; font-size: 1.05rem; }
+  .tile span { font-size: 0.85rem; }
+
+  .station { padding: 15px; gap: 12px; }
+  h2 { font-size: 1.15rem; }
+  .intro { font-size: 0.97rem; line-height: 1.5; }
+  .steps { font-size: 0.95rem; line-height: 1.5; gap: 6px; }
+  .hint { font-size: 0.82rem; }
+  .think, details, details p, details ul, .challenges li, .notice, .banner {
+    font-size: 0.9rem;
+  }
+
+  .segmented button, button.danger, .slot button.capture,
+  .hint-banner button { min-height: 44px; }
+  .segmented button, button.danger { font-size: 0.88rem; padding: 9px 13px; }
+  .switch-row { font-size: 1rem; }
+  .switch-row input { width: 22px; height: 22px; }
+  input[type="range"] { height: 32px; }
+
+  .detections li { font-size: 0.95rem; padding: 7px 11px; }
+  .prediction { font-size: 1.05rem; padding: 13px; }
+  .prediction.big { font-size: 1.35rem; }
+  .stat span { font-size: 1.55rem; }
+  .challenge-task { font-size: 1.2rem; }
+  .challenge-task span { font-size: 1.9rem; }
+}
+@media (max-width: 420px) { .logo img { height: 26px; } h1 { font-size: 1.05rem; } }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

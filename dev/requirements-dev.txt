@@ -1,0 +1,6 @@
+# Laptop dev/preview only — on the Pi everything comes via apt (see setup/install.sh)
+flask>=3.0
+numpy>=1.26
+# <5: OpenCV 5 dropped the classic CascadeClassifier/HOG APIs we use
+# (the Pi's apt python3-opencv is 4.x, where everything works)
+opencv-python>=4.9,<5

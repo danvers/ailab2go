@@ -1,0 +1,15 @@
+[Unit]
+Description=KI-Werkstatt exhibit (computer vision & privacy literacy)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+# Root is needed for port 80; the app itself only touches the camera,
+# the Hailo device and its own directory.
+ExecStart=/usr/bin/python3 /opt/ki-werkstatt/app/main.py --host 0.0.0.0 --port 80
+WorkingDirectory=/opt/ki-werkstatt/app
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target
