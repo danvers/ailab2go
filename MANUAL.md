@@ -154,7 +154,9 @@ bash setup/hotspot.sh
 python3 setup/make_poster.py
 ```
 
-Open the poster (`setup/poster.html`) in a browser and print it.
+The script writes both language versions: `setup/poster_de.html`
+(title “KI-Werkstatt”) and `setup/poster_en.html` (title
+“AI-Lab2Go”). Open the one you need in a browser and print it on A4.
 From now on: join the Wi-Fi network **KI-Werkstatt** → open
 `http://10.42.0.1` (http, **not** https — browsers love to "fix"
 this the wrong way!).

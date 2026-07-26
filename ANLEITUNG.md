@@ -149,7 +149,9 @@ bash setup/hotspot.sh
 python3 setup/make_poster.py
 ```
 
-Das Poster (`setup/poster.html`) im Browser öffnen und drucken.
+Das Skript erzeugt beide Sprachfassungen: `setup/poster_de.html`
+(Titel „KI-Werkstatt“) und `setup/poster_en.html` (Titel
+„AI-Lab2Go“). Die passende im Browser öffnen und auf A4 drucken.
 Ab jetzt: WLAN **KI-Werkstatt** beitreten → `http://10.42.0.1` öffnen
 (http, **nicht** https — Browser ergänzen gern falsch!).
 

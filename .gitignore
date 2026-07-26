@@ -1,6 +1,6 @@
 __pycache__/
 *.pyc
 .venv/
-setup/poster.html
+setup/poster_*.html
 .DS_Store
 .claude
