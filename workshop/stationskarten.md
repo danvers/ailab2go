@@ -1,7 +1,13 @@
 # Stationskarten zum Ausdrucken
 
-Jede Karte auf A5 drucken und an der Station auslegen (oder als
-Rallye-Aufgabenblatt austeilen). Schnitt entlang der Linien.
+Jede Karte an der Station auslegen (oder als Rallye-Aufgabenblatt
+austeilen).
+
+> 🖨️ **Als A5-Postkarten drucken:** `python3 setup/make_cards.py` erzeugt
+> `setup/cards_de.html` — alle Stations- und Diskussionskarten im
+> A5-Querformat, vorne das Motiv mit Glitch-Look und beiden Logos, hinten
+> dieser Text. Doppelseitig drucken, **an der kurzen Seite spiegeln**.
+
 
 ---
 

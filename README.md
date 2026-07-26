@@ -109,6 +109,21 @@ python3 setup/make_station_cards.py
 Edit titles/taglines/scenes there and re-run; the SKILL logo is picked up
 from `app/static/logo.png` automatically.
 
+### Editable source material
+
+The PNGs are flattened. For designing on top of them:
+
+```bash
+python3 setup/make_station_cards.py --editable
+```
+
+writes [assets/stations/editable/](assets/stations/editable/) —
+per card the separate layers (`_bg`, `_screen`, `_icon`) as full-canvas
+transparent PNGs, a 2× flattened version (3200×1800), a self-contained
+`.svg` with **title and tagline as live text**, both logos, and
+`station_cards.pptx`: 12 editable PowerPoint slides (layers as images +
+real text boxes). See the README in that folder for what to open where.
+
 ## Branding
 
 The header, favicon and poster use the SKILL logo from `app/static/`:
@@ -144,6 +159,17 @@ Moderator functions (lock stations, reset everything) are behind the
   station cards incl. rally tasks
 - [workshop/diskussionskarten-privatsphaere.md](workshop/diskussionskarten-privatsphaere.md)
   — discussion cards for the closing round
+
+Both card sets are also available as a **printable A5 postcard deck** —
+front: icon + glitch-styled title + both logos, back: the text:
+
+```bash
+python3 setup/make_cards.py     # → setup/cards_de.html (12 cards, 24 A5 pages)
+```
+
+Print double-sided on A5 and **flip on the short edge** (landscape pages
+come out upside down with the usual long-edge setting). On A4, choose
+"2 pages per sheet" and cut in the middle.
 
 ## Architecture
 

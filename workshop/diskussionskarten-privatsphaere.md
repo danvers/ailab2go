@@ -1,8 +1,14 @@
 # Diskussionskarten · Privatsphäre & KI
 
-Für die Abschlussrunde: Karten ausdrucken, ausschneiden, Kleingruppen
-ziehen je eine. 5 Minuten diskutieren, dann ein 1-Satz-Fazit vorstellen.
-Es gibt keine „richtigen" Antworten — es gibt gute Begründungen.
+Für die Abschlussrunde: Kleingruppen ziehen je eine Karte. 5 Minuten
+diskutieren, dann ein 1-Satz-Fazit vorstellen. Es gibt keine „richtigen"
+Antworten — es gibt gute Begründungen.
+
+> 🖨️ **Als A5-Postkarten drucken:** `python3 setup/make_cards.py` erzeugt
+> `setup/cards_de.html` — alle Stations- und Diskussionskarten im
+> A5-Querformat, vorne das Motiv mit Glitch-Look und beiden Logos, hinten
+> dieser Text. Doppelseitig drucken, **an der kurzen Seite spiegeln**.
+
 
 ---
 

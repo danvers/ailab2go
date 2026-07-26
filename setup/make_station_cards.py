@@ -15,9 +15,12 @@ NOTE: runs on macOS (uses the system's Helvetica Neue and Apple Color
 Emoji). The generated PNGs are committed, so the Pi never needs this.
 """
 
+import base64
+import io
 import math
 import os
 import random
+import sys
 from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
@@ -296,73 +299,105 @@ FOOT = {"de": "aiwarenesslab.io",
 
 # ---------------------------------------------------------------- card -----
 
-def make_card(key, icon, accent, scene, names, lang):
-    cw, ch = W * S, H * S
-    cv = Image.new("RGBA", (cw, ch), BG + (255,))
-    d = ImageDraw.Draw(cv)
+# Layout constants shared by the raster renderer and the SVG export, so an
+# edited SVG lines up with the exported layer PNGs.
+LX = 90 * S                 # left column x
+BADGE_Y = 130 * S
+BADGE = 190 * S
+LOGO_H = 56 * S
+LOGO_GAP = 36 * S
+LOGO_Y = H * S - 150 * S
+TITLE_Y = BADGE_Y + BADGE + 70 * S
+TITLE_MAX = 660 * S
+TAG_GAP = 18 * S
 
-    # background: subtle gradient + accent glow
-    for y in range(ch):
-        f = y / ch
-        col = tuple(int(BG[i] + (BG2[i] - BG[i]) * (1 - f)) for i in range(3))
-        d.line([(0, y), (cw, y)], fill=col)
-    glow(cv, cw * 0.85, ch * 0.10, 420 * S, accent, 36)
-    glow(cv, cw * 0.05, ch * 0.95, 360 * S, accent, 22)
-    d = ImageDraw.Draw(cv)
+LAYERS = ("bg", "screen", "icon", "text", "logos")
 
-    # accent top bar
-    d.rectangle([0, 0, cw, 14 * S], fill=accent)
 
-    # ---- left column: icon badge, names -----------------------------------
-    lx = 90 * S
-    by = 130 * S
-    badge = 190 * S
-    rounded(d, [lx, by, lx + badge, by + badge], radius=44 * S,
-            fill=tuple(int(c * 0.22) for c in accent) + (255,),
-            outline=accent, width=4 * S)
-    paste_emoji(cv, icon, 120, lx + badge / 2, by + badge / 2)
-
-    title, tag = names[lang]
-    ty = by + badge + 70 * S
+def title_font(title):
+    """Same shrink-to-fit logic for raster and SVG."""
     tf = font(88 * S, "bold")
-    # shrink long titles to fit the column
-    while d.textlength(title, font=tf) > 660 * S:
+    probe = ImageDraw.Draw(Image.new("RGB", (1, 1)))
+    while probe.textlength(title, font=tf) > TITLE_MAX:
         tf = font(int(tf.size * 0.93), "bold")
-    d.text((lx, ty), title, font=tf, fill=TEXT)
-    d.text((lx, ty + tf.size + 18 * S), tag, font=font(44 * S, "medium"), fill=accent)
+    return tf
 
-    # footer: SKILL + aiwareness Lab logos as-is (transparent), nothing else —
-    # a text line here would crowd the mock screen on the right
-    fx = lx
-    ly_ = ch - 150 * S
-    lh = 56 * S
+
+def screen_rect():
+    cw, ch = W * S, H * S
+    return [int(cw * 0.52), int(ch * 0.16), int(cw * 0.945), int(ch * 0.84)]
+
+
+def logo_images():
+    out = []
     for path in (LOGO, LOGO2):
         if path.exists():
-            logo = Image.open(path).convert("RGBA")
-            logo = logo.resize((int(logo.width * lh / logo.height), lh),
-                               Image.LANCZOS)
-            cv.alpha_composite(logo, (int(fx), int(ly_)))
-            fx += logo.width + 36 * S
+            im = Image.open(path).convert("RGBA")
+            out.append((path, im.resize(
+                (int(im.width * LOGO_H / im.height), LOGO_H), Image.LANCZOS)))
+    return out
 
-    # ---- right: mock live screen ------------------------------------------
-    sx0, sy0 = int(cw * 0.52), int(ch * 0.16)
-    sx1, sy1 = int(cw * 0.945), int(ch * 0.84)
-    rounded(d, [sx0 - 6 * S, sy0 - 6 * S, sx1 + 6 * S, sy1 + 6 * S],
-            radius=30 * S, fill=(0, 0, 0, 255), outline=(255, 255, 255, 40),
-            width=2 * S)
-    screen = [sx0, sy0, sx1, sy1]
-    rounded(d, screen, radius=24 * S, fill=(16, 20, 34, 255))
-    scene(cv, ImageDraw.Draw(cv), screen, accent, lang)
+
+def render_card(icon, accent, scene, names, lang, layers=LAYERS):
+    """Render the card (or a subset of its layers) at full internal
+    resolution. Layers not requested stay transparent — that is what the
+    editable export uses to hand out separate Photoshop layers."""
+    cw, ch = W * S, H * S
+    cv = Image.new("RGBA", (cw, ch), (0, 0, 0, 0))
     d = ImageDraw.Draw(cv)
-    # LIVE chip
-    lf = font(26 * S, "bold")
-    lw_ = d.textlength(LIVE[lang], font=lf)
-    rounded(d, [sx1 - lw_ - 70 * S, sy0 + 18 * S, sx1 - 18 * S, sy0 + 66 * S],
-            radius=24 * S, fill=(0, 0, 0, 170))
-    d.ellipse([sx1 - lw_ - 56 * S, sy0 + 32 * S, sx1 - lw_ - 36 * S, sy0 + 52 * S],
-              fill=(248, 81, 73))
-    d.text((sx1 - lw_ - 28 * S, sy0 + 26 * S), LIVE[lang], font=lf, fill=TEXT)
+    title, tag = names[lang]
 
+    if "bg" in layers:
+        for y in range(ch):
+            f = y / ch
+            col = tuple(int(BG[i] + (BG2[i] - BG[i]) * (1 - f)) for i in range(3))
+            d.line([(0, y), (cw, y)], fill=col + (255,))
+        glow(cv, cw * 0.85, ch * 0.10, 420 * S, accent, 36)
+        glow(cv, cw * 0.05, ch * 0.95, 360 * S, accent, 22)
+        d = ImageDraw.Draw(cv)
+        d.rectangle([0, 0, cw, 14 * S], fill=accent)   # accent top bar
+
+    if "icon" in layers:
+        rounded(d, [LX, BADGE_Y, LX + BADGE, BADGE_Y + BADGE], radius=44 * S,
+                fill=tuple(int(c * 0.22) for c in accent) + (255,),
+                outline=accent, width=4 * S)
+        paste_emoji(cv, icon, 120, LX + BADGE / 2, BADGE_Y + BADGE / 2)
+        d = ImageDraw.Draw(cv)
+
+    if "text" in layers:
+        tf = title_font(title)
+        d.text((LX, TITLE_Y), title, font=tf, fill=TEXT)
+        d.text((LX, TITLE_Y + tf.size + TAG_GAP), tag,
+               font=font(44 * S, "medium"), fill=accent)
+
+    if "logos" in layers:
+        fx = LX
+        for _path, logo in logo_images():
+            cv.alpha_composite(logo, (int(fx), int(LOGO_Y)))
+            fx += logo.width + LOGO_GAP
+        d = ImageDraw.Draw(cv)
+
+    if "screen" in layers:
+        sx0, sy0, sx1, sy1 = screen_rect()
+        rounded(d, [sx0 - 6 * S, sy0 - 6 * S, sx1 + 6 * S, sy1 + 6 * S],
+                radius=30 * S, fill=(0, 0, 0, 255), outline=(255, 255, 255, 40),
+                width=2 * S)
+        rounded(d, [sx0, sy0, sx1, sy1], radius=24 * S, fill=(16, 20, 34, 255))
+        scene(cv, ImageDraw.Draw(cv), [sx0, sy0, sx1, sy1], accent, lang)
+        d = ImageDraw.Draw(cv)
+        lf = font(26 * S, "bold")
+        lw_ = d.textlength(LIVE[lang], font=lf)
+        rounded(d, [sx1 - lw_ - 70 * S, sy0 + 18 * S, sx1 - 18 * S, sy0 + 66 * S],
+                radius=24 * S, fill=(0, 0, 0, 170))
+        d.ellipse([sx1 - lw_ - 56 * S, sy0 + 32 * S,
+                   sx1 - lw_ - 36 * S, sy0 + 52 * S], fill=(248, 81, 73))
+        d.text((sx1 - lw_ - 28 * S, sy0 + 26 * S), LIVE[lang], font=lf, fill=TEXT)
+
+    return cv
+
+
+def make_card(key, icon, accent, scene, names, lang):
+    cv = render_card(icon, accent, scene, names, lang)
     return cv.resize((W, H), Image.LANCZOS).convert("RGB")
 
 
@@ -431,6 +466,137 @@ def make_overview(lang):
     return cv.resize((W, 620), Image.LANCZOS).convert("RGB")
 
 
+# ------------------------------------------------------- editable export ---
+
+def export_editable():
+    """Write per-card source material for Photoshop / Illustrator / PowerPoint:
+
+    <key>_<lang>@2x.png     flattened, 3200x1800 (print-grade raster)
+    <key>_<lang>_bg.png     background + glow + accent bar
+    <key>_<lang>_screen.png the mock live screen incl. its scene
+    <key>_icon.png          icon badge (language-independent)
+    logo.png / logo2.png    the two brand logos, untouched
+    <key>_<lang>.svg        all of the above stacked, title/tagline as REAL
+                            editable text (self-contained, base64-embedded)
+    """
+    edit = OUT / "editable"
+    edit.mkdir(parents=True, exist_ok=True)
+
+    def b64(img):
+        buf = io.BytesIO()
+        img.save(buf, format="PNG", optimize=True)
+        return "data:image/png;base64," + base64.b64encode(buf.getvalue()).decode()
+
+    # brand logos alongside, so a designer has them at hand
+    for src, name in ((LOGO, "logo.png"), (LOGO2, "logo2.png")):
+        if src.exists():
+            (edit / name).write_bytes(src.read_bytes())
+
+    written = 0
+    for key, icon, accent, scene, names in STATIONS:
+        # icon layer is identical for both languages → render once
+        icon_layer = render_card(icon, accent, scene, names, "de", layers=("icon",))
+        icon_layer.save(edit / f"{key}_icon.png", optimize=True)
+        for lang in ("de", "en"):
+            title, tag = names[lang]
+            flat = render_card(icon, accent, scene, names, lang)
+            flat.convert("RGB").save(edit / f"{key}_{lang}@2x.png", optimize=True)
+            bg = render_card(icon, accent, scene, names, lang, layers=("bg",))
+            bg.save(edit / f"{key}_{lang}_bg.png", optimize=True)
+            sc = render_card(icon, accent, scene, names, lang, layers=("screen",))
+            sc.save(edit / f"{key}_{lang}_screen.png", optimize=True)
+
+            # ---- SVG: raster layers + live text ------------------------
+            tf = title_font(title)
+            asc, _desc = tf.getmetrics()
+            t_size = tf.size / S
+            t_base = (TITLE_Y + asc) / S                 # PIL top-left → SVG baseline
+            gf = font(44 * S, "medium")
+            g_asc, _ = gf.getmetrics()
+            g_base = (TITLE_Y + tf.size + TAG_GAP + g_asc) / S
+            hexc = "#%02x%02x%02x" % accent
+            lx = LX / S
+            logo_svg, fx = "", LX
+            for _p, logo in logo_images():
+                logo_svg += (f'\n  <image x="{fx / S:.1f}" y="{LOGO_Y / S:.1f}" '
+                             f'width="{logo.width / S:.1f}" '
+                             f'height="{logo.height / S:.1f}" '
+                             f'href="{b64(logo)}"/>')
+                fx += logo.width + LOGO_GAP
+            svg = f"""<?xml version="1.0" encoding="UTF-8"?>
+<!-- {key} ({lang}) · editable: text below is live text, layers are images.
+     Generated by setup/make_station_cards.py — do not hand-edit if you
+     plan to re-run the generator. -->
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+     width="{W}" height="{H}" viewBox="0 0 {W} {H}">
+  <g id="background"><image x="0" y="0" width="{W}" height="{H}" href="{b64(bg)}"/></g>
+  <g id="screen"><image x="0" y="0" width="{W}" height="{H}" href="{b64(sc)}"/></g>
+  <g id="icon"><image x="0" y="0" width="{W}" height="{H}" href="{b64(icon_layer)}"/></g>
+  <g id="text" font-family="Helvetica Neue, Helvetica, Arial, sans-serif">
+    <text x="{lx:.1f}" y="{t_base:.1f}" font-size="{t_size:.1f}"
+          font-weight="700" fill="rgb{TEXT}">{title}</text>
+    <text x="{lx:.1f}" y="{g_base:.1f}" font-size="{44 / 1:.1f}"
+          font-weight="500" fill="{hexc}">{tag}</text>
+  </g>
+  <g id="logos">{logo_svg}
+  </g>
+</svg>
+"""
+            (edit / f"{key}_{lang}.svg").write_text(svg, encoding="utf-8")
+            written += 1
+        print(f"  ✓ {key} (de/en): @2x, bg, screen, icon, svg")
+
+    (edit / "README.md").write_text(READ_ME_EDIT, encoding="utf-8")
+    print(f"→ {edit.relative_to(ROOT)}: {written} Karten als Ebenen + SVG")
+
+
+READ_ME_EDIT = """# Editable source material — station cards
+
+Everything here is generated by `setup/make_station_cards.py --editable`.
+Re-running overwrites these files, so save your own work under a new name.
+
+## What is what
+
+| File | Contents |
+|---|---|
+| `<station>_<lang>@2x.png` | the finished card, 3200×1800 (2× print-grade) |
+| `<station>_<lang>_bg.png` | background: gradient, accent glow, top bar |
+| `<station>_<lang>_screen.png` | the mock "live screen" incl. its scene |
+| `<station>_icon.png` | icon badge (same for both languages) |
+| `<station>_<lang>.svg` | all layers stacked, **title + tagline as live text** |
+| `logo.png`, `logo2.png` | SKILL and aiwareness Lab logos, transparent |
+
+All PNG layers are full-canvas 3200×1800 with transparency, so stacking
+them in this order reproduces the card pixel for pixel:
+
+    bg → screen → icon → (your text) → logos
+
+## Photoshop
+
+Open the `.svg` (it comes in as a smart object, text stays vector), or
+build a layered document: File → Scripts → *Load Files into Stack…* and
+pick `_bg`, `_screen`, `_icon` — then set the text yourself in
+Helvetica Neue Bold (title) / Medium (tagline).
+
+## Illustrator / Affinity / Inkscape
+
+Open the `.svg`. Groups are named `background`, `screen`, `icon`, `text`,
+`logos`; the two `<text>` elements are editable type.
+
+## PowerPoint / Keynote / Google Slides
+
+Use `station_cards.pptx` in this folder — one editable slide per card,
+with real text boxes. Alternatively insert the `.svg` and use
+*Graphics Format → Convert to Shape* to make it editable.
+
+## Fonts & colours
+
+Type: Helvetica Neue (Bold for titles, Medium for taglines).
+Brand colours: `#400b67`, `#c32683`. Card background `#0d1117` → `#161b27`.
+Station accents: see the `STATIONS` list in `setup/make_station_cards.py`.
+"""
+
+
 def main():
     OUT.mkdir(parents=True, exist_ok=True)
     files = []
@@ -458,3 +624,6 @@ def main():
 
 if __name__ == "__main__":
     main()
+    if "--editable" in sys.argv:
+        print("\nEditierbare Vorlagen (Ebenen-PNGs + SVG):")
+        export_editable()
