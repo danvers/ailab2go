@@ -1,8 +1,8 @@
-# KI-Werkstatt 🤖 — a computer-vision & privacy-literacy exhibit for Raspberry Pi 5
+# AI-Lab2Go — a mobile computer-vision & privacy-literacy exhibit for Raspberry Pi 5
 
 An out-of-the-box, self-explanatory AI workshop station: the Raspberry Pi 5
-(with AI HAT) runs a live camera feed through real neural networks and serves
-an interactive German web UI over its own Wi-Fi hotspot. Visitors join with
+(with AI HAT+ 2) runs a live camera feed through real neural networks and serves
+an interactive web UI over its own Wi-Fi hotspot. Visitors join with
 their own phones or laptops — no app, no internet, no cloud, and (by design)
 **no stored images**. Privacy literacy isn't a chapter at the end; it's baked
 into every station.
@@ -32,7 +32,7 @@ runs in CPU demo mode, so the exhibit never shows a blank screen.
 - Camera Module 3 (recommended; autofocus is handled) — or any USB webcam
 - microSD ≥ 16 GB, a small tripod/mount, ideally a case with HAT clearance
 
-> 🇩🇪 **Deutsche Schritt-für-Schritt-Anleitung** (Aufbau, Betrieb,
+> 🇩🇪 **Schritt-für-Schritt-Anleitung** (Aufbau, Betrieb,
 > Fehlerbehebung): [ANLEITUNG.md](ANLEITUNG.md)
 
 ## Install (on the Pi)
