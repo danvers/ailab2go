@@ -194,6 +194,34 @@ your phone.** Everything starts by itself.
 
 ---
 
+## 7b · Exhibition mode with a projector
+
+At **`http://10.42.0.1/beamer`** the exhibit serves a passive
+**projector/TV view** for passers-by: the live picture on the left, big
+live counters on the right (faces currently shielded, objects spotted,
+"NOT uploaded to any cloud", share of the room mapped), plus rotating
+bilingual thought-starters and a QR code to join in. No controls — anyone
+who wants to steer uses their phone.
+
+- **Auto-tour:** if nobody interacts for ~90 seconds, the exhibit tours
+  the visual stations by itself (moving on every 25 s). The moment someone
+  taps anything on a phone, the tour stops. Tunable in
+  [app/config.py](app/config.py) (`EXHIBIT_…`).
+- **Hook-up:** either connect a laptop to the projector and open `/beamer`
+  full-screen — or use the **Pi itself** as the player (HDMI to the
+  projector):
+
+```bash
+bash setup/kiosk.sh
+```
+
+  Chromium then starts full-screen on the wall page on every boot (screen
+  blanking disabled). Turn off again: `bash setup/kiosk.sh off`.
+- The counters live in RAM only; "♻️ Reset everything" in the moderation
+  bar clears them too.
+
+---
+
 ## 8 · Preview on your laptop (without a Pi)
 
 For trying things out and for changes to texts/design:

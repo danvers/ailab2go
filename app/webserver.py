@@ -22,6 +22,25 @@ def create_app(pipeline):
     def index():
         return render_template("index.html", event_name=config.EVENT_NAME)
 
+    @app.get("/beamer")
+    def beamer():
+        # QR for passers-by; python3-qrcode is installed by install.sh, but
+        # the wall must not break without it
+        qr_uri = ""
+        try:
+            import base64
+            import io
+            import qrcode
+            buf = io.BytesIO()
+            qrcode.make(config.PUBLIC_URL, box_size=8, border=1).save(buf, "PNG")
+            qr_uri = ("data:image/png;base64," +
+                      base64.b64encode(buf.getvalue()).decode())
+        except Exception:
+            pass
+        return render_template("beamer.html", event_name=config.EVENT_NAME,
+                               qr_uri=qr_uri, public_url=config.PUBLIC_URL,
+                               ssid=config.HOTSPOT_SSID)
+
     @app.get("/stream.mjpg")
     def stream():
         if pipeline.stream_clients >= config.MAX_STREAM_CLIENTS:
@@ -61,6 +80,7 @@ def create_app(pipeline):
             return jsonify(error="locked"), 403
         if not pipeline.set_mode(payload.get("mode", "")):
             return jsonify(error="unknown mode"), 400
+        pipeline.touch()
         return jsonify(ok=True)
 
     @app.post("/api/params")
@@ -86,6 +106,7 @@ def create_app(pipeline):
             # would be raw camera video (see stations.Pipeline._process).
             pipeline.pose_ghost = bool(payload["pose_ghost"]) \
                 and pipeline.pose is not None
+        pipeline.touch()
         return jsonify(ok=True)
 
     # The teach/heatmap endpoints all change shared room state (and two of
@@ -97,6 +118,7 @@ def create_app(pipeline):
         if not _allowed(payload):
             return jsonify(error="locked"), 403
         count = pipeline.teach_capture(payload.get("slot", ""))
+        pipeline.touch()
         return jsonify(ok=count > 0, count=count)
 
     @app.post("/api/teach/rename")

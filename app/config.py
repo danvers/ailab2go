@@ -43,6 +43,18 @@ TEACH_KNN_K = 7
 FACE_DETECT_EVERY_N_FRAMES = 2   # Haar cascade cost saver
 FACE_GUARD_GLOBAL_DEFAULT = True # anonymise faces in every station by default
 
+# --- Beamer / exhibition view ---------------------------------------------
+# /beamer is a passive full-screen wall display (projector or TV): live
+# stream, big counters, rotating "did you know" facts. No controls.
+EXHIBIT_AUTOROTATE = True     # tour the stations while nobody interacts
+EXHIBIT_IDLE_AFTER = 90       # seconds without interaction → attract mode
+EXHIBIT_ROTATE_EVERY = 25     # seconds per station while touring
+EXHIBIT_TOUR = ["detektiv", "schild", "pose", "spur"]  # the visual ones
+
+# What the wall display tells passers-by (must match setup/hotspot.sh)
+PUBLIC_URL = "http://10.42.0.1"
+HOTSPOT_SSID = "KI-Werkstatt"
+
 # --- Exhibit / admin -------------------------------------------------------
 ADMIN_PIN = "2468"          # unlocks the moderator bar in the web UI
 EVENT_NAME = "KI-Werkstatt" # shown in the header

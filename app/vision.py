@@ -327,6 +327,11 @@ class MotionHeatmap:
             self.acc += mask.astype(np.float32)
         self.prev = gray
 
+    @property
+    def coverage(self):
+        """Share of the room's grid cells that ever saw motion (0..1)."""
+        return round(float((self.acc > 2).mean()), 3)
+
     def render(self, frame):
         peak = float(self.acc.max())
         if peak < 1:

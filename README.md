@@ -94,6 +94,16 @@ bash setup/deploy.sh              # or: bash setup/deploy.sh dan@10.42.0.1
 Syncs the project, installs it to `/opt/ki-werkstatt`, restarts the service
 and prints the startup status lines (camera, AI chip, pose model, face guard).
 
+## Exhibition wall (projector)
+
+`/beamer` is a passive full-screen wall view for a projector or TV: live
+stream, big live counters (faces shielded, objects spotted, megabytes NOT
+uploaded to any cloud, share of the room mapped), rotating bilingual
+thought-starters and a join-in QR code. While nobody interacts, the exhibit
+auto-tours its visual stations (`EXHIBIT_…` knobs in `app/config.py`).
+`bash setup/kiosk.sh` makes the Pi itself the player: Chromium starts
+full-screen on every boot via HDMI.
+
 ## Authoring tools (posters, cards, images)
 
 These run on your laptop, never on the Pi. Homebrew and Debian Python refuse

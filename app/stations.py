@@ -122,6 +122,20 @@ class Pipeline:
         self.fps = 0.0
         self.stream_clients = 0
 
+        # --- exhibition counters (RAM only, reset with the process) ---------
+        # These exist to make the *invisible* visible on the projector wall:
+        # how much a comparable cloud camera would have uploaded by now, how
+        # often faces were shielded, how much of the room has been mapped.
+        self.frames_total = 0
+        self.cloud_bytes = 0          # sum of encoded frame sizes
+        self.object_events = 0        # object appeared after being absent
+        self.classes_seen = set()
+        self.faces_max = 0
+        self._objects_present = set()
+        self.last_interaction = time.time()
+        self._attract_since = None
+        self._attract_next = 0.0
+
         self.jpeg = None
         self.state = {}
         self.frame_ready = threading.Condition()
@@ -141,6 +155,35 @@ class Pipeline:
             self.mode = mode
             return True
         return False
+
+    def touch(self):
+        """Any visitor interaction — pauses the attract rotation."""
+        self.last_interaction = time.time()
+        self._attract_since = None
+
+    @property
+    def attract(self):
+        """True while nobody has touched anything for a while: the exhibit
+        tours itself so passers-by always see something happening."""
+        return (config.EXHIBIT_AUTOROTATE and not self.locked and
+                time.time() - self.last_interaction > config.EXHIBIT_IDLE_AFTER)
+
+    def _attract_step(self):
+        now = time.time()
+        if not self.attract:
+            return
+        if self._attract_since is None:
+            self._attract_since = now
+            self._attract_next = now              # switch immediately
+        if now >= self._attract_next:
+            tour = [m for m in config.EXHIBIT_TOUR if m in MODES]
+            if tour:
+                try:
+                    nxt = tour[(tour.index(self.mode) + 1) % len(tour)]
+                except ValueError:
+                    nxt = tour[0]
+                self.mode = nxt
+            self._attract_next = now + config.EXHIBIT_ROTATE_EVERY
 
     # -- main loop ----------------------------------------------------------
 
@@ -170,6 +213,7 @@ class Pipeline:
 
     def _process(self, frame):
             self.last_frame = frame.copy()  # clean copy for teach_capture
+            self._attract_step()            # self-touring while nobody plays
             mode = self.mode  # snapshot: mode may change mid-frame
 
             # Background bookkeeping that runs in *every* mode — on purpose:
@@ -177,6 +221,8 @@ class Pipeline:
             # people were busy playing (exactly how real surveillance works).
             self.heatmap.update(frame)
             self.faces.update(frame)
+            self.frames_total += 1
+            self.faces_max = max(self.faces_max, len(self.faces.boxes))
 
             detections = []
             if mode in ("detektiv", "trick"):
@@ -210,9 +256,20 @@ class Pipeline:
                     cv2.rectangle(frame, (x, y), (x + w, y + h), (60, 60, 230), 2)
                     _label(frame, "ungeschuetzt!", x, y - 4, (60, 60, 230))
 
+            # Which object classes are on screen right now? Counting the
+            # *appearances* (not every frame) gives the wall an honest
+            # "recognitions so far" number.
+            present = {c for c, conf, _ in detections if conf >= self.threshold}
+            new = present - self._objects_present
+            self.object_events += len(new)
+            self.classes_seen |= present
+            self._objects_present = present
+
             ok, buf = cv2.imencode(".jpg", frame,
                                    [cv2.IMWRITE_JPEG_QUALITY, config.JPEG_QUALITY])
             if ok:
+                # what a cloud camera would have shipped off by now
+                self.cloud_bytes += len(buf)
                 with self.frame_ready:
                     self.jpeg = buf.tobytes()
                     self.frame_ready.notify_all()
@@ -375,6 +432,17 @@ class Pipeline:
                 "prediction": teach_pred,
             },
             "heatmap": {"since_s": int(time.time() - self.heatmap.since)},
+            "exhibit": {
+                "attract": self.attract,
+                "frames": self.frames_total,
+                "cloud_mb": round(self.cloud_bytes / 1e6, 1),
+                "object_events": self.object_events,
+                "classes_seen": len(self.classes_seen),
+                "faces_now": len(self.faces.boxes),
+                "faces_max": self.faces_max,
+                "protect_events": self.faces.protect_events,
+                "heat_coverage": self.heatmap.coverage,
+            },
             "pose": {
                 "available": self.pose is not None,
                 "status": self.pose_status,
@@ -407,6 +475,12 @@ class Pipeline:
         self.teach.reset()
         self.heatmap.reset()
         self.faces.protect_events = 0
+        self.frames_total = 0
+        self.cloud_bytes = 0
+        self.object_events = 0
+        self.classes_seen = set()
+        self._objects_present = set()
+        self.faces_max = 0
         self.faces._had_faces = False
         self._ch_idx = 0
         self._ch_done = 0

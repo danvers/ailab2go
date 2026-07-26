@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ event_name }} · Beamer</title>
+<link rel="icon" href="/static/logo-icon.png" sizes="256x256">
+<style>
+/* Passive wall display for a projector or TV — no controls, huge type.
+   Self-contained on purpose: shares only the stream + /api/state. */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #0d1117; --card: rgba(255,255,255,0.055);
+  --border: rgba(255,255,255,0.14); --text: #e6edf3; --muted: #9aa3b2;
+  --accent: #4ea8ff;
+}
+html, body { height: 100%; }
+body {
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  background: radial-gradient(1400px 700px at 85% -10%, #1c2440 0%, var(--bg) 55%) fixed;
+  color: var(--text); overflow: hidden; cursor: none;
+}
+main { display: grid; grid-template-columns: minmax(0, 8fr) minmax(0, 5fr);
+       gap: 1.2vw; height: 100vh; padding: 1.2vw; }
+
+/* ── left: the live picture ─────────────────────────────── */
+.video { position: relative; border-radius: 1.2vw; overflow: hidden;
+         background: #000; border: 1px solid var(--border);
+         display: flex; align-items: center; }
+.video img { width: 100%; aspect-ratio: 16/9; object-fit: cover; }
+.mode {
+  position: absolute; left: 1.2vw; top: 1.2vw;
+  background: rgba(0,0,0,0.62); backdrop-filter: blur(4px);
+  border-left: 0.5vw solid var(--accent);
+  border-radius: 0.6vw; padding: 0.7vw 1.4vw;
+}
+.mode .de { font-size: 2.1vw; font-weight: 800; line-height: 1.15; }
+.mode .en { font-size: 1.05vw; color: var(--muted); }
+.live {
+  position: absolute; right: 1.2vw; top: 1.2vw;
+  display: flex; align-items: center; gap: 0.5vw;
+  background: rgba(0,0,0,0.62); border-radius: 99vw;
+  padding: 0.45vw 1vw; font-weight: 800; font-size: 1vw;
+}
+.live i { width: 0.7vw; height: 0.7vw; border-radius: 50%;
+          background: #f85149; animation: blink 1.6s infinite; }
+@keyframes blink { 50% { opacity: 0.35; } }
+.tour {
+  position: absolute; left: 1.2vw; bottom: 1.2vw;
+  background: rgba(0,0,0,0.62); border-radius: 99vw;
+  padding: 0.45vw 1.1vw; font-size: 0.95vw; color: var(--muted);
+  display: none;
+}
+body.attract .tour { display: block; }
+
+/* ── right: numbers that make the invisible visible ─────── */
+aside { display: flex; flex-direction: column; gap: 1vw; min-height: 0; }
+header { display: flex; align-items: center; gap: 1vw; }
+header img { height: 2.1vw; width: auto; }
+header .rule { width: 1px; height: 1.8vw; background: var(--border); }
+header h1 { font-size: 1.7vw; letter-spacing: 0.02em; }
+
+.stats { display: grid; grid-template-columns: 1fr 1fr; gap: 1vw; flex: 1; }
+.stat {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 1vw; padding: 1.1vw 1.3vw;
+  display: flex; flex-direction: column; justify-content: center; gap: 0.3vw;
+}
+.stat .num { font-size: 3.6vw; font-weight: 800; line-height: 1;
+             font-variant-numeric: tabular-nums; }
+.stat .de { font-size: 1.05vw; font-weight: 600; line-height: 1.25; }
+.stat .en { font-size: 0.85vw; color: var(--muted); }
+.stat.shield .num { color: #3ddc97; }
+.stat.objects .num { color: #4ea8ff; }
+.stat.cloud .num { color: #ff5d8f; }
+.stat.map .num { color: #ffb347; }
+
+.fact {
+  background: rgba(255, 214, 102, 0.09);
+  border: 1px solid rgba(255, 214, 102, 0.35);
+  border-radius: 1vw; padding: 1vw 1.3vw; min-height: 7.2vw;
+  display: flex; flex-direction: column; justify-content: center; gap: 0.35vw;
+}
+.fact .de { font-size: 1.25vw; font-weight: 650; line-height: 1.35; }
+.fact .en { font-size: 0.95vw; color: var(--muted); line-height: 1.35; }
+
+.join {
+  display: flex; align-items: center; gap: 1.2vw;
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 1vw; padding: 1vw 1.3vw;
+}
+.join img { width: 7vw; height: 7vw; border-radius: 0.5vw; background: #fff;
+            padding: 0.3vw; }
+.join .head { font-size: 1.35vw; font-weight: 800; margin-bottom: 0.3vw; }
+.join .line { font-size: 1.02vw; color: var(--muted); line-height: 1.6; }
+.join code { color: var(--text); background: rgba(255,255,255,0.08);
+             border-radius: 0.3vw; padding: 0.05vw 0.5vw;
+             font-family: ui-monospace, Menlo, monospace; }
+</style>
+</head>
+<body>
+<main>
+  <section class="video">
+    <img id="stream" src="/stream.mjpg" alt="Live-Kamerabild der Ausstellung">
+    <div class="mode" id="mode-banner">
+      <div class="de" id="mode-de">KI-Werkstatt</div>
+      <div class="en" id="mode-en">live exhibition</div>
+    </div>
+    <div class="live"><i></i>LIVE</div>
+    <div class="tour">🎬 Automatische Tour · self-touring — mitmachen erlaubt!</div>
+  </section>
+
+  <aside>
+    <header>
+      <img src="/static/logo.png" alt="SKILL">
+      <img src="/static/logo2.png" alt="aiwareness Lab">
+      <span class="rule"></span>
+      <h1>{{ event_name }}</h1>
+    </header>
+
+    <div class="stats">
+      <div class="stat shield">
+        <div class="num" id="s-faces">0</div>
+        <div class="de">Gesichter gerade geschützt</div>
+        <div class="en">faces shielded right now</div>
+      </div>
+      <div class="stat objects">
+        <div class="num" id="s-objects">0</div>
+        <div class="de">Objekte erkannt seit Start</div>
+        <div class="en">objects spotted so far</div>
+      </div>
+      <div class="stat cloud">
+        <div class="num" id="s-cloud">0 MB</div>
+        <div class="de">NICHT in die Cloud geladen</div>
+        <div class="en">not uploaded to any cloud</div>
+      </div>
+      <div class="stat map">
+        <div class="num" id="s-map">0 %</div>
+        <div class="de">des Raums als Datenspur erfasst</div>
+        <div class="en">of the room mapped as a data trail</div>
+      </div>
+    </div>
+
+    <div class="fact">
+      <div class="de" id="fact-de"></div>
+      <div class="en" id="fact-en"></div>
+    </div>
+
+    <div class="join">
+      {% if qr_uri %}<img src="{{ qr_uri }}" alt="QR-Code zur Ausstellung">{% endif %}
+      <div>
+        <div class="head">Mach mit! · Join in!</div>
+        <div class="line">WLAN <code>{{ ssid }}</code> → <code>{{ public_url }}</code></div>
+        <div class="line">Kein Internet nötig · runs fully offline</div>
+      </div>
+    </div>
+  </aside>
+</main>
+
+<script>
+"use strict";
+const $ = (s) => document.querySelector(s);
+
+const MODES = {
+  start:    ["Willkommen", "welcome"],
+  detektiv: ["🔍 Objekt-Detektiv", "Object Detective — what does the AI see?"],
+  trainer:  ["🧠 Trainiere die KI", "Train the AI — you are the coach"],
+  schild:   ["🛡️ Privatsphäre-Schild", "Privacy Shield — protection built in"],
+  spur:     ["🗺️ Die Datenspur", "The Data Trail — what cameras collect"],
+  trick:    ["🎭 Täusche die KI", "Fool the AI — find its limits"],
+  pose:     ["🤸 Skelett-Spiegel", "Skeleton Mirror — play without pictures"],
+};
+const ACCENTS = { start: "#8b949e", detektiv: "#4ea8ff", trainer: "#b57bff",
+  schild: "#3ddc97", spur: "#ffb347", trick: "#ff5d8f", pose: "#2dd4bf" };
+
+const FACTS = [
+  ["Alles hier passiert auf einem Raspberry Pi in diesem Raum — es gibt nicht mal eine Internet-Verbindung.",
+   "Everything happens on a Raspberry Pi in this room — there isn't even an internet connection."],
+  ["Die Kamera speichert kein einziges Bild. Alle Zahlen leben nur im Arbeitsspeicher: Stecker ziehen, alles weg.",
+   "The camera stores not a single image. All numbers live in RAM only — pull the plug and everything is gone."],
+  ["Die KI kennt genau 80 Dinge. Wer entscheidet eigentlich, was eine KI lernt — und was sie nie sehen wird?",
+   "The AI knows exactly 80 things. Who decides what an AI learns — and what it will never see?"],
+  ["Erkennen ist nicht Wiedererkennen: „Da ist ein Gesicht“ ist etwas anderes als „Das ist Anna“. Diese Wand macht nur Ersteres.",
+   "Detection is not recognition: “there is a face” is not “that is Anna”. This wall only does the former."],
+  ["Auch ohne Gesichter entsteht eine Datenspur: Wege, Lieblingsecken, Gewohnheiten. Metadaten verraten mehr, als man denkt.",
+   "Even without faces there is a data trail: routes, favourite corners, habits. Metadata tells more than you'd think."],
+  ["Dein Gang ist so einzigartig wie ein Fingerabdruck — Skelett-Tracking kann dich auch ohne Video erkennen.",
+   "Your gait is as unique as a fingerprint — skeleton tracking can identify you even without video."],
+  ["Was nicht gesammelt wird, kann nicht missbraucht werden. Datenminimierung ist der beste Datenschutz.",
+   "What is never collected can never be abused. Data minimisation is the best privacy protection."],
+  ["Zum Mitmachen: WLAN verbinden, Adresse öffnen — dein Handy wird zur Fernbedienung dieser Wand.",
+   "To join in: connect to the Wi-Fi, open the address — your phone becomes the remote for this wall."],
+];
+
+let factIdx = -1;
+function nextFact() {
+  factIdx = (factIdx + 1) % FACTS.length;
+  $("#fact-de").textContent = "💡 " + FACTS[factIdx][0];
+  $("#fact-en").textContent = FACTS[factIdx][1];
+}
+nextFact();
+setInterval(nextFact, 12000);
+
+function fmtMB(mb) {
+  return mb >= 1000 ? (mb / 1000).toFixed(1) + " GB" : Math.round(mb) + " MB";
+}
+
+async function poll() {
+  try {
+    const s = await (await fetch("/api/state")).json();
+    const m = MODES[s.mode] || MODES.start;
+    $("#mode-de").textContent = m[0];
+    $("#mode-en").textContent = m[1];
+    $("#mode-banner").style.borderLeftColor = ACCENTS[s.mode] || "#8b949e";
+    document.body.classList.toggle("attract", !!(s.exhibit && s.exhibit.attract));
+    if (s.exhibit) {
+      $("#s-faces").textContent = s.exhibit.faces_now;
+      $("#s-objects").textContent = s.exhibit.object_events;
+      $("#s-cloud").textContent = fmtMB(s.exhibit.cloud_mb);
+      $("#s-map").textContent = Math.round(s.exhibit.heat_coverage * 100) + " %";
+    }
+  } catch (e) { /* next tick */ }
+  setTimeout(poll, 1000);
+}
+poll();
+
+// stream self-healing (projector browsers left alone for hours)
+const stream = $("#stream");
+stream.addEventListener("error", () =>
+  setTimeout(() => { stream.src = "/stream.mjpg?" + Date.now(); }, 2000));
+document.addEventListener("visibilitychange", () => {
+  if (!document.hidden) stream.src = "/stream.mjpg?" + Date.now();
+});
+</script>
+</body>
+</html>

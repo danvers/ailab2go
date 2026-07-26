@@ -187,6 +187,34 @@ Alles startet von selbst.
 
 ---
 
+## 7b · Ausstellungsmodus mit Beamer
+
+Unter **`http://10.42.0.1/beamer`** liefert die Ausstellung eine passive
+**Beamer-/TV-Ansicht** für Vorbeigehende: links das Live-Bild, rechts große
+Live-Zähler (gerade geschützte Gesichter, erkannte Objekte, „NICHT in die
+Cloud geladen", kartierter Raumanteil), dazu rotierende zweisprachige
+Denkanstöße und ein QR-Code zum Mitmachen. Keine Bedienelemente — wer
+steuern will, nimmt das Handy.
+
+- **Auto-Tour:** Interagiert ~90 Sekunden niemand, wandert die Ausstellung
+  selbstständig durch die visuellen Stationen (alle 25 s weiter). Sobald
+  jemand am Handy etwas antippt, stoppt die Tour sofort. Einstellbar in
+  [app/config.py](app/config.py) (`EXHIBIT_…`).
+- **Anschluss:** Entweder einen Laptop an den Beamer hängen und dort
+  `/beamer` im Vollbild öffnen — oder den **Pi selbst** als Zuspieler
+  nutzen (HDMI an den Beamer):
+
+```bash
+bash setup/kiosk.sh
+```
+
+  Danach startet Chromium bei jedem Boot vollbild auf der Beamer-Seite
+  (inkl. Bildschirmschoner-Abschaltung). Wieder aus: `bash setup/kiosk.sh off`.
+- Die Zähler leben nur im Arbeitsspeicher; „♻️ Alles zurücksetzen" in der
+  Moderationsleiste nullt auch sie.
+
+---
+
 ## 8 · Vorschau auf dem Laptop (ohne Pi)
 
 Zum Ausprobieren und für Änderungen an Texten/Design:
