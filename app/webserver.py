@@ -1,5 +1,6 @@
 """Flask web app: MJPEG stream + JSON API for the exhibit UI."""
 
+import threading
 import time
 
 from flask import Flask, Response, jsonify, render_template, request
@@ -41,33 +42,41 @@ def create_app(pipeline):
                                qr_uri=qr_uri, public_url=config.PUBLIC_URL,
                                ssid=config.HOTSPOT_SSID)
 
+    # Stream slots: a semaphore is atomic (the old check-then-act counter
+    # could overshoot under simultaneous joins), and call_on_close releases
+    # the slot exactly once even if the generator never starts.
+    stream_slots = threading.BoundedSemaphore(config.MAX_STREAM_CLIENTS)
+
     @app.get("/stream.mjpg")
     def stream():
-        if pipeline.stream_clients >= config.MAX_STREAM_CLIENTS:
+        if not stream_slots.acquire(blocking=False):
             return "Zu viele Zuschauer — bitte später erneut versuchen.", 503
+        pipeline.stream_clients += 1     # display only; slots gate for real
 
         def generate():
-            pipeline.stream_clients += 1
             min_interval = 1.0 / config.STREAM_MAX_FPS
             last = 0.0
-            try:
-                while pipeline.running:
-                    with pipeline.frame_ready:
-                        pipeline.frame_ready.wait(timeout=2.0)
-                        jpeg = pipeline.jpeg
-                    if jpeg is None:
-                        continue
-                    now = time.time()
-                    if now - last < min_interval:
-                        time.sleep(min_interval - (now - last))
-                    last = time.time()
-                    yield (b"--frame\r\n"
-                           b"Content-Type: image/jpeg\r\n\r\n" + jpeg + b"\r\n")
-            finally:
-                pipeline.stream_clients -= 1
+            while pipeline.running:
+                with pipeline.frame_ready:
+                    pipeline.frame_ready.wait(timeout=2.0)
+                    jpeg = pipeline.jpeg
+                if jpeg is None:
+                    continue
+                now = time.monotonic()
+                if now - last < min_interval:
+                    time.sleep(min_interval - (now - last))
+                last = time.monotonic()
+                yield (b"--frame\r\n"
+                       b"Content-Type: image/jpeg\r\n\r\n" + jpeg + b"\r\n")
 
-        return Response(generate(),
+        def release():
+            pipeline.stream_clients = max(0, pipeline.stream_clients - 1)
+            stream_slots.release()
+
+        resp = Response(generate(),
                         mimetype="multipart/x-mixed-replace; boundary=frame")
+        resp.call_on_close(release)
+        return resp
 
     @app.get("/api/state")
     def state():

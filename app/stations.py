@@ -14,7 +14,6 @@ import numpy as np
 
 import config
 import vision
-from camera import FakeSource
 from labels_de import class_info, de_ascii
 
 MODES = ("start", "detektiv", "trainer", "schild", "spur", "trick", "pose")
@@ -127,12 +126,14 @@ class Pipeline:
         # how much a comparable cloud camera would have uploaded by now, how
         # often faces were shielded, how much of the room has been mapped.
         self.frames_total = 0
+        self.published_total = 0      # frames actually handed to viewers —
+                                      # the watchdog's liveness metric
         self.cloud_bytes = 0          # sum of encoded frame sizes
         self.object_events = 0        # object appeared after being absent
         self.classes_seen = set()
         self.faces_max = 0
         self._objects_present = set()
-        self.last_interaction = time.time()
+        self.last_interaction = time.monotonic()
         self._attract_since = None
         self._attract_next = 0.0
 
@@ -158,7 +159,7 @@ class Pipeline:
 
     def touch(self):
         """Any visitor interaction — pauses the attract rotation."""
-        self.last_interaction = time.time()
+        self.last_interaction = time.monotonic()
         self._attract_since = None
 
     @property
@@ -166,10 +167,11 @@ class Pipeline:
         """True while nobody has touched anything for a while: the exhibit
         tours itself so passers-by always see something happening."""
         return (config.EXHIBIT_AUTOROTATE and not self.locked and
-                time.time() - self.last_interaction > config.EXHIBIT_IDLE_AFTER)
+                time.monotonic() - self.last_interaction
+                > config.EXHIBIT_IDLE_AFTER)
 
     def _attract_step(self):
-        now = time.time()
+        now = time.monotonic()
         if not self.attract:
             return
         if self._attract_since is None:
@@ -191,7 +193,7 @@ class Pipeline:
         log = logging.getLogger("pipeline")
         last_error_log = 0.0
         while self.running:
-            t0 = time.time()
+            t0 = time.monotonic()
             try:
                 frame = self.source.read()
             except Exception:
@@ -203,12 +205,12 @@ class Pipeline:
             except Exception:
                 # One bad frame must never kill the exhibit for everyone —
                 # log (rate-limited), drop the frame, keep streaming.
-                if time.time() - last_error_log > 10:
-                    last_error_log = time.time()
+                if time.monotonic() - last_error_log > 10:
+                    last_error_log = time.monotonic()
                     log.exception("Frame processing failed — frame dropped")
 
-            time.sleep(max(0.0, 1 / 30 - (time.time() - t0)))
-            loop_dt = time.time() - t0
+            time.sleep(max(0.0, 1 / 30 - (time.monotonic() - t0)))
+            loop_dt = time.monotonic() - t0
             self.fps = 0.9 * self.fps + 0.1 * (1.0 / max(loop_dt, 1e-3))
 
     def _process(self, frame):
@@ -219,10 +221,14 @@ class Pipeline:
             # Background bookkeeping that runs in *every* mode — on purpose:
             # the Datenspur station later reveals what was collected while
             # people were busy playing (exactly how real surveillance works).
-            self.heatmap.update(frame)
-            self.faces.update(frame)
+            # Placeholder frames (camera unplugged) are excluded: the "no
+            # camera" text must not become heatmap blobs or HOG samples.
+            self.camera_live = getattr(self.source, "connected", True)
+            if self.camera_live:
+                self.heatmap.update(frame)
+                self.faces.update(frame)
+                self.faces_max = max(self.faces_max, len(self.faces.boxes))
             self.frames_total += 1
-            self.faces_max = max(self.faces_max, len(self.faces.boxes))
 
             detections = []
             if mode in ("detektiv", "trick"):
@@ -272,6 +278,7 @@ class Pipeline:
                 self.cloud_bytes += len(buf)
                 with self.frame_ready:
                     self.jpeg = buf.tobytes()
+                    self.published_total += 1
                     self.frame_ready.notify_all()
 
             self._publish_state(mode, detections)
@@ -284,8 +291,9 @@ class Pipeline:
                 return self.detector.detect(frame)
             except Exception:
                 return []
-        if isinstance(self.source, FakeSource):
-            return self.source.fake_detections
+        fake = getattr(self.source, "fake_detections", [])
+        if fake:
+            return fake
         # CPU fallback: at least report faces as persons so the station
         # is not dead without an AI HAT.
         h, w = frame.shape[:2]
@@ -330,7 +338,12 @@ class Pipeline:
             self._pose_count = 0
             return frame
 
-        persons = self.pose.infer(frame)
+        try:
+            persons = self.pose.infer(frame)
+        except Exception:
+            # a dying Hailo must degrade to "no skeletons", never freeze
+            # the shared stream (see also the detection wrapper in _detect)
+            persons = []
         self._pose_count = len(persons)
 
         if self.pose_ghost:
@@ -360,7 +373,7 @@ class Pipeline:
                 cv2.circle(frame, pts[0][:2], head_r, color, 2, cv2.LINE_AA)
 
         self._pose_challenge(persons)
-        if time.time() < self._ch_flash_until:
+        if time.monotonic() < self._ch_flash_until:
             text = "GESCHAFFT! - DONE!"   # shared frame → bilingual
             (tw, _), _ = cv2.getTextSize(text, FONT, 1.2, 3)
             cv2.putText(frame, text, ((w - tw) // 2, h // 2), FONT, 1.2,
@@ -380,12 +393,13 @@ class Pipeline:
         _, _, check = POSE_CHALLENGES[self._ch_idx]
         if check(player["kpts"]):
             if self._ch_hold_since is None:
-                self._ch_hold_since = time.time()
-            elif time.time() - self._ch_hold_since >= config.POSE_HOLD_SECONDS:
+                self._ch_hold_since = time.monotonic()
+            elif (time.monotonic() - self._ch_hold_since
+                  >= config.POSE_HOLD_SECONDS):
                 self._ch_done += 1
                 self._ch_idx = (self._ch_idx + 1) % len(POSE_CHALLENGES)
                 self._ch_hold_since = None
-                self._ch_flash_until = time.time() + 1.5
+                self._ch_flash_until = time.monotonic() + 1.5
         else:
             self._ch_hold_since = None
 
@@ -414,6 +428,8 @@ class Pipeline:
             "fps": round(self.fps, 1),
             "clients": self.stream_clients,
             "source": self.source.name,
+            "camera_ok": getattr(self.source, "connected", True),
+            "camera_reconnects": getattr(self.source, "reconnects", 0),
             "ai": {"ok": self.detector is not None, "status": self.detector_status},
             "threshold": self.threshold,
             "privacy": {
@@ -454,7 +470,7 @@ class Pipeline:
                     "idx": self._ch_idx + 1,
                     "total": len(POSE_CHALLENGES),
                     "done": self._ch_done,
-                    "progress": min(1.0, (time.time() - self._ch_hold_since)
+                    "progress": min(1.0, (time.monotonic() - self._ch_hold_since)
                                     / config.POSE_HOLD_SECONDS)
                     if self._ch_hold_since else 0.0,
                 },
@@ -467,8 +483,8 @@ class Pipeline:
         # Use the pipeline's latest raw frame — never read the camera from
         # a request thread (two readers can starve each other on webcams).
         frame = getattr(self, "last_frame", None)
-        if frame is None:
-            return 0
+        if frame is None or not getattr(self, "camera_live", True):
+            return 0        # never learn from the placeholder image
         return self.teach.capture(frame, slot)
 
     def reset_all(self):
@@ -476,6 +492,8 @@ class Pipeline:
         self.heatmap.reset()
         self.faces.protect_events = 0
         self.frames_total = 0
+        self.published_total = 0      # frames actually handed to viewers —
+                                      # the watchdog's liveness metric
         self.cloud_bytes = 0
         self.object_events = 0
         self.classes_seen = set()

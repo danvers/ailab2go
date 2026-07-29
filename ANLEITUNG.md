@@ -39,9 +39,12 @@ werden mit `python3 setup/make_station_cards.py` neu erzeugt.*
   (schwächere Netzteile machen mit AI HAT + Kamera Probleme!)
 - Raspberry Pi AI HAT (AI Kit / AI HAT+ — jede Variante, die das Paket
   `hailo-all` unterstützt)
-- Raspberry Pi Camera Module 3 + Kamerakabel für den Pi 5
-  (der Pi 5 hat die schmalen Kamera-Anschlüsse — das richtige Kabel
-  liegt neuen Kameras meist bei)
+- Eine Kamera — beides wird automatisch erkannt, auch im laufenden
+  Betrieb umsteckbar:
+  - **Raspberry Pi Kamera** (Camera Module 3 oder AI Camera) + Kamerakabel
+    für den Pi 5 (schmale Anschlüsse; das richtige Kabel liegt neuen
+    Kameras meist bei), **oder**
+  - **jede USB-Webcam** (einfach hinten einstecken)
 - microSD-Karte, mind. 16 GB
 - Kleines Stativ oder Halterung für die Kamera
 - Optional, aber sehr praktisch: Ethernet-Kabel für Wartung
@@ -269,19 +272,23 @@ journalctl -u ki-werkstatt -n 50 --no-pager
   Die letzten Logzeilen zeigen den Fehler (Python-Traceback ganz unten
   lesen).
 
-### 9.2 Footer zeigt „📷 Testbild“ — Kamera nicht erkannt
+### 9.2 Bild zeigt „Keine Kamera gefunden“
 
-```bash
-rpicam-hello --list-cameras
-```
+Das ist **kein Absturz** — das System läuft weiter und sucht von selbst
+alle 3 Sekunden nach einer Kamera (erst Pi-/AI-Kamera, dann alle
+USB-Anschlüsse). In fast allen Fällen genügt:
 
-- **„No cameras available“** → Strom aus, Kamerakabel an *beiden* Enden
-  prüfen (ganz eingesteckt? Verriegelung zu? richtige Ausrichtung?).
-  Das Kabel ist in 90 % der Fälle das Problem.
-- Kamera wird gelistet, App zeigt trotzdem Testbild →
-  `sudo systemctl restart ki-werkstatt`. Hilft das nicht: prüfen, ob
-  ein anderes Programm die Kamera blockiert (nur eine App kann sie
-  nutzen).
+1. **USB-Kamera:** aus- und wieder einstecken (jeder USB-Port ist okay).
+   Nach wenigen Sekunden ist das Bild zurück — ganz ohne Neustart.
+2. **Pi-/AI-Kamera (Flachbandkabel):** Strom aus, Kabel an *beiden* Enden
+   prüfen (ganz eingesteckt? Verriegelung zu? richtige Ausrichtung?),
+   Strom an. Das Kabel ist in 90 % der Fälle das Problem.
+   ⚠️ Das Flachbandkabel nie bei laufendem Gerät umstecken!
+3. Zur Diagnose (per SSH): `rpicam-hello --list-cameras` — wird dort
+   nichts gelistet, ist es Hardware/Kabel.
+
+Das rote „stockt“-Bild für 1–2 Sekunden ist normal, wenn eine Kamera
+kurz hakt — das System fängt das selbst ab.
 
 ### 9.3 Footer zeigt „🐢 Demo-Modus“ — Hailo/AI HAT nicht gefunden
 

@@ -39,9 +39,12 @@ regenerated with `python3 setup/make_station_cards.py`.*
   supply (weaker supplies cause trouble with the AI HAT + camera!)
 - Raspberry Pi AI HAT (AI Kit / AI HAT+ — any variant supported by the
   `hailo-all` package)
-- Raspberry Pi Camera Module 3 + a camera cable for the Pi 5
-  (the Pi 5 has the narrow camera connectors — new cameras usually
-  ship with the right cable)
+- A camera — both kinds are auto-detected and can even be swapped
+  while running:
+  - a **Raspberry Pi camera** (Camera Module 3 or AI Camera) + a camera
+    cable for the Pi 5 (narrow connectors; new cameras usually ship with
+    the right cable), **or**
+  - **any USB webcam** (just plug it into the back)
 - microSD card, at least 16 GB
 - A small tripod or mount for the camera
 - Optional but very handy: an Ethernet cable for maintenance

@@ -1,4 +1,6 @@
 [Unit]
+# never give up: a school exhibit must always try again
+StartLimitIntervalSec=0
 Description=KI-Werkstatt exhibit (computer vision & privacy literacy)
 After=network-online.target
 Wants=network-online.target

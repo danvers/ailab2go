@@ -408,7 +408,9 @@ function render(s) {
   ai.className = s.ai.ok ? "chip good" : "chip warn";
   $("#stat-fps").textContent = `${s.fps} fps`;
   $("#stat-clients").textContent = t("devices", s.clients);
-  $("#stat-source").textContent = `📷 ${t("source")[s.source] || s.source}`;
+  const srcChip = $("#stat-source");
+  srcChip.textContent = `📷 ${t("source")[s.source] || s.source}`;
+  srcChip.className = "chip" + (s.camera_ok === false ? " warn" : "");
   const lockChip = $("#stat-lock");
   lockChip.textContent = t("lockedChip");
   lockChip.classList.toggle("hidden", !s.locked);

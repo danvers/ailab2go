@@ -397,11 +397,20 @@ class Teachable:
         x0, y0 = (w - side) // 2, (h - side) // 2
         return x0, y0, x0 + side, y0 + side
 
+    MAX_SAMPLES = 50     # per slot: keeps predict() fast for a whole day
+
     def capture(self, frame, slot):
         if slot not in self.samples:
             return 0
-        self.samples[slot].append(self._features(frame))
-        return len(self.samples[slot])
+        feats = self._features(frame)
+        bucket = self.samples[slot]
+        if len(bucket) >= self.MAX_SAMPLES:
+            # reservoir-style replace: late examples still shape the class
+            import random as _r
+            bucket[_r.randrange(len(bucket))] = feats
+        else:
+            bucket.append(feats)
+        return len(bucket)
 
     @property
     def trained_slots(self):
