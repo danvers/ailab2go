@@ -25,7 +25,7 @@ austeilen).
 **Rallye-Aufgabe:** Finde einen Gegenstand, den die KI mit über 80 %
 erkennt — und einen, den sie komplett ignoriert.
 
-**Denk mal nach:** Die KI kennt genau 80 Dinge. Wer hat das entschieden —
+**Nachgefragt:** Die KI kennt genau 80 Dinge. Wer hat das entschieden —
 und was bedeutet das für alles, was sie nicht kennt?
 
 ---
@@ -41,7 +41,7 @@ und was bedeutet das für alles, was sie nicht kennt?
 nimm ein Ding nur von vorne auf, das andere nur von hinten. Drehe dann
 beide. Was passiert, und wie heißt dieses Problem bei echten KIs?
 
-**Denk mal nach:** Hier kannst du alle Daten per Knopf löschen. Wo im
+**Nachgefragt:** Hier kannst du alle Daten per Knopf löschen. Wo im
 Internet hättest du das auch gern?
 
 ---
@@ -57,7 +57,7 @@ Internet hättest du das auch gern?
 **Rallye-Aufgabe:** Finde zwei Wege, wie der Schutz versagt. Notiert:
 Warum ist das bei einem „Schutz-Versprechen" ein Problem?
 
-**Denk mal nach:** Erkennen („da ist ein Gesicht") ist nicht
+**Nachgefragt:** Erkennen („da ist ein Gesicht") ist nicht
 Wiedererkennen („das ist Ali aus der 8b"). Warum ist dieser Unterschied
 so wichtig?
 
@@ -74,7 +74,7 @@ so wichtig?
 **Rallye-Aufgabe:** Nennt drei Dinge, die man aus so einer Karte über
 einen Raum und seine Menschen ablesen könnte — ganz ohne Gesichter.
 
-**Denk mal nach:** „Ich habe doch nichts zu verbergen" — gilt das auch
+**Nachgefragt:** „Ich habe doch nichts zu verbergen" — gilt das auch
 für deine Laufwege, deine Gewohnheiten, deine Lieblingsecke?
 
 ---
@@ -87,7 +87,7 @@ Unsichtbar 🥷 · Verwechslung 🎩 · Volltreffer 💯 · Geister 👻
 **Rallye-Aufgabe:** Schafft mindestens zwei Challenges und haltet fest,
 *wie* — euer Trick ist die Erkenntnis!
 
-**Denk mal nach:** Ihr habt eine KI in wenigen Minuten überlistet.
+**Nachgefragt:** Ihr habt eine KI in wenigen Minuten überlistet.
 Was heißt das für Orte, an denen KIs allein entscheiden — Grenzkontrolle,
 Bewerbung, autonomes Fahren?
 
@@ -104,6 +104,6 @@ Bewerbung, autonomes Fahren?
 **Rallye-Aufgabe:** Findet im Geist-Modus drei Dinge, die man über eine
 Person herausfinden kann, obwohl man ihr Gesicht nie sieht.
 
-**Denk mal nach:** Spielkonsolen, Sturz-Melder im Pflegeheim,
+**Nachgefragt:** Spielkonsolen, Sturz-Melder im Pflegeheim,
 Kameras im Schwimmbad, die Ertrinkende erkennen — alles Skelett-Tracking.
 Wann ist es Fürsorge, wann Überwachung? Und wer entscheidet das?

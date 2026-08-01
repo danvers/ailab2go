@@ -179,7 +179,7 @@ DISCUSSION_DE = [
 UI = {
     "de": dict(station="Station", discuss="Diskussionskarte", of="/",
                try_="Probiere das", rally="Rallye-Aufgabe",
-               think="💭 Denk mal nach", ask="Diskutiert",
+               think="💭 Nachgefragt", ask="Diskutiert",
                subtitle="Privatsphäre & KI",
                note="5 Minuten diskutieren — dann ein Satz Fazit für die "
                     "Runde. Es gibt keine „richtigen“ Antworten, nur gute "
