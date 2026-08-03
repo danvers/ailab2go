@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>System · {{ event_name }}</title>
+<link rel="icon" href="/static/logo-icon.png" sizes="256x256">
+<!--
+  Technical window, opened from the footer link. Self-contained on purpose:
+  it has to keep working when something about the exhibit is already broken,
+  so it shares no CSS or JS with the visitor UI. Bilingual like the rest —
+  German in the markup, English swapped in from the LANG table below.
+-->
+<style>
+  :root {
+    --bg: #0d1117; --card: #161b22; --line: #263141;
+    --fg: #e6edf3; --dim: #8b949e;
+    --ok: #3ddc97; --warn: #ffb347; --bad: #ff6b6b;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 18px; background: var(--bg); color: var(--fg);
+    font: 15px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  header { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap;
+           margin-bottom: 16px; }
+  h1 { font-size: 1.15rem; margin: 0; font-weight: 650; }
+  .sub { color: var(--dim); font-size: .85rem; }
+  .langswitch { margin-left: auto; display: flex; gap: 4px; }
+  .langswitch button {
+    background: transparent; color: var(--dim); border: 1px solid var(--line);
+    border-radius: 6px; padding: 3px 9px; font-size: .8rem; cursor: pointer;
+  }
+  .langswitch button[aria-pressed="true"] { color: var(--fg); border-color: #47576d; }
+
+  .grid { display: grid; gap: 12px;
+          grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); }
+  .card { background: var(--card); border: 1px solid var(--line);
+          border-radius: 12px; padding: 14px 16px; }
+  .card h2 { margin: 0 0 6px; font-size: .78rem; font-weight: 600;
+             letter-spacing: .04em; text-transform: uppercase; color: var(--dim); }
+  .val { font-size: 1.9rem; font-weight: 640; line-height: 1.1;
+         font-variant-numeric: tabular-nums; }
+  .val small { font-size: .95rem; font-weight: 500; color: var(--dim); }
+  .note { margin-top: 5px; font-size: .82rem; color: var(--dim); }
+  .ok { color: var(--ok); } .warn { color: var(--warn); } .bad { color: var(--bad); }
+
+  .bar { height: 5px; border-radius: 3px; background: #212b38;
+         margin-top: 9px; overflow: hidden; }
+  .bar span { display: block; height: 100%; width: 0; border-radius: 3px;
+              background: var(--ok); transition: width .5s, background .5s; }
+
+  .alert { margin: 14px 0 0; padding: 11px 14px; border-radius: 10px;
+           background: #3a2320; border: 1px solid #7c3b32; color: #ffd9d2;
+           font-size: .9rem; }
+  .alert.hidden { display: none; }
+  .alert b { color: #fff; }
+
+  table { width: 100%; border-collapse: collapse; margin-top: 14px;
+          background: var(--card); border: 1px solid var(--line);
+          border-radius: 12px; overflow: hidden; }
+  td { padding: 8px 16px; border-top: 1px solid var(--line); font-size: .9rem; }
+  tr:first-child td { border-top: 0; }
+  td:first-child { color: var(--dim); width: 45%; }
+  td:last-child { font-variant-numeric: tabular-nums; }
+  footer { margin-top: 16px; color: var(--dim); font-size: .8rem; }
+  footer a { color: #6fb3e0; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>{{ event_name }}</h1>
+  <span class="sub" data-i18n="sub">Technische Anzeige · aktualisiert alle 3&nbsp;Sekunden</span>
+  <div class="langswitch" role="group">
+    <button type="button" data-lang="de" aria-pressed="true">DE</button>
+    <button type="button" data-lang="en" aria-pressed="false">EN</button>
+  </div>
+</header>
+
+<div class="grid">
+  <div class="card">
+    <h2 data-i18n="cpu">Raspberry Pi · Prozessor</h2>
+    <div class="val" id="cpu">–</div>
+    <div class="bar"><span id="cpu-bar"></span></div>
+    <div class="note" id="cpu-note" data-i18n="cpuNote">Ab 80&nbsp;°C drosselt sich der Pi selbst.</div>
+  </div>
+
+  <div class="card">
+    <h2 data-i18n="hailo">AI HAT · KI-Chip</h2>
+    <div class="val" id="hailo">–</div>
+    <div class="bar"><span id="hailo-bar"></span></div>
+    <div class="note" id="hailo-note" data-i18n="hailoNote">Rechnet die Objekt- und Posenerkennung.</div>
+  </div>
+
+  <div class="card">
+    <h2 data-i18n="fan">Lüfter</h2>
+    <div class="val" id="fan">–</div>
+    <div class="note" id="fan-note" data-i18n="fanNote">Unter 50&nbsp;°C steht er absichtlich still.</div>
+  </div>
+</div>
+
+<div class="alert hidden" id="alert"></div>
+
+<table>
+  <tr><td data-i18n="rowSource">Kamera</td><td id="r-source">–</td></tr>
+  <tr><td data-i18n="rowFps">Bilder pro Sekunde</td><td id="r-fps">–</td></tr>
+  <tr><td data-i18n="rowReconnects">Kamera neu verbunden</td><td id="r-reconn">–</td></tr>
+  <tr><td data-i18n="rowAi">KI-Modell</td><td id="r-ai">–</td></tr>
+  <tr><td data-i18n="rowFace">Gesichtserkennung</td><td id="r-face">–</td></tr>
+  <tr><td data-i18n="rowViewers">Zuschauende gerade</td><td id="r-viewers">–</td></tr>
+  <tr><td data-i18n="rowMode">Aktive Station</td><td id="r-mode">–</td></tr>
+  <tr><td data-i18n="rowUptime">Läuft seit</td><td id="r-uptime">–</td></tr>
+  <tr><td data-i18n="rowThrottle">Drosselung</td><td id="r-throttle">–</td></tr>
+</table>
+
+<footer>
+  <a href="/" data-i18n="back">← zurück zur Werkstatt</a>
+</footer>
+
+<script>
+"use strict";
+
+const LANG = {
+  sub: "Technical readout · refreshes every 3 seconds",
+  cpu: "Raspberry Pi · processor",
+  cpuNote: "Above 80 °C the Pi throttles itself.",
+  hailo: "AI HAT · AI chip",
+  hailoNote: "Runs object and pose detection.",
+  fan: "Fan",
+  fanNote: "Below 50 °C it deliberately stands still.",
+  rowSource: "Camera", rowFps: "Frames per second",
+  rowReconnects: "Camera reconnects", rowAi: "AI model",
+  rowFace: "Face detection", rowViewers: "Viewers right now",
+  rowMode: "Active station", rowUptime: "Running for",
+  rowThrottle: "Throttling",
+  back: "← back to the workshop",
+};
+
+const DYN = {
+  de: {
+    noFan: "nicht erkannt",
+    fanOff: "steht still",
+    rpmUnit: "U/min",
+    fanNoteMissing: "Der Pi hat beim Einschalten keinen Lüfter gefunden.",
+    fanNoteIdle: "Unter 50 °C steht er absichtlich still.",
+    fanNoteStuck: "Bei dieser Temperatur müsste er laufen — bitte prüfen!",
+    fanNoteRunning: "Regelt sich automatisch nach Temperatur.",
+    noHat: "kein AI HAT",
+    never: "nie",
+    now: "wird gerade gedrosselt",
+    ever: "war schon gedrosselt",
+    fanAlert: "<b>Kein Lüfter erkannt.</b> Der Pi hat beim Einschalten keinen " +
+      "Lüfter gefunden. Der kleine 4-polige Stecker sitzt oben rechts " +
+      "zwischen der GPIO-Stiftleiste und den USB-Buchsen — beim AI HAT " +
+      "liegt er darunter und rutscht beim Aufstecken leicht heraus. " +
+      "Pi ausschalten, Stecker einstecken, neu starten (im laufenden " +
+      "Betrieb erkennt er ihn nicht).",
+    hotAlert: "<b>Zu warm.</b> Lüftungswege frei? Gehäuse geschlossen? " +
+      "Direkte Sonne?",
+    duration: (h, m) => h ? h + " Std " + m + " Min" : m + " Min",
+    off: "aus", on: "an",
+  },
+  en: {
+    noFan: "not detected",
+    fanOff: "stopped",
+    rpmUnit: "rpm",
+    fanNoteMissing: "The Pi found no fan at power-on.",
+    fanNoteIdle: "Below 50 °C it deliberately stands still.",
+    fanNoteStuck: "It should be running at this temperature — please check!",
+    fanNoteRunning: "Adjusts itself to the temperature.",
+    noHat: "no AI HAT",
+    never: "never",
+    now: "throttling right now",
+    ever: "has throttled before",
+    fanAlert: "<b>No fan detected.</b> The Pi found no fan at power-on. The " +
+      "small 4-pin plug sits at the top right between the GPIO header and " +
+      "the USB sockets — with an AI HAT fitted it ends up underneath, and " +
+      "it slips out easily while seating the HAT. Power the Pi off, reseat " +
+      "the plug, boot again (plugging it in while running is not enough).",
+    hotAlert: "<b>Too warm.</b> Vents clear? Case closed? Direct sunlight?",
+    duration: (h, m) => h ? h + " h " + m + " min" : m + " min",
+    off: "off", on: "on",
+  },
+};
+
+let lang = "de";
+const DE = {};
+document.querySelectorAll("[data-i18n]").forEach(el => {
+  DE[el.dataset.i18n] = el.innerHTML;
+});
+
+function setLang(next) {
+  lang = next;
+  document.documentElement.lang = next;
+  const table = next === "en" ? LANG : DE;
+  document.querySelectorAll("[data-i18n]").forEach(el => {
+    if (table[el.dataset.i18n] !== undefined) el.innerHTML = table[el.dataset.i18n];
+  });
+  document.querySelectorAll(".langswitch button").forEach(b => {
+    b.setAttribute("aria-pressed", String(b.dataset.lang === next));
+  });
+  try { localStorage.setItem("kiw-lang", next); } catch (e) { /* private mode */ }
+  if (last) paint(last);
+}
+document.querySelectorAll(".langswitch button").forEach(b => {
+  b.addEventListener("click", () => setLang(b.dataset.lang));
+});
+try {
+  const saved = localStorage.getItem("kiw-lang");
+  if (saved === "en") setLang("en");
+} catch (e) { /* private mode */ }
+
+const $ = (s) => document.querySelector(s);
+const d = () => DYN[lang];
+let last = null;
+
+function temp(el, bar, note, value, warmAt, hotAt) {
+  if (value == null) {
+    el.textContent = "–";
+    el.className = "val";
+    bar.style.width = "0";
+    return;
+  }
+  el.innerHTML = value.toFixed(1) + " <small>°C</small>";
+  const hot = value >= hotAt, warm = value >= warmAt;
+  el.className = "val " + (hot ? "bad" : warm ? "warn" : "ok");
+  // 30 °C is a cold room, hotAt+10 is as far as the scale needs to go
+  bar.style.width = Math.max(0, Math.min(100,
+    (value - 30) / (hotAt + 10 - 30) * 100)) + "%";
+  bar.style.background = hot ? "var(--bad)" : warm ? "var(--warn)" : "var(--ok)";
+}
+
+function paint(s) {
+  last = s;
+  const sys = s.system || {};
+
+  temp($("#cpu"), $("#cpu-bar"), $("#cpu-note"), sys.temp_c, 70, 80);
+  temp($("#hailo"), $("#hailo-bar"), $("#hailo-note"), sys.hailo_c, 75, 85);
+  if (sys.hailo_c == null) $("#hailo").textContent = d().noHat;
+
+  const fan = $("#fan"), fanNote = $("#fan-note");
+  if (sys.fan_rpm == null) {
+    fan.textContent = d().noFan;
+    // on a laptop there is no fan sensor either — only call it a fault
+    // when the machine does report a CPU temperature
+    fan.className = "val " + (sys.temp_c == null ? "" : "bad");
+    fanNote.textContent = sys.temp_c == null ? "" : d().fanNoteMissing;
+  } else if (sys.fan_rpm === 0) {
+    // A stopped fan is only good news while the Pi is cool. Standing still
+    // at 80 °C is a seized fan, and calling that "fine" in green would send
+    // a facilitator looking in entirely the wrong place.
+    const shouldSpin = (sys.temp_c || 0) >= 60;
+    fan.textContent = d().fanOff;
+    fan.className = "val " + (shouldSpin ? "bad" : "ok");
+    fanNote.textContent = shouldSpin ? d().fanNoteStuck : d().fanNoteIdle;
+  } else {
+    fan.innerHTML = sys.fan_rpm + " <small>" + d().rpmUnit + "</small>";
+    fan.className = "val ok";
+    fanNote.textContent = d().fanNoteRunning;
+  }
+
+  const alert = $("#alert");
+  // "no fan" only means something on a machine that reports a CPU temperature
+  const fanMissing = sys.temp_c != null && sys.fan_rpm == null;
+  const tooHot = (sys.temp_c || 0) >= 80 || (sys.hailo_c || 0) >= 85;
+  if (fanMissing || tooHot) {
+    alert.innerHTML = fanMissing ? d().fanAlert : d().hotAlert;
+    alert.classList.remove("hidden");
+  } else {
+    alert.classList.add("hidden");
+  }
+
+  $("#r-source").textContent = s.source || "–";
+  $("#r-fps").textContent = (s.fps || 0).toFixed(1);
+  const rec = $("#r-reconn");
+  rec.textContent = s.camera_reconnects != null ? s.camera_reconnects : "–";
+  rec.className = s.camera_reconnects ? "warn" : "";   // a loose USB plug shows up here
+  $("#r-ai").textContent = (s.ai && s.ai.status) || "–";
+  $("#r-face").textContent = (s.privacy && s.privacy.backend) || "–";
+  $("#r-viewers").textContent = s.clients != null ? s.clients : "–";
+  $("#r-mode").textContent = s.mode || "–";
+
+  const up = s.uptime_s || 0;
+  $("#r-uptime").textContent = d().duration(Math.floor(up / 3600),
+                                            Math.floor(up / 60) % 60);
+
+  const th = sys.throttled;
+  const cell = $("#r-throttle");
+  if (!th) {
+    cell.textContent = "–";
+    cell.className = "";
+  } else if (th.now) {
+    cell.textContent = d().now; cell.className = "bad";
+  } else if (th.ever) {
+    cell.textContent = d().ever; cell.className = "warn";
+  } else {
+    cell.textContent = d().never; cell.className = "ok";
+  }
+}
+
+async function tick() {
+  try {
+    const r = await fetch("/api/state", { cache: "no-store" });
+    if (r.ok) paint(await r.json());
+  } catch (e) { /* the exhibit may be restarting — just try again */ }
+}
+tick();
+setInterval(tick, 3000);
+</script>
+</body>
+</html>

@@ -23,6 +23,13 @@ def create_app(pipeline):
     def index():
         return render_template("index.html", event_name=config.EVENT_NAME)
 
+    @app.get("/system")
+    def system():
+        """Technical readout in its own window: temperatures, fan, camera.
+        Deliberately off the visitor UI — nobody at a station needs this,
+        but a facilitator debugging a warm or stuttering exhibit does."""
+        return render_template("system.html", event_name=config.EVENT_NAME)
+
     @app.get("/beamer")
     def beamer():
         # QR for passers-by; python3-qrcode is installed by install.sh, but

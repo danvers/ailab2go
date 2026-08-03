@@ -140,6 +140,11 @@ systemctl status ki-werkstatt
 | 📷 *Pi-Kamera* | Kamera erkannt |
 | 📷 *Testbild* | Kamera **nicht** erkannt → Abschnitt 9.2 |
 
+Rechts daneben führt **⚙ System** in ein eigenes Fenster mit
+Temperaturen, Lüfter und KI-Chip — brauchst du im Normalbetrieb nicht,
+aber es ist die erste Anlaufstelle, wenn der Pi heiß wird oder das Bild
+ruckelt (Abschnitt 9.12).
+
 Wenn beides grün ist: einmal alle sechs Stationen durchklicken.
 
 ---
@@ -441,22 +446,37 @@ Modelle: seitliche Profile, starkes Gegenlicht und sehr kleine Gesichter
 sind schwer. Kamera auf Gesichtshöhe und Licht von vorn helfen — und
 genau diese Grenze ist Lernstoff in Station 3.
 
-### 9.12 Fußzeile zeigt „🌡️ … kein Lüfter erkannt!" oder über 75 °C
+### 9.12 Temperatur, Lüfter, KI-Chip: das Systemfenster
 
-Die Fußzeile der Web-Oberfläche zeigt live die Chip-Temperatur und die
-Lüfter-Drehzahl. Wird der Chip rot, stimmt etwas nicht:
+Wenn der Pi heiß wird, das Bild ruckelt oder du den Lüfter nicht hörst:
+In der Fußzeile der Web-Oberfläche steht **⚙ System**. Das öffnet ein
+eigenes Fenster mit den technischen Werten — bewusst getrennt von der
+Besucher-Oberfläche, weil dort niemand Temperaturen sehen will.
 
-- **„kein Lüfter erkannt"** → Der Stecker des Active Coolers ist ab
-  (4-Pin-Anschluss direkt neben den Kamera-Anschlüssen — rutscht beim
-  Kabelverlegen leicht heraus). **Pi ausschalten**, Stecker einstecken,
-  neu starten. Wichtig: Der Pi erkennt den Lüfter nur beim Einschalten —
+Angezeigt werden: Prozessortemperatur des Pi, Temperatur des KI-Chips auf
+dem AI HAT, Lüfterdrehzahl, ob der Pi je gedrosselt hat, dazu Kamera,
+Bildrate und wie oft sich die Kamera neu verbinden musste. Erreichbar
+auch direkt unter `http://10.42.0.1/system`.
+
+Was die Warnungen bedeuten:
+
+- **„Kein Lüfter erkannt"** → Der Stecker des Active Coolers ist ab. Der
+  kleine 4-polige Anschluss sitzt **oben rechts auf der Pi-Platine,
+  zwischen der 40-poligen GPIO-Stiftleiste und den USB-Buchsen** — mit
+  aufgestecktem AI HAT liegt er darunter und ist schlecht erreichbar,
+  weshalb er beim Aufstecken des HAT gern herausrutscht. **Pi
+  ausschalten**, HAT abnehmen, Stecker einstecken, wieder zusammenbauen,
+  neu starten. Wichtig: Der Pi sucht den Lüfter nur beim Einschalten —
   im laufenden Betrieb einstecken reicht nicht.
-- **Über 75 °C trotz Lüfter** → Luftschlitze frei? Gehäuse geschlossen
+- **Lüfter „steht still" und trotzdem rot** → Er meldet 0 U/min, obwohl es
+  warm ist. Dann klemmt oder blockiert er.
+- **Über 80 °C trotz Lüfter** → Luftschlitze frei? Gehäuse geschlossen
   ohne Belüftung? Direkte Sonne?
 
 Keine Panik nötig: Ab ca. 82 °C drosselt sich der Pi selbst (das Bild
 wird nur langsamer, nichts geht kaputt). Unter 50 °C steht der Lüfter
-absichtlich still — dass man ihn nicht hört, ist dann normal.
+absichtlich still — dass man ihn dann nicht hört, ist normal. Der KI-Chip
+läuft übrigens meist deutlich kühler als der Prozessor des Pi.
 
 ---
 

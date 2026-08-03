@@ -5,7 +5,9 @@ processing, draws overlays and publishes JPEG bytes + a state dict that the
 web clients poll.
 """
 
+import glob
 import logging
+import subprocess
 import threading
 import time
 
@@ -137,6 +139,10 @@ class Pipeline:
         self._attract_since = None
         self._attract_next = 0.0
 
+        self._throttled = None
+        self._sys_cache = {}
+        self._sys_ts = 0.0
+
         self.jpeg = None
         self.state = {}
         self.frame_ready = threading.Condition()
@@ -147,6 +153,7 @@ class Pipeline:
 
     def start(self):
         self._thread.start()
+        threading.Thread(target=self._throttle_loop, daemon=True).start()
 
     def stop(self):
         self.running = False
@@ -479,22 +486,24 @@ class Pipeline:
         }
 
     def _system_health(self):
-        """CPU temperature and fan rpm from sysfs, cached for 2 s.
-        Both are None off-Pi — the UI hides the chip then. A missing fan
-        WITH a temperature reading means the fan is unplugged/dead, which
-        the footer marks loudly (this exact failure happened in the field).
+        """Temperatures, fan and throttling for the /system window.
+
+        Everything is None off-Pi, and the page just leaves those rows out.
+        A CPU reading WITH no fan reading means the Pi found no fan at boot:
+        either it is unplugged or it died. That combination is worth saying
+        out loud, because the exhibit then has no thermal headroom at all.
         """
         now = time.monotonic()
-        if now - getattr(self, "_sys_ts", 0.0) < 2.0:
+        if now - getattr(self, "_sys_ts", 0.0) < 3.0:
             return self._sys_cache
-        temp = fan = None
+
+        cpu = fan = None
         try:
             with open("/sys/class/thermal/thermal_zone0/temp") as f:
-                temp = round(int(f.read()) / 1000.0, 1)
+                cpu = round(int(f.read()) / 1000.0, 1)
         except Exception:
             pass
         try:
-            import glob
             for path in glob.glob(
                     "/sys/devices/platform/cooling_fan/hwmon/*/fan1_input"):
                 with open(path) as f:
@@ -502,9 +511,39 @@ class Pipeline:
                 break
         except Exception:
             pass
-        self._sys_cache = {"temp_c": temp, "fan_rpm": fan}
+
+        self._sys_cache = {
+            "temp_c": cpu,
+            "fan_rpm": fan,
+            "hailo_c": vision.hailo_temperature(),
+            "throttled": self._throttled,
+        }
         self._sys_ts = now
         return self._sys_cache
+
+    def _throttle_loop(self):
+        """`vcgencmd get_throttled` in the background.
+
+        It is a subprocess, so it must never run on the pipeline thread —
+        one slow call there would stutter the stream for every viewer.
+        """
+        log = logging.getLogger("pipeline")
+        while self.running:
+            try:
+                out = subprocess.run(["vcgencmd", "get_throttled"],
+                                     capture_output=True, text=True, timeout=3)
+                bits = int(out.stdout.strip().split("=")[1], 16)
+                self._throttled = {
+                    # low half: happening right now, high half: since boot
+                    "now": bool(bits & 0xF),
+                    "ever": bool(bits >> 16 & 0xF),
+                    "raw": hex(bits),
+                }
+            except Exception:
+                self._throttled = None       # not a Pi, or vcgencmd missing
+                log.debug("throttle read failed", exc_info=True)
+                return                       # no point retrying forever
+            time.sleep(15)
 
     # -- actions from the web API -------------------------------------------
 

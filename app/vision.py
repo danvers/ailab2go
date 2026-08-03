@@ -15,6 +15,28 @@ import numpy as np
 import config
 
 
+def hailo_temperature():
+    """Chip temperature of the AI HAT in °C, or None if there is no HAT.
+
+    It goes through the VDevice that picamera2 shares between our detection
+    and pose models (Hailo.TARGET) — opening a second handle to ask would
+    fail while inference is running. Call this from the pipeline thread, the
+    same one that runs inference, so the two never overlap.
+    """
+    try:
+        from picamera2.devices import Hailo
+        if Hailo.TARGET is None:
+            return None
+        devices = Hailo.TARGET.get_physical_devices()
+        if not devices:
+            return None
+        info = devices[0].control.get_chip_temperature()
+        # two sensors on the die; the hotter one is the interesting one
+        return round(max(info.ts0_temperature, info.ts1_temperature), 1)
+    except Exception:
+        return None
+
+
 # --- Object detection (AI HAT) ---------------------------------------------
 
 class HailoDetector:

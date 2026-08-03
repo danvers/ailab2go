@@ -164,6 +164,11 @@ The header has a DE/EN language toggle (remembered per device) — in
 German the same rows read „KI-Chip aktiv", „Demo-Modus ohne KI-Chip",
 „Pi-Kamera" and „Testbild".
 
+Next to it, **⚙ System** opens a separate window with temperatures,
+fan and AI chip — not needed in normal operation, but it is the first
+place to look when the Pi runs hot or the picture stutters
+(section 9.12).
+
 If both are green: click through all six stations once.
 
 ---
@@ -467,22 +472,36 @@ the models: side profiles, strong backlight, and very small faces are
 hard. A camera at face height and light from the front help — and this
 exact limitation is teaching material in station 3.
 
-### 9.12 Footer shows "🌡️ … no fan detected!" or above 75 °C
+### 9.12 Temperature, fan, AI chip: the system window
 
-The web UI footer shows the live chip temperature and fan speed. If
-that chip turns red, something is off:
+When the Pi runs hot, the picture stutters, or you cannot hear the fan:
+the footer of the web UI has a **⚙ System** link. It opens a separate
+window with the technical readout — deliberately kept off the visitor
+interface, because nobody at a station wants to see temperatures.
 
-- **"no fan detected"** → the Active Cooler's plug is disconnected
-  (4-pin connector right next to the camera connectors — it slips out
-  easily while re-routing cables). **Power the Pi off**, reseat the
-  plug, boot again. Important: the Pi only detects the fan at power-on —
-  plugging it in while running is not enough.
-- **Above 75 °C with the fan running** → vents blocked? Enclosed case
+It shows the Pi's processor temperature, the temperature of the AI chip on
+the AI HAT, fan speed, whether the Pi has ever throttled, plus camera,
+frame rate and how often the camera had to reconnect. Also reachable
+directly at `http://10.42.0.1/system`.
+
+What the warnings mean:
+
+- **"No fan detected"** → the Active Cooler's plug is disconnected. The
+  small 4-pin connector sits **at the top right of the Pi board, between
+  the 40-pin GPIO header and the USB sockets** — with an AI HAT fitted it
+  ends up underneath and hard to reach, which is exactly why it tends to
+  slip out while seating the HAT. **Power the Pi off**, take the HAT off,
+  reseat the plug, reassemble, boot again. Important: the Pi only looks
+  for the fan at power-on; plugging it in while running is not enough.
+- **Fan "stopped" and shown in red** → it reports 0 rpm although the Pi is
+  warm, so it is stuck or blocked.
+- **Above 80 °C with the fan running** → vents blocked? Enclosed case
   without airflow? Direct sunlight?
 
 No panic needed: from about 82 °C the Pi throttles itself (the picture
-just gets slower, nothing breaks). Below 50 °C the fan deliberately
-stands still — not hearing it is normal then.
+just gets slower, nothing breaks). Below 50 °C the fan deliberately stands
+still — not hearing it is normal then. The AI chip usually runs a good
+deal cooler than the Pi's own processor.
 
 ---
 
