@@ -40,6 +40,11 @@ runs in CPU demo mode, so the exhibit never shows a blank screen.
 - Camera Module 3 (recommended; autofocus is handled) — or any USB webcam
 - microSD ≥ 16 GB, a small tripod/mount, ideally a case with HAT clearance
 
+Using the ELP 48 MP USB module? [hardware/](hardware/README.md) has printable
+STLs for a vented housing with a ¼"-20 tripod thread — none of the ELP cases
+floating around fit this one, and the module runs warm enough that a sealed
+box is a bad idea.
+
 > Step-by-step guide (assembly, operation, troubleshooting):
 > 🇬🇧 [MANUAL.md](MANUAL.md) · 🇩🇪 [ANLEITUNG.md](ANLEITUNG.md)
 
@@ -104,12 +109,15 @@ These run on your laptop, never on the Pi. Homebrew and Debian Python refuse
 ```bash
 bash setup/tools.sh              # posters + card deck + station images
 bash setup/tools.sh poster       # or just one of them: poster | cards | stations
+bash setup/tools.sh case         # 3D-print files for the camera housing
 ```
 
 Dependencies live in [dev/requirements-tools.txt](dev/requirements-tools.txt)
 (qrcode, pillow). Running a generator with a plain `python3` works too — as
 long as those two packages are importable; otherwise each script prints the
-exact commands to fix it.
+exact commands to fix it. `case` is separate: it pulls a CAD stack
+([dev/requirements-cad.txt](dev/requirements-cad.txt)) on first use and is not
+part of `all`, since the finished STLs are already committed.
 
 ## Station advertising cards
 

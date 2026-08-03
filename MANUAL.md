@@ -68,6 +68,31 @@ regenerated with `python3 setup/make_station_cards.py`.*
 3. Connect the camera, set it up, and point it roughly at the play area
    (2–4 m distance is ideal).
 
+### 2.1 Optional: a printed housing for the USB camera
+
+The ELP 48 MP module ships as a bare double-deck PCB — fragile and awkward
+in front of an audience. [`hardware/`](hardware/README.md) has ready-made
+STL files for a vented housing with a ¼"-20 tripod thread. The existing ELP
+cases on Thingiverse and Printables do **not** fit this module: they are all
+built for older single-deck boards with an M12 lens barrel.
+
+| | |
+|---|---|
+| Print | body lens-face down, back plate flat, **no supports** |
+| Material | **PETG, not PLA** — the module runs warm and PLA softens near 55 °C |
+| Settings | 0.2 mm layers, 3 perimeters, 20 % infill, ≈ 40 g |
+| Also needed | 4× M3 × 12 mm self-tapping screws, 1× ¼"-20 hex nut (only for the tripod thread) |
+
+Assembly: slide the nut into the pedestal slot, unplug the camera cable,
+drop the board in lens-first, plug the cable back in and route it out of any
+ventilation slot, then screw the back plate on. If the board still has play,
+add one of the printed 1 mm shims behind it — the stack height varies
+between production runs. Check the live picture afterwards: if it is upside
+down, turn the board 180°, because the software does not rotate it.
+
+Full details, including which dimensions are measured and which are
+assumed, are in [hardware/README.md](hardware/README.md) (German).
+
 ---
 
 ## 3 · Prepare the SD card

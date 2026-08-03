@@ -68,6 +68,12 @@ werden mit `python3 setup/make_station_cards.py` neu erzeugt.*
 3. Kamera anschließen, aufstellen, grob auf den Spielbereich richten
    (2–4 m Abstand ist ideal).
 
+**Optional: Gehäuse für die USB-Kamera.** Das ELP-48-MP-Modul ist eine nackte
+Platine — im Publikumsbetrieb unpraktisch und empfindlich. Unter
+[`hardware/`](hardware/README.md) liegen fertige STL-Dateien für ein
+belüftetes Gehäuse mit Stativgewinde. Druckzeit rund vier Stunden, Material
+PETG (kein PLA — die Kamera wird warm).
+
 ---
 
 ## 3 · SD-Karte vorbereiten
