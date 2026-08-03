@@ -231,6 +231,8 @@ window.I18N = (() => {
       aiOk: (m) => `⚡ KI-Chip aktiv (${m})`,
       aiDemo: (m) => `🐢 Demo-Modus ohne KI-Chip — ${m}`,
       devices: (n) => `👀 ${n} Gerät${n === 1 ? "" : "e"}`,
+      tempChip: (c, rpm) => `🌡️ ${c} °C · ` +
+        (rpm == null ? "🌀 kein Lüfter erkannt!" : `🌀 ${rpm} U/min`),
       duration: (h, m, s) => h ? `${h} Std ${m} Min` : (m ? `${m} Min ${s} Sek` : `${s} Sek`),
       poseCh: ["Heb eine Hand über den Kopf!", "Beide Hände hoch!",
                "Beide Hände vor der Brust zusammen!",
@@ -283,6 +285,8 @@ window.I18N = (() => {
       aiOk: (m) => `⚡ AI chip active (${m})`,
       aiDemo: (m) => `🐢 Demo mode without AI chip — ${m}`,
       devices: (n) => `👀 ${n} device${n === 1 ? "" : "s"}`,
+      tempChip: (c, rpm) => `🌡️ ${c} °C · ` +
+        (rpm == null ? "🌀 no fan detected!" : `🌀 ${rpm} rpm`),
       duration: (h, m, s) => h ? `${h} h ${m} min` : (m ? `${m} min ${s} s` : `${s} s`),
       poseCh: ["Raise one hand above your head!", "Both hands up!",
                "Bring both hands together in front of your chest!",

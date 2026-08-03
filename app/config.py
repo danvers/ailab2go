@@ -7,6 +7,10 @@ Everything an event facilitator might want to tweak lives here.
 FRAME_SIZE = (640, 360)     # display/stream resolution (16:9)
 JPEG_QUALITY = 70           # stream compression (lower = less bandwidth)
 STREAM_MAX_FPS = 12         # per-client cap, keeps the hotspot happy
+WEBCAM_FPS = 20             # requested from USB cameras (phone stream is
+                            # capped at 12 fps anyway). NOTE: many UVC models
+                            # only offer fixed rates per mode — the ELP 48MP
+                            # ignores this at 720p and always runs 30 fps.
 MAX_STREAM_CLIENTS = 30     # hard cap on simultaneous MJPEG viewers
 
 # --- Hailo / AI HAT --------------------------------------------------------

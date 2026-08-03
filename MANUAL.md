@@ -442,6 +442,23 @@ the models: side profiles, strong backlight, and very small faces are
 hard. A camera at face height and light from the front help — and this
 exact limitation is teaching material in station 3.
 
+### 9.12 Footer shows "🌡️ … no fan detected!" or above 75 °C
+
+The web UI footer shows the live chip temperature and fan speed. If
+that chip turns red, something is off:
+
+- **"no fan detected"** → the Active Cooler's plug is disconnected
+  (4-pin connector right next to the camera connectors — it slips out
+  easily while re-routing cables). **Power the Pi off**, reseat the
+  plug, boot again. Important: the Pi only detects the fan at power-on —
+  plugging it in while running is not enough.
+- **Above 75 °C with the fan running** → vents blocked? Enclosed case
+  without airflow? Direct sunlight?
+
+No panic needed: from about 82 °C the Pi throttles itself (the picture
+just gets slower, nothing breaks). Below 50 °C the fan deliberately
+stands still — not hearing it is normal then.
+
 ---
 
 ## 10 · Cheat sheet

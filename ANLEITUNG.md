@@ -435,6 +435,23 @@ Modelle: seitliche Profile, starkes Gegenlicht und sehr kleine Gesichter
 sind schwer. Kamera auf Gesichtshöhe und Licht von vorn helfen — und
 genau diese Grenze ist Lernstoff in Station 3.
 
+### 9.12 Fußzeile zeigt „🌡️ … kein Lüfter erkannt!" oder über 75 °C
+
+Die Fußzeile der Web-Oberfläche zeigt live die Chip-Temperatur und die
+Lüfter-Drehzahl. Wird der Chip rot, stimmt etwas nicht:
+
+- **„kein Lüfter erkannt"** → Der Stecker des Active Coolers ist ab
+  (4-Pin-Anschluss direkt neben den Kamera-Anschlüssen — rutscht beim
+  Kabelverlegen leicht heraus). **Pi ausschalten**, Stecker einstecken,
+  neu starten. Wichtig: Der Pi erkennt den Lüfter nur beim Einschalten —
+  im laufenden Betrieb einstecken reicht nicht.
+- **Über 75 °C trotz Lüfter** → Luftschlitze frei? Gehäuse geschlossen
+  ohne Belüftung? Direkte Sonne?
+
+Keine Panik nötig: Ab ca. 82 °C drosselt sich der Pi selbst (das Bild
+wird nur langsamer, nichts geht kaputt). Unter 50 °C steht der Lüfter
+absichtlich still — dass man ihn nicht hört, ist dann normal.
+
 ---
 
 ## 10 · Spickzettel

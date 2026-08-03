@@ -448,6 +448,7 @@ class Pipeline:
                 "prediction": teach_pred,
             },
             "heatmap": {"since_s": int(time.time() - self.heatmap.since)},
+            "system": self._system_health(),
             "exhibit": {
                 "attract": self.attract,
                 "frames": self.frames_total,
@@ -476,6 +477,34 @@ class Pipeline:
                 },
             },
         }
+
+    def _system_health(self):
+        """CPU temperature and fan rpm from sysfs, cached for 2 s.
+        Both are None off-Pi — the UI hides the chip then. A missing fan
+        WITH a temperature reading means the fan is unplugged/dead, which
+        the footer marks loudly (this exact failure happened in the field).
+        """
+        now = time.monotonic()
+        if now - getattr(self, "_sys_ts", 0.0) < 2.0:
+            return self._sys_cache
+        temp = fan = None
+        try:
+            with open("/sys/class/thermal/thermal_zone0/temp") as f:
+                temp = round(int(f.read()) / 1000.0, 1)
+        except Exception:
+            pass
+        try:
+            import glob
+            for path in glob.glob(
+                    "/sys/devices/platform/cooling_fan/hwmon/*/fan1_input"):
+                with open(path) as f:
+                    fan = int(f.read())
+                break
+        except Exception:
+            pass
+        self._sys_cache = {"temp_c": temp, "fan_rpm": fan}
+        self._sys_ts = now
+        return self._sys_cache
 
     # -- actions from the web API -------------------------------------------
 

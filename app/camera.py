@@ -26,7 +26,18 @@ class PiCameraSource:
     def __init__(self):
         from picamera2 import Picamera2  # lazy: only available on the Pi
 
-        self.picam2 = Picamera2()
+        # libcamera also enumerates USB/UVC cameras — but this class assumes
+        # CSI semantics (XRGB stream, ISP scaling). A USB cam grabbed here
+        # arrives as MJPEG/YUV and renders as garbage; it belongs to
+        # WebcamSource, which handles format and aspect correctly.
+        infos = Picamera2.global_camera_info()
+        csi = [i for i, info in enumerate(infos)
+               if "usb" not in str(info.get("Id", "")).lower()]
+        if not csi:
+            raise RuntimeError("no CSI camera attached "
+                               "(USB cameras are handled by WebcamSource)")
+
+        self.picam2 = Picamera2(csi[0])
         try:
             cam_config = self.picam2.create_video_configuration(
                 main={"size": config.FRAME_SIZE, "format": "XRGB8888"}
@@ -107,17 +118,47 @@ class WebcamSource:
             else cv2.VideoCapture(index)
         if not self.cap.isOpened():
             raise RuntimeError(f"Webcam {index} could not be opened")
-        w, h = config.FRAME_SIZE
-        self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, w)
-        self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, h)
+        # MJPEG first: high-resolution UVC cameras (ELP 48MP & friends) only
+        # manage smooth frame rates as MJPEG — raw YUYV over USB is slow and
+        # prone to torn frames. Harmless if a camera ignores it.
+        try:
+            self.cap.set(cv2.CAP_PROP_FOURCC,
+                         cv2.VideoWriter_fourcc(*"MJPG"))
+        except Exception:
+            pass
+        # Ask for a real 16:9 HD mode; many of these sensors are 4:3-native
+        # and would otherwise hand us 640x480. Whatever we actually get is
+        # aspect-corrected in read() — never distorted.
+        self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
+        self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
+        self.cap.set(cv2.CAP_PROP_FPS, config.WEBCAM_FPS)
+
+    @staticmethod
+    def _fit(frame):
+        """Centre-crop to the target aspect ratio, then scale — a 4:3 camera
+        must never be squeezed into the 16:9 canvas (squashed faces!)."""
+        tw, th = config.FRAME_SIZE
+        h, w = frame.shape[:2]
+        target = tw / th
+        if abs(w / h - target) > 0.01:
+            if w / h > target:                    # too wide → trim sides
+                new_w = int(h * target)
+                x0 = (w - new_w) // 2
+                frame = frame[:, x0:x0 + new_w]
+            else:                                 # too tall (4:3) → trim bands
+                new_h = int(w / target)
+                y0 = (h - new_h) // 2
+                frame = frame[y0:y0 + new_h]
+        if (frame.shape[1], frame.shape[0]) != (tw, th):
+            frame = cv2.resize(frame, (tw, th),
+                               interpolation=cv2.INTER_AREA)
+        return frame
 
     def read(self):
         ok, frame = self.cap.read()
-        if not ok:
+        if not ok or frame is None or frame.size == 0:
             raise RuntimeError("Webcam stopped delivering frames")
-        if (frame.shape[1], frame.shape[0]) != config.FRAME_SIZE:
-            frame = cv2.resize(frame, config.FRAME_SIZE)
-        return frame
+        return self._fit(frame)
 
     def close(self):
         self.cap.release()
