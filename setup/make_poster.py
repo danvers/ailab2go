@@ -63,7 +63,7 @@ _static = Path(__file__).parent.parent / "app" / "static"
 logo_uri = _data_uri(_static / "logo.png")        # SKILL
 logo2_uri = _data_uri(_static / "logo2.png")      # aiwareness Lab
 
-ACCENTS = ["#2f6fe0", "#8a4fd8", "#1fa877", "#d98211", "#d81b60", "#0f9b96"]
+ACCENTS = ["#2f6fe0", "#8a4fd8", "#6e675a", "#d98211", "#d81b60", "#0f9b96"]
 ICONS = ["🔍", "🧠", "🛡️", "🗺️", "🎭", "🤸"]
 
 STRINGS = {

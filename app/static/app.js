@@ -126,6 +126,13 @@ function showMode(mode) {
   $$(".station").forEach((s) =>
     s.classList.toggle("hidden", s.dataset.mode !== mode));
   $("#stream").alt = t("alt")[mode] || t("alt").start;
+  // The video frame carries the active station's colour (accent ring) —
+  // scoped to .video-wrap so header/footer stay neutral.
+  const activeTile = document.querySelector(`#tiles .tile[data-mode="${mode}"]`);
+  if (activeTile) {
+    document.querySelector(".video-wrap").style.setProperty(
+      "--accent", activeTile.style.getPropertyValue("--accent"));
+  }
   // Bring the active tile into view (remote switches can land off-screen).
   // Compare viewport rects — offsetLeft is relative to .tiles-wrap, not to
   // the scrolling nav, so mixing it with scrollLeft misfires once scrolled.
@@ -149,6 +156,20 @@ async function setMode(mode) {
   lastLocalAction = Date.now();
   markTouched("mode");
   showMode(mode); // optimistic — the next poll confirms or corrects
+  // Phones: after a *local* tap, reveal the new station's top just under the
+  // sticky video. Deliberately not in showMode() — remote/poll-driven
+  // switches must never hijack a visitor's scroll position.
+  if (matchMedia("(max-width: 920px)").matches) {
+    const sec = document.querySelector(`.station[data-mode="${mode}"]`);
+    const stickyBottom =
+      document.querySelector(".video-wrap").getBoundingClientRect().bottom;
+    if (sec && sec.getBoundingClientRect().top < stickyBottom) {
+      window.scrollBy({
+        top: sec.getBoundingClientRect().top - stickyBottom - 8,
+        behavior: "auto",
+      });
+    }
+  }
   const res = await post("/api/mode", { mode, pin: adminPin });
   if (!res.ok) {
     if (res.status === 403) toast(t("locked"));
@@ -173,9 +194,15 @@ $("#shared-hint-ok").addEventListener("click", () => {
 // ---------- detektiv / trick ------------------------------------------------
 
 const slider = $("#threshold");
+// --fill drives the coloured part of the custom WebKit track (style.css);
+// Firefox gets it natively via ::-moz-range-progress.
+const setFill = () => slider.style.setProperty("--fill",
+  `${(slider.value - slider.min) / (slider.max - slider.min) * 100}%`);
+setFill();
 slider.addEventListener("input", () => {
   markTouched("threshold");
   $("#threshold-val").textContent = `${slider.value} %`;
+  setFill();
 });
 slider.addEventListener("change", () =>
   post("/api/params", { threshold: slider.value / 100 }));
@@ -338,7 +365,9 @@ $("#admin-lock").addEventListener("click", async () => {
   if (res.status === 403) toast(t("wrongPin"));
 });
 
-$("#admin-reset").addEventListener("click", async () => {
+// Two-tap like the visitor resets — this is the most destructive button in
+// the UI (wipes training data AND the heatmap for everyone).
+armButton($("#admin-reset"), "adminResetLabel", async () => {
   const res = await post("/api/admin", { pin: adminPin, action: "reset_all" });
   if (res.status === 403) toast(t("wrongPin"));
   else if (res.ok) toast(t("adminResetToast"));
@@ -372,6 +401,7 @@ function render(s) {
   if (!isTouched("threshold")) {
     slider.value = Math.round(s.threshold * 100);
     $("#threshold-val").textContent = `${slider.value} %`;
+    setFill();
   }
   $("#threshold-trick").textContent = `${Math.round(s.threshold * 100)} %`;
 

@@ -111,6 +111,7 @@ class Pipeline:
         self.faces = vision.FaceGuard()
         self.heatmap = vision.MotionHeatmap()
         self.teach = vision.Teachable()
+        self.det_smooth = vision.DetectionSmoother()
 
         self.mode = config.DEFAULT_MODE
         self.threshold = config.DETECT_THRESHOLD_DEFAULT
@@ -239,7 +240,9 @@ class Pipeline:
 
             detections = []
             if mode in ("detektiv", "trick"):
-                detections = self._detect(frame)
+                # steadied, not raw: see vision.DetectionSmoother
+                detections = self.det_smooth.update(
+                    self._detect(frame), self.threshold)
                 self._draw_detections(frame, detections)
             elif mode == "trainer":
                 prediction = self._trainer_frame(frame)
@@ -272,7 +275,7 @@ class Pipeline:
             # Which object classes are on screen right now? Counting the
             # *appearances* (not every frame) gives the wall an honest
             # "recognitions so far" number.
-            present = {c for c, conf, _ in detections if conf >= self.threshold}
+            present = {c for c, _, _ in detections}   # already steady-filtered
             new = present - self._objects_present
             self.object_events += len(new)
             self.classes_seen |= present
@@ -308,10 +311,11 @@ class Pipeline:
                 for (x, y, fw, fh) in self.faces.boxes]
 
     def _draw_detections(self, frame, detections):
+        # No threshold check here: the smoother already applied it, WITH
+        # hysteresis — re-filtering would cut objects in their hold phase
+        # and bring the flicker back.
         h, w = frame.shape[:2]
         for class_id, conf, (x0, y0, x1, y1) in detections:
-            if conf < self.threshold:
-                continue
             color = _class_color(class_id)
             p0 = (int(x0 * w), int(y0 * h))
             p1 = (int(x1 * w), int(y1 * h))
@@ -412,9 +416,9 @@ class Pipeline:
 
     def _publish_state(self, mode, detections):
         panel = []
-        for class_id, conf, _ in sorted(detections, key=lambda d: -d[1])[:8]:
-            if conf < self.threshold:
-                continue
+        # coarse-round before sorting so score jitter cannot reshuffle rows
+        for class_id, conf, _ in sorted(
+                detections, key=lambda d: (-int(d[1] * 20), d[0]))[:8]:
             name_en, name_de, emoji = class_info(class_id)
             panel.append({"emoji": emoji, "name": name_de,
                           "name_en": name_en.capitalize(),

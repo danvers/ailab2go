@@ -164,7 +164,7 @@ The header has a DE/EN language toggle (remembered per device) — in
 German the same rows read „KI-Chip aktiv", „Demo-Modus ohne KI-Chip",
 „Pi-Kamera" and „Testbild".
 
-Next to it, **⚙ System** opens a separate window with temperatures,
+Next to it, **System** opens a separate window with temperatures,
 fan and AI chip — not needed in normal operation, but it is the first
 place to look when the Pi runs hot or the picture stutters
 (section 9.12).
@@ -475,7 +475,7 @@ exact limitation is teaching material in station 3.
 ### 9.12 Temperature, fan, AI chip: the system window
 
 When the Pi runs hot, the picture stutters, or you cannot hear the fan:
-the footer of the web UI has a **⚙ System** link. It opens a separate
+the footer of the web UI has a **System** link. It opens a separate
 window with the technical readout — deliberately kept off the visitor
 interface, because nobody at a station wants to see temperatures.
 

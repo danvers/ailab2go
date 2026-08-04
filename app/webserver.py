@@ -60,25 +60,39 @@ def create_app(pipeline):
             return "Zu viele Zuschauer — bitte später erneut versuchen.", 503
         pipeline.stream_clients += 1     # display only; slots gate for real
 
-        def generate():
-            min_interval = 1.0 / config.STREAM_MAX_FPS
-            last = 0.0
-            while pipeline.running:
-                with pipeline.frame_ready:
-                    pipeline.frame_ready.wait(timeout=2.0)
-                    jpeg = pipeline.jpeg
-                if jpeg is None:
-                    continue
-                now = time.monotonic()
-                if now - last < min_interval:
-                    time.sleep(min_interval - (now - last))
-                last = time.monotonic()
-                yield (b"--frame\r\n"
-                       b"Content-Type: image/jpeg\r\n\r\n" + jpeg + b"\r\n")
+        # Slot release is belt-and-braces: call_on_close AND the generator's
+        # finally. Relying on call_on_close alone leaked slots in the field
+        # (clients vanished without werkzeug ever closing the response, and
+        # after enough churn the wall went dark with "Zu viele Zuschauer").
+        # The finally fires at the latest when the abandoned generator is
+        # garbage-collected, so a slot can no longer be lost for good. The
+        # once-lock keeps the pair idempotent — BoundedSemaphore raises on
+        # a double release.
+        release_once = threading.Lock()
 
         def release():
-            pipeline.stream_clients = max(0, pipeline.stream_clients - 1)
-            stream_slots.release()
+            if release_once.acquire(blocking=False):
+                pipeline.stream_clients = max(0, pipeline.stream_clients - 1)
+                stream_slots.release()
+
+        def generate():
+            try:
+                min_interval = 1.0 / config.STREAM_MAX_FPS
+                last = 0.0
+                while pipeline.running:
+                    with pipeline.frame_ready:
+                        pipeline.frame_ready.wait(timeout=2.0)
+                        jpeg = pipeline.jpeg
+                    if jpeg is None:
+                        continue
+                    now = time.monotonic()
+                    if now - last < min_interval:
+                        time.sleep(min_interval - (now - last))
+                    last = time.monotonic()
+                    yield (b"--frame\r\n"
+                           b"Content-Type: image/jpeg\r\n\r\n" + jpeg + b"\r\n")
+            finally:
+                release()
 
         resp = Response(generate(),
                         mimetype="multipart/x-mixed-replace; boundary=frame")

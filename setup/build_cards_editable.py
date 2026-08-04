@@ -121,10 +121,14 @@ def run(langs=("de", "en")):
     cards_meta = []
     for i in range(6):
         cards_meta.append(dict(kind="station", idx=i,
-                               color=mc.ACCENT_STATION[i], icon=mc.ICONS_STATION[i]))
+                               color=mc.ACCENT_STATION[i],
+                               back=mc.ACCENT_STATION_BACK[i],
+                               icon=mc.ICONS_STATION[i]))
     for i in range(6):
         cards_meta.append(dict(kind="discuss", idx=i,
-                               color=mc.ACCENT_DISCUSS[i], icon=mc.ICONS_DISCUSS[i]))
+                               color=mc.ACCENT_DISCUSS[i],
+                               back=mc.ACCENT_DISCUSS[i],
+                               icon=mc.ICONS_DISCUSS[i]))
     for n, m in enumerate(cards_meta, 1):
         m["bg"] = OUT / f"front_{n:02d}.png"
         m["ic"] = OUT / f"icon_{n:02d}.png"
@@ -195,6 +199,8 @@ def run(langs=("de", "en")):
         for n, (kind, i, item) in enumerate(items, 1):
             m = cards_meta[n - 1]
             accent = RGBColor(*hex2rgb(m["color"]))
+            # backs are white — the ivory shield uses its stone stand-in there
+            accent_back = RGBColor(*hex2rgb(m["back"]))
             kicker = (f"{u['station']} {i + 1} {u['of']} 6" if kind == "station"
                       else f"{u['discuss']} {i + 1} {u['of']} 6")
 
@@ -241,10 +247,10 @@ def run(langs=("de", "en")):
             s2 = prs.slides.add_slide(blank)
             bgs = rect(s2, 0, 0, L["w"], L["h"], LIGHT)
             bgs.shadow.inherit = False
-            rect(s2, 0, 0, L["w"], L["bar"], accent)
+            rect(s2, 0, 0, L["w"], L["bar"], accent_back)
             y = L["pad_top"]
             textbox(s2, L["pad_x"], y, 40, 4, kicker, L["back_kicker"] * mm2pt,
-                    color=accent, bold=True, caps=True)
+                    color=accent_back, bold=True, caps=True)
             textbox(s2, L["pad_x"] + 34, y - 0.8, L["w"] - 2 * L["pad_x"] - 34, 6,
                     title, L["back_title"] * mm2pt, color=INK, bold=True)
             y += 7
@@ -254,7 +260,8 @@ def run(langs=("de", "en")):
                 if tint is not None:
                     pass  # tinted panel drawn by caller
                 textbox(s2, L["pad_x"], y, L["w"] - 2 * L["pad_x"], 4,
-                        head, L["h4"] * mm2pt, color=accent, bold=True, caps=True)
+                        head, L["h4"] * mm2pt, color=accent_back, bold=True,
+                        caps=True)
                 yy = y + 3.6
                 for ln in lines:
                     h = 3.6 + 3.6 * (len(ln) // 62)

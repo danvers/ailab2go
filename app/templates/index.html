@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>{{ event_name }}</title>
 <link rel="stylesheet" href="/static/style.css">
 <link rel="icon" href="/static/logo-icon.png" sizes="256x256">
@@ -27,6 +27,9 @@
     <h1>{{ event_name }}</h1>
   </div>
   <div class="head-right">
+    <!-- On phones the badge collapses to icon-only via font-size:0 — the
+         leading aria-hidden emoji span must stay FIRST here AND in the EN
+         ui.badge string (i18n.js), or the pill renders empty on small screens. -->
     <button class="privacy-badge" id="privacy-badge" type="button" data-i18n="ui.badge">
       <span aria-hidden="true">🔒</span> 100&nbsp;% lokal — keine Cloud, keine Fotos gespeichert
       <span class="sr-only">Antippen für Details: Alle Berechnungen passieren auf einem kleinen Computer in diesem Raum.</span>
@@ -43,7 +46,7 @@
   <button class="tile active" aria-current="true" data-mode="start" style="--accent:#8b949e"><span aria-hidden="true">🏠</span><span data-i18n="tile.start">Start</span></button>
   <button class="tile" data-mode="detektiv" style="--accent:#4ea8ff"><span aria-hidden="true">🔍</span><span data-i18n="tile.detektiv">Objekt-Detektiv</span></button>
   <button class="tile" data-mode="trainer"  style="--accent:#b57bff"><span aria-hidden="true">🧠</span><span data-i18n="tile.trainer">Trainiere die KI</span></button>
-  <button class="tile" data-mode="schild"   style="--accent:#3ddc97"><span aria-hidden="true">🛡️</span><span data-i18n="tile.schild">Privatsphäre-Schild</span></button>
+  <button class="tile" data-mode="schild"   style="--accent:#f7f2e8"><span aria-hidden="true">🛡️</span><span data-i18n="tile.schild">Privatsphäre-Schild</span></button>
   <button class="tile" data-mode="spur"     style="--accent:#ffb347"><span aria-hidden="true">🗺️</span><span data-i18n="tile.spur">Die Datenspur</span></button>
   <button class="tile" data-mode="trick"    style="--accent:#ff5d8f"><span aria-hidden="true">🎭</span><span data-i18n="tile.trick">Täusche die KI</span></button>
   <button class="tile" data-mode="pose"     style="--accent:#2dd4bf"><span aria-hidden="true">🤸</span><span data-i18n="tile.pose">Skelett-Spiegel</span></button>
@@ -172,7 +175,7 @@
     </section>
 
     <!-- ══════════ PRIVATSPHÄRE-SCHILD ══════════ -->
-    <section class="station hidden" data-mode="schild" style="--accent:#3ddc97">
+    <section class="station hidden" data-mode="schild" style="--accent:#f7f2e8">
       <h2 data-i18n="schild.h2">🛡️ Privatsphäre-Schild</h2>
       <p class="intro" data-i18n="schild.intro">Diese Kamera macht Gesichter
         unkenntlich, <strong>bevor</strong> das Bild auf euren Bildschirmen landet.
@@ -322,7 +325,7 @@
             still! Geschafft bisher:</span> <strong id="pose-done">0</strong></div>
         </div>
 
-        <label class="switch-row" style="margin-top:10px">
+        <label class="switch-row">
           <input type="checkbox" id="pose-ghost">
           <span data-i18n="pose.ghost">👻 Geist-Modus: nur Skelette, kein Kamerabild</span>
         </label>
@@ -363,7 +366,7 @@
   </div>
   <div class="foot-links">
     <span data-i18n="foot.info">medienbildung.team · Open&nbsp;Source (MIT) · läuft ohne Internet</span>
-    <a href="/system" target="_blank" rel="noopener" data-i18n="foot.system">⚙ System</a>
+    <a href="/system" target="_blank" rel="noopener" data-i18n="foot.system">System</a>
     <a href="#" id="admin-link" data-i18n="foot.admin">Moderator:in</a>
   </div>
   <div id="admin-bar" class="admin-bar hidden">

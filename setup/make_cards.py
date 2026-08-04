@@ -50,7 +50,10 @@ L = dict(
     body=3.05, h4=2.9, note=2.5, foot=2.3,
 )
 
-ACCENT_STATION = ["#4ea8ff", "#b57bff", "#3ddc97", "#ffb347", "#ff5d8f", "#2dd4bf"]
+ACCENT_STATION = ["#4ea8ff", "#b57bff", "#f7f2e8", "#ffb347", "#ff5d8f", "#2dd4bf"]
+# Card BACKS are printed on white — ivory would vanish there, so the
+# shield uses its print stand-in (stone grey) on the back side only.
+ACCENT_STATION_BACK = ["#4ea8ff", "#b57bff", "#6e675a", "#ffb347", "#ff5d8f", "#2dd4bf"]
 ACCENT_DISCUSS = ["#8a4fd8", "#c32683", "#7c4dff", "#e0409f", "#b57bff", "#5b21a6"]
 ICONS_STATION = ["🔍", "🧠", "🛡️", "🗺️", "🎭", "🤸"]
 ICONS_DISCUSS = ["🚪", "🏟️", "🏫", "📱", "🛒", "🤖"]
@@ -254,9 +257,9 @@ def station_pages(s, no, lang):
   <div class="block accent"><h4>{u['rally']}</h4><p>{s['rally']}</p></div>
   <div class="block think"><h4>{u['think']}</h4><p>{s['think']}</p></div>"""
     kicker = f"{u['station']} {no} {u['of']} 6"
-    color = ACCENT_STATION[no - 1]
-    return (front_html(kicker, ICONS_STATION[no - 1], s["title"], s["tag"], color) +
-            back_html(kicker, s["title"], color, body))
+    return (front_html(kicker, ICONS_STATION[no - 1], s["title"], s["tag"],
+                       ACCENT_STATION[no - 1]) +
+            back_html(kicker, s["title"], ACCENT_STATION_BACK[no - 1], body))
 
 
 def discussion_pages(c, no, lang):

@@ -1,15 +1,48 @@
-/* KI-Werkstatt exhibit UI — dark, colourful, touch-friendly, offline-only. */
+/* KI-Werkstatt exhibit UI — dark, colourful, touch-friendly, offline-only.
+ *
+ * Design system (keep to it — ad-hoc values are what made the old UI noisy):
+ *   Surfaces  : exactly two tint levels (--surface-1 card, --surface-2 nested)
+ *   Borders   : --line (decoration) | --line-ui (interactive, WCAG non-text
+ *               contrast — never drop below 0.30 alpha) | --line-strong
+ *   Radii     : --r-sm bars · --r-md buttons/blocks · --r-lg cards · pill
+ *   Rule      : borders belong to CONTROLS and WARNINGS only; content blocks
+ *               are flat tints, callouts get a 3px left bar.
+ *   Accents   : every station sets --accent inline (tile + section); CSS
+ *               derives everything (bars, fills, rings) from it.
+ */
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
   --bg: #0d1117;
   --bg2: #161b27;
-  --card: rgba(255, 255, 255, 0.055);
-  --border: rgba(255, 255, 255, 0.12);
   --text: #e6edf3;
   --muted: #8b949e;
   --accent: #4ea8ff;
+
+  --surface-1: rgba(255, 255, 255, 0.055);
+  --surface-2: rgba(255, 255, 255, 0.04);
+  --card: var(--surface-1);
+
+  --line: rgba(255, 255, 255, 0.09);
+  --line-ui: rgba(255, 255, 255, 0.30);
+  --line-strong: rgba(255, 255, 255, 0.45);
+  --border: var(--line);
+
+  --r-sm: 8px;
+  --r-md: 10px;
+  --r-lg: 14px;
+  --r-pill: 999px;
+
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+
+  --shadow-1: 0 2px 8px rgba(0, 0, 0, 0.35);
+  --shadow-2: 0 10px 40px rgba(0, 0, 0, 0.45);
+  --ease: cubic-bezier(0.2, 0.7, 0.3, 1);
+  --dur: 0.18s;
 }
 
 html { -webkit-text-size-adjust: 100%; }
@@ -32,6 +65,8 @@ body {
   clip: rect(0 0 0 0); white-space: nowrap; border: 0;
 }
 
+.hidden { display: none !important; }
+
 /* ── header ─────────────────────────────────────────── */
 header {
   display: flex;
@@ -48,14 +83,14 @@ header {
 .logo img { display: block; height: 26px; width: auto; }
 .brand-rule {
   width: 1px; height: 20px; border-radius: 1px;
-  background: var(--border);
+  background: var(--line-ui);
 }
-h1 { font-size: 1.1rem; letter-spacing: 0.4px; line-height: 1.1; }
+h1 { font-size: 1.1rem; font-weight: 650; letter-spacing: 0.3px; line-height: 1.1; }
 .head-right { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .langswitch {
   display: flex;
-  border: 1px solid var(--border);
-  border-radius: 999px;
+  border: 1px solid var(--line-ui);
+  border-radius: var(--r-pill);
   overflow: hidden;
 }
 .langswitch button {
@@ -68,16 +103,19 @@ h1 { font-size: 1.1rem; letter-spacing: 0.4px; line-height: 1.1; }
   letter-spacing: 0.5px;
   padding: 6px 10px;
   cursor: pointer;
+  transition: color var(--dur) var(--ease), background-color var(--dur) var(--ease);
 }
 .langswitch button.active {
   background: var(--accent);
   color: #0b0f14;
 }
+/* the pill clips (overflow:hidden), so the ring must draw inside it */
+.langswitch button:focus-visible { outline: 3px solid #fff; outline-offset: -3px; }
 .privacy-badge {
-  background: linear-gradient(135deg, rgba(61, 220, 151, 0.18), rgba(78, 168, 255, 0.14));
-  border: 1px solid rgba(61, 220, 151, 0.45);
+  background: rgba(61, 220, 151, 0.10);
+  border: 1px solid rgba(61, 220, 151, 0.40);
   color: #7ef0bd;
-  border-radius: 999px;
+  border-radius: var(--r-pill);
   padding: 6px 12px;
   font: inherit;
   font-size: 0.74rem;
@@ -122,22 +160,32 @@ nav#tiles::-webkit-scrollbar { display: none; }
   gap: 6px;
   font-size: 0.95rem;
   padding: 6px 12px;
-  border-radius: 999px;
-  border: 1.5px solid var(--border);
-  background: var(--card);
+  border-radius: var(--r-pill);
+  border: 1px solid var(--line-ui);
+  background: var(--surface-1);
   color: var(--text);
   cursor: pointer;
-  transition: all 0.15s ease;
   white-space: nowrap;
+  transition: border-color var(--dur) var(--ease),
+              background-color var(--dur) var(--ease),
+              transform var(--dur) var(--ease),
+              box-shadow var(--dur) var(--ease);
 }
 .tile span { font-size: 0.78rem; font-weight: 600; }
-.tile:hover { border-color: var(--accent); transform: translateY(-1px); }
+/* hover previews the station's own colour (each tile carries --accent) */
+.tile:hover {
+  border-color: color-mix(in srgb, var(--accent) 70%, transparent);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  transform: translateY(-1px);
+}
 .tile.active {
   background: var(--accent);
   border-color: var(--accent);
   color: #0b0f14;
-  box-shadow: 0 0 18px color-mix(in srgb, var(--accent) 55%, transparent);
+  box-shadow: 0 2px 12px color-mix(in srgb, var(--accent) 40%, transparent);
+  transform: none;
 }
+.tile:focus-visible { outline-offset: 3px; }
 
 /* ── main layout ────────────────────────────────────── */
 main {
@@ -163,7 +211,6 @@ main {
     grid-template-rows: minmax(0, 1fr);
     align-items: stretch;
   }
-  .video-wrap { align-self: start; position: static; }
   #panel { min-height: 0; overflow-y: auto; scrollbar-width: thin; }
   #panel::-webkit-scrollbar { width: 8px; }
   #panel::-webkit-scrollbar-thumb {
@@ -171,14 +218,20 @@ main {
   }
 }
 
+/* The live picture IS the active station's output — its frame carries the
+   station colour. app.js sets --accent here on every mode switch; the
+   default matches the Start tile so first paint doesn't flash blue. */
 .video-wrap {
+  --accent: #8b949e;
   position: sticky;
   top: 8px;
-  border-radius: 14px;
+  border-radius: var(--r-lg);
   overflow: hidden;
-  border: 1px solid var(--border);
+  border: 1px solid color-mix(in srgb, var(--accent) 45%, var(--line));
   background: #000;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.45);
+  box-shadow: var(--shadow-2),
+              0 0 0 1px color-mix(in srgb, var(--accent) 20%, transparent);
+  transition: border-color 0.3s var(--ease), box-shadow 0.3s var(--ease);
 }
 @media (max-width: 920px) {
   /* tile bar and video stick as a stack: switching is always one tap away.
@@ -187,8 +240,10 @@ main {
   .video-wrap { position: sticky; top: var(--nav-h, 58px); z-index: 5; }
 }
 @media (max-height: 500px) {
-  /* high zoom / tiny landscape: never let the video obscure the content */
-  .video-wrap { position: static; }
+  /* high zoom / tiny landscape: never let the video obscure the content.
+     relative (not static): .video-note is absolutely positioned inside.
+     top:0 — the base rule's top:8px is sticky-only, relative would shift. */
+  .video-wrap { position: relative; top: 0; }
 }
 #stream { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: cover; }
 .video-note {
@@ -196,94 +251,189 @@ main {
   left: 10px; bottom: 10px;
   background: rgba(0, 0, 0, 0.65);
   padding: 5px 10px;
-  border-radius: 8px;
+  border-radius: var(--r-sm);
   font-size: 0.78rem;
 }
 
 /* ── station panel ──────────────────────────────────── */
+/* The station card is the ONLY outlined box in the panel; everything inside
+   is a flat tint. A faint accent wash under the heading ties card and tile. */
 .station {
-  background: var(--card);
-  border: 1px solid var(--border);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--accent) 5%, transparent), transparent 140px),
+    var(--surface-1);
+  border: 1px solid var(--line);
   border-top: 3px solid var(--accent);
-  border-radius: 14px;
-  padding: 13px 14px;
+  border-radius: var(--r-lg);
+  padding: var(--sp-4) 18px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  --station-gap: var(--sp-2);
+  gap: var(--station-gap);
   animation: fadein 0.25s ease;
 }
 @keyframes fadein { from { opacity: 0; transform: translateY(6px); } }
-.hidden { display: none !important; }
 
-h2 { font-size: 1.05rem; }
-h3 { font-size: 0.82rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
-.intro { line-height: 1.45; font-size: 0.9rem; }
-.hint { color: var(--muted); font-size: 0.78rem; line-height: 1.45; }
+/* reading order: title zone → interact zone → learn-more → reflection */
+h2 { font-size: 1.25rem; font-weight: 750; letter-spacing: -0.01em; line-height: 1.25; }
+.station > h2 { margin-bottom: -2px; }
+h3 {
+  font-size: 0.72rem; font-weight: 700; color: var(--muted);
+  text-transform: uppercase; letter-spacing: 1.4px;
+}
+.station > h3 { margin-top: var(--sp-2); }
+.station > details:first-of-type { margin-top: var(--sp-2); }
+.station > .think { margin-top: var(--sp-2); }
+.intro { line-height: 1.55; font-size: 0.92rem; }
+.hint { color: var(--muted); font-size: 0.78rem; line-height: 1.5; }
 .muted { color: var(--muted); }
 
 .steps { padding-left: 20px; display: flex; flex-direction: column; gap: 4px;
-         line-height: 1.4; font-size: 0.88rem; }
+         line-height: 1.5; font-size: 0.88rem; }
 
+/* reflection callout — picks up the station colour instead of one yellow
+   box seven times */
 .think {
-  background: rgba(255, 214, 102, 0.09);
-  border: 1px solid rgba(255, 214, 102, 0.35);
-  border-radius: 10px;
-  padding: 9px 11px;
-  line-height: 1.45;
-  font-size: 0.83rem;
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+  border: 0;
+  border-left: 3px solid color-mix(in srgb, var(--accent) 65%, transparent);
+  border-radius: 0 var(--r-md) var(--r-md) 0;
+  padding: 10px 12px;
+  line-height: 1.55;
+  font-size: 0.84rem;
 }
 
 details {
-  background: rgba(0, 0, 0, 0.22);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 8px 11px;
+  background: var(--surface-2);
+  border: 0;
+  border-radius: var(--r-md);
+  padding: 8px 12px;
   font-size: 0.85rem;
 }
-details summary { cursor: pointer; font-weight: 600; }
-details p, details ul { margin-top: 8px; line-height: 1.45; font-size: 0.83rem; }
+/* adjacent accordions read as one group (2px seam instead of full gap) */
+.station > details + details { margin-top: calc(2px - var(--station-gap)); }
+details summary {
+  list-style: none;
+  display: flex; align-items: center; gap: 8px;
+  min-height: 30px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.84rem;
+  color: var(--muted);
+  transition: color var(--dur) var(--ease);
+}
+details summary::-webkit-details-marker { display: none; }
+details summary::before {
+  content: "";
+  flex: 0 0 auto;
+  width: 7px; height: 7px;
+  border-right: 2px solid var(--muted);
+  border-bottom: 2px solid var(--muted);
+  transform: rotate(-45deg);              /* chevron pointing right */
+  transition: transform var(--dur) var(--ease);
+}
+details[open] summary::before { transform: rotate(45deg); }
+details summary:hover, details[open] summary { color: var(--text); }
+details p, details ul { margin-top: 8px; line-height: 1.5; font-size: 0.82rem; }
 .modelcard { padding-left: 20px; display: flex; flex-direction: column; gap: 4px; }
 
-/* controls */
+/* ── controls ───────────────────────────────────────── */
 .control-row { display: flex; flex-direction: column; gap: 6px; }
-input[type="range"] { width: 100%; accent-color: var(--accent); height: 26px; }
+
+/* custom slider: coloured fill (--fill set by app.js; Firefox has
+   ::-moz-range-progress natively) + grabbable accent thumb */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 28px;
+  background: transparent;
+  cursor: pointer;
+}
+input[type="range"]::-webkit-slider-runnable-track {
+  height: 6px;
+  border-radius: 3px;
+  background:
+    linear-gradient(var(--accent), var(--accent)) 0 / var(--fill, 50%) 100% no-repeat,
+    rgba(255, 255, 255, 0.14);
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 20px; height: 20px;
+  margin-top: -7px;                       /* (20 − 6) / 2 */
+  border-radius: 50%;
+  background: var(--accent);
+  border: 3px solid var(--bg);
+  box-shadow: 0 0 0 1px var(--line-ui), 0 2px 6px rgba(0, 0, 0, 0.4);
+}
+input[type="range"]::-moz-range-track {
+  height: 6px; border-radius: 3px; background: rgba(255, 255, 255, 0.14);
+}
+input[type="range"]::-moz-range-progress {
+  height: 6px; border-radius: 3px; background: var(--accent);
+}
+input[type="range"]::-moz-range-thumb {
+  width: 14px; height: 14px; border-radius: 50%;
+  background: var(--accent); border: 3px solid var(--bg);
+  box-shadow: 0 0 0 1px var(--line-ui), 0 2px 6px rgba(0, 0, 0, 0.4);
+}
+input[type="range"]:focus-visible { outline: 3px solid #fff; outline-offset: 4px; }
+
 .switch-row { display: flex; align-items: center; gap: 9px; font-weight: 600; font-size: 0.92rem; }
 .switch-row input { width: 19px; height: 19px; accent-color: var(--accent); }
+#pose-content > .switch-row { margin-top: 10px; }
 
+/* one button system: ghost base · accent primary · danger */
 .segmented { display: flex; gap: 6px; flex-wrap: wrap; }
-.segmented button {
-  border: 1px solid var(--border);
-  background: transparent;
-  color: var(--text);
-  border-radius: 9px;
-  padding: 6px 11px;
-  min-height: 34px;
-  cursor: pointer;
+.segmented button, button.danger, .slot button.capture,
+.hint-banner button, .admin-bar button {
+  font: inherit;
   font-size: 0.83rem;
+  font-weight: 600;
+  border-radius: var(--r-md);
+  padding: 7px 12px;
+  min-height: 34px;
+  border: 1px solid var(--line-ui);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text);
+  cursor: pointer;
+  transition: background-color var(--dur) var(--ease),
+              border-color var(--dur) var(--ease),
+              transform 0.08s ease;
 }
-.segmented button.active { background: var(--accent); color: #0b0f14; border-color: var(--accent); font-weight: 700; }
-
+.segmented button:hover, .hint-banner button:hover, .admin-bar button:hover {
+  background: rgba(255, 255, 255, 0.10);
+  border-color: var(--line-strong);
+}
+.segmented button.active, .slot button.capture {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #0b0f14;
+  font-weight: 700;
+}
 button.danger {
   align-self: flex-start;
-  background: rgba(248, 81, 73, 0.15);
-  border: 1px solid rgba(248, 81, 73, 0.5);
+  background: rgba(248, 81, 73, 0.12);
+  border-color: rgba(248, 81, 73, 0.5);
   color: #ff8b85;
-  border-radius: 9px;
-  padding: 7px 12px;
-  cursor: pointer;
-  font-size: 0.83rem;
 }
-button.danger:active { transform: scale(0.97); }
+button.danger.armed {
+  background: rgba(248, 81, 73, 0.85);
+  color: #fff;
+  border-color: #ff8b85;
+}
+.segmented button:active, button.danger:active, .slot button.capture:active,
+.hint-banner button:active, .admin-bar button:active { transform: scale(0.97); }
 
-/* detections list */
-.detections { list-style: none; display: flex; flex-direction: column; gap: 5px; }
+/* ── detections: a calm live table, not stacked chips ── */
+.detections { list-style: none; display: flex; flex-direction: column; }
 .detections li {
   display: flex; align-items: center; gap: 9px;
-  background: rgba(0, 0, 0, 0.25);
-  border-radius: 9px;
-  padding: 5px 10px;
+  padding: 7px 2px;
   font-size: 0.88rem;
+  border-bottom: 1px solid var(--line);
 }
+.detections li:last-child { border-bottom: 0; }
 .detections .pct {
   margin-left: auto;
   font-variant-numeric: tabular-nums;
@@ -295,33 +445,34 @@ button.danger:active { transform: scale(0.97); }
   background: rgba(255, 255, 255, 0.1);
   overflow: hidden;
 }
-.detections .bar i { display: block; height: 100%; background: var(--accent); }
-
-/* challenges */
-.challenges { list-style: none; display: flex; flex-direction: column; gap: 6px; }
-.challenges li {
-  background: rgba(0, 0, 0, 0.22);
-  border-radius: 9px;
-  padding: 7px 10px;
-  line-height: 1.4;
-  font-size: 0.83rem;
+.detections .bar i {
+  display: block; height: 100%;
+  background: var(--accent);
+  transition: width 0.25s var(--ease);
 }
 
-/* teachable slots */
+/* challenges are content, not boxes */
+.challenges { list-style: none; display: flex; flex-direction: column; gap: var(--sp-2); }
+.challenges li { padding-left: 2px; line-height: 1.5; font-size: 0.85rem; }
+
+/* ── teachable slots (interactive → keeps a border) ─── */
 .teach-slots { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; }
-@media (max-width: 460px) { .teach-slots { grid-template-columns: 1fr; } }
 .slot {
-  background: rgba(0, 0, 0, 0.25);
-  border: 1px solid var(--border);
-  border-radius: 10px;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
   padding: 8px;
   display: flex;
   flex-direction: column;
   gap: 6px;
   align-items: stretch;
   text-align: center;
+  transition: border-color var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
 }
-.slot.trained { border-color: var(--accent); }
+.slot.trained {
+  border-color: var(--accent);
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
 .slot button.name {
   background: none;
   border: none;
@@ -333,41 +484,34 @@ button.danger:active { transform: scale(0.97); }
   padding: 6px 0;
 }
 .slot .count { font-size: 0.74rem; color: var(--muted); }
-.slot button.capture {
-  background: var(--accent);
-  border: none;
-  color: #0b0f14;
-  font-weight: 700;
-  border-radius: 9px;
-  padding: 7px 6px;
-  min-height: 34px;
-  cursor: pointer;
-  font-size: 0.8rem;
-}
-.slot button.capture:active { transform: scale(0.96); }
+.slot button.capture { padding: 7px 6px; font-size: 0.8rem; }
 
 .prediction {
   font-size: 0.95rem;
-  background: rgba(0, 0, 0, 0.25);
-  border-radius: 10px;
+  background: var(--surface-2);
+  border-radius: var(--r-md);
   padding: 10px;
   text-align: center;
   line-height: 1.4;
 }
-.prediction.big { font-size: 1.2rem; font-weight: 800; color: #9be89b; }
+.prediction.big {
+  font-size: 1.2rem; font-weight: 800;
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+}
 
-/* pose challenge */
+/* ── pose challenge ─────────────────────────────────── */
 .challenge-card {
-  background: rgba(0, 0, 0, 0.25);
-  border: 1px solid var(--border);
-  border-radius: 11px;
-  padding: 11px;
+  background: var(--surface-2);
+  border: 0;
+  border-radius: var(--r-md);
+  padding: 12px;
   display: flex;
   flex-direction: column;
   gap: 8px;
   text-align: center;
 }
-.challenge-head { color: var(--muted); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 1px; }
+.challenge-head { color: var(--muted); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 1.4px; }
 .challenge-task { font-size: 1.05rem; display: flex; gap: 9px; justify-content: center; align-items: center; }
 .challenge-task span { font-size: 1.6rem; }
 .challenge-foot { color: var(--muted); font-size: 0.78rem; }
@@ -382,21 +526,25 @@ button.danger:active { transform: scale(0.97); }
   transition: width 0.15s linear;
 }
 
-/* stat cards */
+/* ── stat cards ─────────────────────────────────────── */
 .stat-cards { display: flex; gap: 8px; flex-wrap: wrap; }
 .stat {
   flex: 1 1 110px;
-  background: rgba(0, 0, 0, 0.25);
-  border-radius: 10px;
-  padding: 9px;
+  background: var(--surface-2);
+  border-radius: var(--r-md);
+  padding: 10px 9px;
   text-align: center;
 }
-.stat span { font-size: 1.3rem; font-weight: 800; color: var(--accent); }
+.stat span {
+  font-size: 1.35rem; font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: var(--accent);
+}
 .stat label { display: block; color: var(--muted); font-size: 0.7rem; margin-top: 2px; line-height: 1.3; }
 
 /* ── footer ─────────────────────────────────────────── */
 footer {
-  border-top: 1px solid var(--border);
+  border-top: 1px solid var(--line);
   padding: 7px 16px 9px;
   display: flex;
   flex-direction: column;
@@ -404,43 +552,41 @@ footer {
   background: rgba(0, 0, 0, 0.25);
 }
 .stats { display: flex; gap: 8px; flex-wrap: wrap; }
+/* status chips: tint says it all — borders are for controls */
 .chip {
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  padding: 3px 10px;
+  border: none;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: var(--r-pill);
+  padding: 4px 10px;
   font-size: 0.75rem;
   color: var(--muted);
+  font-variant-numeric: tabular-nums;  /* fps/count stop jiggling */
 }
-.chip.good { color: #7ef0bd; border-color: rgba(61, 220, 151, 0.5); }
-.chip.warn { color: #ffd666; border-color: rgba(255, 214, 102, 0.5); }
+.chip.good { color: #7ef0bd; background: rgba(61, 220, 151, 0.12); }
+.chip.warn { color: #ffd666; background: rgba(255, 214, 102, 0.14); }
 .foot-links {
-  display: flex; justify-content: space-between; gap: 10px;
+  display: flex; justify-content: space-between; align-items: center; gap: 10px;
   color: var(--muted); font-size: 0.75rem;
 }
-.foot-links a { color: var(--muted); }
-.admin-bar { display: flex; gap: 8px; }
-.admin-bar button {
-  border: 1px solid var(--border);
-  background: var(--card);
-  color: var(--text);
-  border-radius: 10px;
-  padding: 8px 12px;
-  cursor: pointer;
+/* bigger tap area for the small links, layout unchanged */
+.foot-links a {
+  color: var(--muted);
+  display: inline-block; padding: 12px 10px; margin: -12px -10px;
 }
+.admin-bar { display: flex; gap: 8px; }
 
-/* toast */
-/* Stays in the layout permanently so the aria-live region works; only
-   opacity/visibility change. Empty text = nothing rendered. */
+/* toast — stays in the layout permanently so the aria-live region works;
+   only opacity/visibility change. Empty text = nothing rendered. */
 .toast {
   position: fixed;
   left: 50%; bottom: calc(24px + env(safe-area-inset-bottom));
   transform: translateX(-50%);
   max-width: min(92vw, 480px);
   background: #21262d;
-  border: 1px solid var(--border);
-  border-radius: 12px;
+  border: 1px solid var(--line-ui);
+  border-radius: var(--r-lg);
   padding: 10px 18px;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+  box-shadow: var(--shadow-2);
   z-index: 50;
   font-size: 0.9rem;
   opacity: 0;
@@ -449,73 +595,50 @@ footer {
 }
 .toast.show { opacity: 1; visibility: visible; }
 
-/* banners above the station panel */
+/* ── banners above the station panel (callout style) ── */
 .banner {
-  background: rgba(255, 214, 102, 0.12);
-  border: 1px solid rgba(255, 214, 102, 0.45);
-  border-radius: 10px;
-  padding: 9px 12px;
+  background: rgba(255, 214, 102, 0.08);
+  border: 0;
+  border-left: 3px solid #ffd666;
+  border-radius: 0 var(--r-md) var(--r-md) 0;
+  padding: 10px 12px;
   font-size: 0.84rem;
-  line-height: 1.45;
+  line-height: 1.5;
   margin-bottom: 9px;
 }
 .hint-banner {
-  background: rgba(78, 168, 255, 0.10);
-  border-color: rgba(78, 168, 255, 0.45);
+  background: rgba(78, 168, 255, 0.08);
+  border-left-color: #4ea8ff;
   display: flex;
   gap: 10px;
   align-items: center;
   flex-wrap: wrap;
 }
-.hint-banner button {
-  margin-left: auto;
-  background: var(--card);
-  border: 1px solid var(--border);
-  color: var(--text);
-  border-radius: 9px;
-  padding: 6px 12px;
-  min-height: 32px;
-  cursor: pointer;
-  font-size: 0.79rem;
-}
+.hint-banner button { margin-left: auto; font-size: 0.79rem; min-height: 32px; }
 
-/* inline notices inside stations */
+/* inline notices: the ONLY bordered-text signal left, so warnings pop */
 .notice {
-  border-radius: 9px;
-  padding: 8px 10px;
+  border: 0;
+  border-radius: 0 var(--r-md) var(--r-md) 0;
+  padding: 9px 12px;
   font-size: 0.82rem;
-  line-height: 1.45;
+  line-height: 1.5;
 }
 .notice.warn {
-  background: rgba(255, 214, 102, 0.1);
-  border: 1px solid rgba(255, 214, 102, 0.4);
+  background: rgba(255, 214, 102, 0.09);
+  border-left: 3px solid #ffd666;
   color: #ffd666;
 }
 .notice.error {
-  background: rgba(248, 81, 73, 0.12);
-  border: 1px solid rgba(248, 81, 73, 0.55);
+  background: rgba(248, 81, 73, 0.10);
+  border-left: 3px solid #ff8b85;
   color: #ff8b85;
-}
-
-/* armed (second-tap) state for destructive buttons */
-button.danger.armed {
-  background: rgba(248, 81, 73, 0.85);
-  color: #fff;
-  border-color: #ff8b85;
 }
 
 /* moderator lock: dim what guests can't use right now */
 body.locked #tiles .tile:not(.active) {
   opacity: 0.45;
   filter: saturate(0.4);
-}
-
-/* bigger tap area for the small moderator link, layout unchanged */
-.foot-links a { display: inline-block; padding: 12px 10px; margin: -12px -10px; }
-
-/* stronger boundaries on interactive controls (non-text contrast) */
-.tile, .segmented button, .admin-bar button, .hint-banner button {
-  border-color: rgba(255, 255, 255, 0.35);
 }
 
 /* ── touch devices ──────────────────────────────────────────────────
@@ -529,32 +652,110 @@ body.locked #tiles .tile:not(.active) {
 
   .tile { padding: 9px 14px; min-height: 44px; font-size: 1.05rem; }
   .tile span { font-size: 0.85rem; }
-  .langswitch button { min-height: 40px; padding: 8px 13px; font-size: 0.8rem; }
+  .langswitch button { min-height: 44px; min-width: 44px; padding: 8px 13px; font-size: 0.8rem; }
 
-  .station { padding: 15px; gap: 12px; }
-  h2 { font-size: 1.15rem; }
-  .intro { font-size: 0.97rem; line-height: 1.5; }
-  .steps { font-size: 0.95rem; line-height: 1.5; gap: 6px; }
+  .station { padding: 18px; --station-gap: 10px; }
+  h2 { font-size: 1.3rem; }
+  .intro { font-size: 0.97rem; }
+  .steps { font-size: 0.95rem; gap: 6px; }
   .hint { font-size: 0.82rem; }
   .think, details, details p, details ul, .challenges li, .notice, .banner {
     font-size: 0.9rem;
   }
+  details summary { min-height: 44px; font-size: 0.9rem; }
 
   .segmented button, button.danger, .slot button.capture,
-  .hint-banner button { min-height: 44px; }
+  .hint-banner button, .admin-bar button, .slot button.name { min-height: 44px; }
   .segmented button, button.danger { font-size: 0.88rem; padding: 9px 13px; }
   .switch-row { font-size: 1rem; }
   .switch-row input { width: 22px; height: 22px; }
-  input[type="range"] { height: 32px; }
+  input[type="range"] { height: 44px; }
+  input[type="range"]::-webkit-slider-thumb {
+    width: 26px; height: 26px; margin-top: -10px;
+  }
+  input[type="range"]::-moz-range-thumb { width: 20px; height: 20px; }
 
-  .detections li { font-size: 0.95rem; padding: 7px 11px; }
+  .detections li { font-size: 0.95rem; padding: 8px 2px; }
   .prediction { font-size: 1.05rem; padding: 13px; }
   .prediction.big { font-size: 1.35rem; }
   .stat span { font-size: 1.55rem; }
   .challenge-task { font-size: 1.2rem; }
   .challenge-task span { font-size: 1.9rem; }
 }
-@media (max-width: 420px) { .logo img { height: 26px; } h1 { font-size: 1.05rem; } }
+
+/* ── phones: compact one-row header + slim footer ──────
+   (after the coarse block on purpose: same specificity, source order wins) */
+@media (max-width: 560px) {
+  header { flex-wrap: nowrap; align-items: center; gap: 8px; padding: 8px 12px 4px; }
+  .brand { min-width: 0; flex: 1 1 auto; }
+  h1 {
+    font-size: 1rem;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .head-right { flex: 0 0 auto; flex-wrap: nowrap; gap: 6px; }
+  /* icon-only badge: text collapses, the leading aria-hidden emoji span
+     survives (guaranteed first in DE markup AND the EN ui.badge string) */
+  .privacy-badge {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-width: 44px; min-height: 44px; padding: 0;
+    font-size: 0; line-height: 0;
+  }
+  .privacy-badge > span[aria-hidden="true"] { font-size: 1.15rem; line-height: 1; }
+
+  main { padding: 4px 12px 12px; gap: 10px; }
+  nav#tiles { padding: 6px 12px; }
+
+  footer { padding: 8px 12px calc(8px + env(safe-area-inset-bottom)); gap: 4px; }
+  /* fps/source are facilitator diagnostics — the laptop shows them */
+  #stat-fps, #stat-source { display: none; }
+  .chip { padding: 3px 0; background: none; }
+  .chip.good { background: none; }
+  .chip.warn { background: none; }
+  .stats { gap: 14px; }
+}
+
+/* narrow phones: one horizontal row per teach slot, so the prediction —
+   the payoff of the station — stays near the fold */
+@media (max-width: 460px) {
+  .teach-slots { grid-template-columns: 1fr; gap: 6px; }
+  .slot { flex-direction: row; align-items: center; text-align: left; gap: 8px; padding: 6px 10px; }
+  .slot button.name {
+    flex: 1 1 auto; min-width: 0; text-align: left; padding: 10px 0;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .slot .count { flex: 0 0 auto; order: 3; }
+  .slot button.capture { flex: 0 0 auto; order: 2; padding: 9px 12px; }
+}
+
+@media (max-width: 420px) {
+  /* drop the second logo + divider and shrink the rest so the title fits */
+  .brand .logo + .logo, .brand-rule { display: none; }
+  .logo img { height: 24px; }
+  .langswitch button { min-width: 44px; padding: 8px 8px; }
+}
+
+/* notched phones: keep content out of the camera housing */
+header, footer, nav#tiles, main {
+  padding-left: max(16px, env(safe-area-inset-left));
+  padding-right: max(16px, env(safe-area-inset-right));
+}
+@media (max-width: 560px) {
+  header, footer, nav#tiles, main {
+    padding-left: max(12px, env(safe-area-inset-left));
+    padding-right: max(12px, env(safe-area-inset-right));
+  }
+}
+
+/* desktop console refinements — placed after every base rule on purpose:
+   equal-specificity overrides here must win by source order */
+@media (min-width: 921px) and (min-height: 560px) {
+  /* top:0 kills the sticky base offset — video and station panel share one
+     top edge on the fixed console */
+  .video-wrap { align-self: start; position: relative; top: 0; }
+  /* footer fits one row on the fixed console */
+  footer { flex-direction: row; align-items: center; justify-content: space-between; flex-wrap: wrap; }
+  .admin-bar { flex-basis: 100%; }
+}
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {

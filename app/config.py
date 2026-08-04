@@ -42,6 +42,11 @@ POSE_HOLD_SECONDS = 0.8      # how long a pose must be held to pass a challenge
 # --- Stations --------------------------------------------------------------
 DEFAULT_MODE = "start"
 DETECT_THRESHOLD_DEFAULT = 0.5   # confidence slider start value
+# Steadiness of the detection overlay (anti-flicker). An object must be seen
+# for ENTER consecutive frames before it appears, and survives HOLD frames of
+# dropout before it disappears. Higher = calmer but more sluggish.
+DETECT_STEADY_ENTER = 3
+DETECT_STEADY_HOLD = 8
 TEACH_MIN_SAMPLES = 5            # per class before predictions start
 TEACH_KNN_K = 7
 FACE_DETECT_EVERY_N_FRAMES = 2   # Haar cascade cost saver

@@ -140,7 +140,7 @@ systemctl status ki-werkstatt
 | 📷 *Pi-Kamera* | Kamera erkannt |
 | 📷 *Testbild* | Kamera **nicht** erkannt → Abschnitt 9.2 |
 
-Rechts daneben führt **⚙ System** in ein eigenes Fenster mit
+Rechts daneben führt **System** in ein eigenes Fenster mit
 Temperaturen, Lüfter und KI-Chip — brauchst du im Normalbetrieb nicht,
 aber es ist die erste Anlaufstelle, wenn der Pi heiß wird oder das Bild
 ruckelt (Abschnitt 9.12).
@@ -449,7 +449,7 @@ genau diese Grenze ist Lernstoff in Station 3.
 ### 9.12 Temperatur, Lüfter, KI-Chip: das Systemfenster
 
 Wenn der Pi heiß wird, das Bild ruckelt oder du den Lüfter nicht hörst:
-In der Fußzeile der Web-Oberfläche steht **⚙ System**. Das öffnet ein
+In der Fußzeile der Web-Oberfläche steht **System**. Das öffnet ein
 eigenes Fenster mit den technischen Werten — bewusst getrennt von der
 Besucher-Oberfläche, weil dort niemand Temperaturen sehen will.
 

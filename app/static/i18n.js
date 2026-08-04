@@ -14,6 +14,8 @@ window.I18N = (() => {
 
   // ---- English for every data-i18n key (German = the markup itself) -------
   const EN = {
+    // NOTE: the leading aria-hidden emoji span must stay FIRST — on phones the
+    // badge collapses to icon-only via font-size:0 and only that span survives.
     "ui.badge": '<span aria-hidden="true">🔒</span> 100&nbsp;% local — no cloud, no photos stored' +
       '<span class="sr-only">Tap for details: all computation happens on a small computer in this room.</span>',
     "ui.langAria": "Choose language",
@@ -189,7 +191,7 @@ window.I18N = (() => {
 
     "foot.info": "medienbildung.team · " +
       "open source (MIT) · runs without internet",
-    "foot.system": "⚙ System",
+    "foot.system": "System",
     "foot.admin": "Moderator",
     "foot.resetAll": "♻️ Reset everything",
   };
@@ -209,6 +211,7 @@ window.I18N = (() => {
       teachResetLabel: "🗑️ Alles vergessen lassen",
       teachResetToast: "🗑️ Alle Trainingsdaten gelöscht. Recht auf Löschung ausgeübt!",
       heatResetLabel: "🧹 Datenspur löschen",
+      adminResetLabel: "♻️ Alles zurücksetzen",
       heatResetToast: "🧹 Datenspur gelöscht — die Sammlung beginnt von vorn.",
       capture: "📸 Beispiel aufnehmen",
       captureOk: "✨ gespeichert!",
@@ -261,6 +264,7 @@ window.I18N = (() => {
       teachResetLabel: "🗑️ Make it forget everything",
       teachResetToast: "🗑️ All training data deleted. Right to erasure exercised!",
       heatResetLabel: "🧹 Erase the data trail",
+      adminResetLabel: "♻️ Reset everything",
       heatResetToast: "🧹 Data trail erased — collection starts over.",
       capture: "📸 Capture example",
       captureOk: "✨ saved!",

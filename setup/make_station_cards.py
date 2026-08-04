@@ -288,7 +288,7 @@ STATIONS = [
     ("trainer", "🧠", (181, 123, 255), scene_trainer,
      {"de": ("Trainiere die KI", "Du bist der Coach"),
       "en": ("Train the AI", "You are the coach")}),
-    ("schild", "🛡️", (61, 220, 151), scene_schild,
+    ("schild", "🛡️", (247, 242, 232), scene_schild,
      {"de": ("Privatsphäre-Schild", "Schutz eingebaut"),
       "en": ("Privacy Shield", "Protection built in")}),
     ("spur", "🗺️", (255, 179, 71), scene_spur,

@@ -200,6 +200,93 @@ def open_pose():
     return None, "Kein Pose-Modell gefunden"
 
 
+class DetectionSmoother:
+    """Temporal steadiness for the detection overlay.
+
+    Raw YOLO output flickers: confidences bounce around the slider value and
+    boxes jitter a little every frame, so labels blink in and out. Instead of
+    drawing raw output, we keep a tiny track list: an object must show up for
+    a few consecutive frames before it appears, survives short dropouts, and
+    its box and score are exponentially smoothed. Entry and exit use
+    different thresholds (hysteresis), so a confidence hovering exactly at
+    the slider value cannot strobe. Tuning lives in config.py.
+    """
+
+    IOU_MATCH = 0.25       # boxes overlapping this much are the same object
+    EXIT_FACTOR = 0.85     # visible until score < threshold * this
+    BOX_ALPHA = 0.45       # weight of the newest box (higher = snappier)
+    SCORE_ALPHA = 0.30     # weight of the newest score
+
+    def __init__(self):
+        self._tracks = []
+        self._last_update = 0.0
+
+    @staticmethod
+    def _iou(a, b):
+        ix = max(0.0, min(a[2], b[2]) - max(a[0], b[0]))
+        iy = max(0.0, min(a[3], b[3]) - max(a[1], b[1]))
+        inter = ix * iy
+        if inter <= 0:
+            return 0.0
+        union = ((a[2] - a[0]) * (a[3] - a[1])
+                 + (b[2] - b[0]) * (b[3] - b[1]) - inter)
+        return inter / max(union, 1e-9)
+
+    def update(self, raw, threshold):
+        now = time.monotonic()
+        if now - self._last_update > 1.5:   # station was left — start fresh
+            self._tracks = []
+        self._last_update = now
+
+        # Keep candidates a bit below the slider too, so a held object may
+        # dip briefly without being treated as gone.
+        cands = [d for d in raw if d[1] >= threshold * 0.7]
+
+        for t in self._tracks:
+            t["matched"] = False
+        # strongest detections claim their track first
+        for cid, score, box in sorted(cands, key=lambda d: -d[1]):
+            best, best_iou = None, self.IOU_MATCH
+            for t in self._tracks:
+                if t["matched"] or t["cid"] != cid:
+                    continue
+                iou = self._iou(t["box"], box)
+                if iou > best_iou:
+                    best, best_iou = t, iou
+            if best is None:
+                self._tracks.append({"cid": cid, "box": box, "score": score,
+                                     "seen": 1, "missed": 0, "shown": False,
+                                     "matched": True})
+            else:
+                best["matched"] = True
+                a = self.BOX_ALPHA
+                best["box"] = tuple((1 - a) * o + a * n
+                                    for o, n in zip(best["box"], box))
+                best["score"] += self.SCORE_ALPHA * (score - best["score"])
+                best["seen"] += 1
+                best["missed"] = 0
+
+        out = []
+        alive = []
+        for t in self._tracks:
+            if not t["matched"]:
+                t["missed"] += 1
+                if t["missed"] > config.DETECT_STEADY_HOLD:
+                    continue                       # object really left
+            alive.append(t)
+            if not t["shown"]:
+                if (t["seen"] >= config.DETECT_STEADY_ENTER
+                        and t["score"] >= threshold):
+                    t["shown"] = True
+            elif t["score"] < threshold * self.EXIT_FACTOR:
+                t["shown"] = False
+                t["seen"] = 0    # must re-confirm — prevents strobing
+            if t["shown"]:
+                out.append((t["cid"], t["score"], tuple(t["box"])))
+        self._tracks = alive
+        return out
+
+
 # --- Face anonymisation ----------------------------------------------------
 
 class FaceGuard:
