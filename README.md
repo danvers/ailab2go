@@ -31,7 +31,7 @@ runs in CPU demo mode, so the exhibit never shows a blank screen.
 
 ## Hardware
 
-- Raspberry Pi 5 (4 GB is fine, 8 GB nice) + official 27 W USB-C PSU
+- Raspberry Pi 5 (8 GB is fine, 16 GB nice) + official 27 W USB-C PSU
 - Raspberry Pi AI HAT — AI HAT+ 2 (Hailo-10H) as well as AI Kit /
   AI HAT+ (Hailo-8/8L). The installer detects the chip generation and
   installs the matching stack (`hailo-h10-all` vs `hailo-all`); the app
@@ -184,22 +184,6 @@ Moderator functions (lock stations, reset everything) are behind the
   station cards incl. rally tasks
 - [workshop/diskussionskarten-privatsphaere.md](workshop/diskussionskarten-privatsphaere.md)
   — discussion cards for the closing round
-
-Both card sets are also available as a printable **DIN A6 postcard deck
-(148 × 105 mm) in German and English** — front: icon + glitch-styled title +
-both logos, back: the text:
-
-```bash
-bash setup/tools.sh cards              # → setup/cards_de.html + cards_en.html
-bash setup/tools.sh cards --editable   # + editable PowerPoint decks
-```
-
-Print double-sided on A6 and **flip on the short edge** (landscape pages come
-out upside down with the usual long-edge setting); on A4 use "4 pages per
-sheet" and cut twice. The `--editable` run writes
-[assets/cards/editable/](assets/cards/editable/): `cards_de.pptx` /
-`cards_en.pptx` with 24 A6 slides each — every text a real text box — plus the
-front backgrounds as 300 dpi PNGs for Photoshop.
 
 ## Architecture
 
