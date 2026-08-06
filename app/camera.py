@@ -275,6 +275,8 @@ class CameraManager:
         self._pending = None            # opened+verified by the prober thread
         self._closing = False
         self._standby = False           # deliberately off — nobody watching
+        self._waking = False            # between wake request and first frame
+        self._wake_started = 0.0
         self._wake = threading.Event()  # pokes the prober for a fast resume
         # Initial open happens synchronously (we are still in startup) but
         # WITH the sanity read: a half-seated ribbon must degrade to the
@@ -338,7 +340,11 @@ class CameraManager:
             src = self._open_any()       # may take seconds — that's fine here
             if src is not None:
                 with self._lock:
-                    if self._source is None and not self._closing:
+                    # _standby re-checked HERE: standby may have engaged while
+                    # _open_any() was blocking — stashing then would keep a
+                    # live, filming camera open through the whole sleep.
+                    if (self._source is None and not self._closing
+                            and not self._standby):
                         self._pending = src
                     else:                # raced: someone else got there
                         try:
@@ -352,9 +358,13 @@ class CameraManager:
     def connected(self):
         return self._source is not None
 
+    WAKE_GRACE = 12.0   # seconds a wake may take before we admit failure
+
     @property
     def standby(self):
-        return self._standby
+        # waking counts: the UI keeps the calm sleepy chip through the
+        # 1-2 s reopen instead of flashing a "no camera" warning
+        return self._standby or self._waking
 
     @property
     def name(self):
@@ -373,9 +383,21 @@ class CameraManager:
             return
         self._standby = on
         if on:
+            self._waking = False
             self._log.info("Camera standby — no viewers, powering down")
             self._drop_source(log=False)
+            # a probe may have verified a source moments ago — close it too,
+            # or it sits open (powered, filming into the void) all night
+            with self._lock:
+                pending, self._pending = self._pending, None
+            if pending is not None:
+                try:
+                    pending.close()
+                except Exception:
+                    pass
         else:
+            self._waking = True
+            self._wake_started = time.monotonic()
             self._log.info("Camera wake — viewer joined")
             self._wake.set()
 
@@ -408,10 +430,20 @@ class CameraManager:
             if self._pending is not None:
                 self._source, self._pending = self._pending, None
                 self._fails = 0
-                self.reconnects += 1
-                self._log.info("Camera back: %s (reconnect #%d)",
-                               self._source.name, self.reconnects)
+                if self._waking:
+                    # planned wake, not a failure — keep the reconnect
+                    # diagnostic on /system meaningful (loose-cable finder)
+                    self._waking = False
+                    self._log.info("Camera awake: %s", self._source.name)
+                else:
+                    self.reconnects += 1
+                    self._log.info("Camera back: %s (reconnect #%d)",
+                                   self._source.name, self.reconnects)
                 return self._placeholder()   # next read delivers live frames
+        if self._waking:
+            if time.monotonic() - self._wake_started < self.WAKE_GRACE:
+                return self._placeholder(standby=True, waking=True)
+            self._waking = False   # camera truly gone — show the real error
         return self._placeholder()
 
     def close(self):
@@ -439,7 +471,7 @@ class CameraManager:
                 pass
         self._fails = 0
 
-    def _placeholder(self, brief=False, standby=False):
+    def _placeholder(self, brief=False, standby=False, waking=False):
         """Friendly bilingual 'no camera' frame — for facilitators who
         cannot debug: it says what to do and heals on its own. The standby
         variant reassures instead of alarming: pausing is intentional."""
@@ -461,12 +493,18 @@ class CameraManager:
                             (140, 170, 150), 2, cv2.LINE_AA)
                 cv2.putText(frame, "Z", (bx1 + 48, by0 - 22), f, 0.9,
                             (140, 170, 150), 2, cv2.LINE_AA)
-            msgs = [("Kamera pausiert - niemand schaut zu", 0.8,
-                     (200, 230, 205)),
-                    ("Sobald sich jemand verbindet, startet sie sofort.",
-                     0.55, (170, 175, 185)),
-                    ("Camera paused - joins wake it instantly.",
-                     0.5, (130, 135, 145))]
+            if waking:
+                msgs = [("Kamera startet ...", 0.85, (200, 230, 205)),
+                        ("Einen Moment bitte.", 0.55, (170, 175, 185)),
+                        ("Camera waking up - one moment.", 0.5,
+                         (130, 135, 145))]
+            else:
+                msgs = [("Kamera pausiert - niemand schaut zu", 0.8,
+                         (200, 230, 205)),
+                        ("Sobald sich jemand verbindet, startet sie sofort.",
+                         0.55, (170, 175, 185)),
+                        ("Camera paused - joins wake it instantly.",
+                         0.5, (130, 135, 145))]
             y = h // 2 + 16
             for text, size, col in msgs:
                 (tw, _), _ = cv2.getTextSize(text, f, size, 2)

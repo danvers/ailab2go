@@ -201,14 +201,24 @@ class Pipeline:
         log = logging.getLogger("pipeline")
         last_error_log = 0.0
         set_standby = getattr(self.source, "set_standby", None)
+        viewers_gone_since = None     # when the LAST viewer disconnected
         while self.running:
             t0 = time.monotonic()
             # Camera standby: nobody connected for a while -> power down the
             # camera (it runs hot); the first viewer wakes it in ~1-2 s.
-            if set_standby and config.CAMERA_STANDBY_AFTER:
-                set_standby(self.stream_clients == 0 and
-                            time.monotonic() - self.last_interaction
-                            > config.CAMERA_STANDBY_AFTER)
+            # The timer starts when the last viewer LEAVES — a solitary
+            # watcher whose phone briefly locks must not trigger an instant
+            # sleep/wake churn.
+            if set_standby and config.CAMERA_STANDBY_AFTER > 0:
+                now = time.monotonic()
+                if self.stream_clients > 0:
+                    viewers_gone_since = None
+                elif viewers_gone_since is None:
+                    viewers_gone_since = now
+                set_standby(
+                    viewers_gone_since is not None and
+                    now - viewers_gone_since > config.CAMERA_STANDBY_AFTER and
+                    now - self.last_interaction > config.CAMERA_STANDBY_AFTER)
             try:
                 frame = self.source.read()
             except Exception:
@@ -243,20 +253,27 @@ class Pipeline:
                 self.heatmap.update(frame)
                 self.faces.update(frame)
                 self.faces_max = max(self.faces_max, len(self.faces.boxes))
-            self.frames_total += 1
+                self.frames_total += 1
+            else:
+                # placeholder phase: stale face boxes must not linger for
+                # hours (they would pixelate the sleep frame and report
+                # last night's visitors as "faces right now")
+                self.faces.clear()
 
             detections = []
             if mode in ("detektiv", "trick"):
-                # steadied, not raw: see vision.DetectionSmoother
-                detections = self.det_smooth.update(
-                    self._detect(frame), self.threshold)
+                # steadied, not raw: see vision.DetectionSmoother. On
+                # placeholder frames the accelerator gets the night off.
+                raw = self._detect(frame) if self.camera_live else []
+                detections = self.det_smooth.update(raw, self.threshold)
                 self._draw_detections(frame, detections)
             elif mode == "trainer":
-                prediction = self._trainer_frame(frame)
+                prediction = (self._trainer_frame(frame)
+                              if self.camera_live else None)
             elif mode == "spur":
                 frame = self.heatmap.render(frame)
             elif mode == "pose":
-                frame = self._pose_frame(frame)
+                frame = self._pose_frame(frame) if self.camera_live else frame
             elif mode == "start":
                 # the video frame is shared by every viewer → bilingual
                 cv2.putText(frame, "Willkommen! Waehle eine Station.",
@@ -291,8 +308,11 @@ class Pipeline:
             ok, buf = cv2.imencode(".jpg", frame,
                                    [cv2.IMWRITE_JPEG_QUALITY, config.JPEG_QUALITY])
             if ok:
-                # what a cloud camera would have shipped off by now
-                self.cloud_bytes += len(buf)
+                # what a cloud camera would have shipped off by now — only
+                # real footage counts; a night of standby placeholders must
+                # not fabricate gigabytes of fictitious surveillance
+                if self.camera_live:
+                    self.cloud_bytes += len(buf)
                 with self.frame_ready:
                     self.jpeg = buf.tobytes()
                     self.published_total += 1

@@ -67,8 +67,7 @@ bash setup/hotspot.sh
 python3 setup/make_poster.py
 ```
 
-Visitors join Wi-Fi **KI-Werkstatt** and open **<http://ki.lokal>**
-(fallback: `http://10.10.10.1` — the QR codes use the IP). Change
+Visitors join Wi-Fi **KI-Werkstatt** and open **<http://10.10.10.1>**. Change
 SSID/password in `setup/hotspot.sh` (and re-run the poster script).
 
 ## Try it on your laptop first (no Pi needed)

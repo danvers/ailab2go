@@ -40,8 +40,7 @@ def create_app(pipeline):
             import io
             import qrcode
             buf = io.BytesIO()
-            # QR carries the IP — works even if a device ignores our DNS
-            qrcode.make(config.PUBLIC_URL_IP, box_size=8, border=1).save(buf, "PNG")
+            qrcode.make(config.PUBLIC_URL, box_size=8, border=1).save(buf, "PNG")
             qr_uri = ("data:image/png;base64," +
                       base64.b64encode(buf.getvalue()).decode())
         except Exception:
@@ -55,11 +54,18 @@ def create_app(pipeline):
     # the slot exactly once even if the generator never starts.
     stream_slots = threading.BoundedSemaphore(config.MAX_STREAM_CLIENTS)
 
+    # stream_clients is no longer display-only: the camera-standby feature
+    # powers the camera down when it reads 0, so lost increments/decrements
+    # would sleep a watched camera (or keep an unwatched one hot). += is not
+    # atomic across Flask threads — guard it.
+    clients_lock = threading.Lock()
+
     @app.get("/stream.mjpg")
     def stream():
         if not stream_slots.acquire(blocking=False):
             return "Zu viele Zuschauer — bitte später erneut versuchen.", 503
-        pipeline.stream_clients += 1     # display only; slots gate for real
+        with clients_lock:
+            pipeline.stream_clients += 1
 
         # Slot release is belt-and-braces: call_on_close AND the generator's
         # finally. Relying on call_on_close alone leaked slots in the field
@@ -73,7 +79,8 @@ def create_app(pipeline):
 
         def release():
             if release_once.acquire(blocking=False):
-                pipeline.stream_clients = max(0, pipeline.stream_clients - 1)
+                with clients_lock:
+                    pipeline.stream_clients = max(0, pipeline.stream_clients - 1)
                 stream_slots.release()
 
         def generate():

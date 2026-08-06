@@ -166,10 +166,8 @@ python3 setup/make_poster.py
 Das Skript erzeugt beide Sprachfassungen: `setup/poster_de.html`
 (Titel „KI-Werkstatt“) und `setup/poster_en.html` (Titel
 „AI-Lab2Go“). Die passende im Browser öffnen und auf A4 drucken.
-Ab jetzt: WLAN **KI-Werkstatt** beitreten → `http://ki.lokal` öffnen
-(Rückfall, falls ein Gerät den Namen nicht auflöst: `http://10.10.10.1`
-— die QR-Codes zeigen direkt auf die IP). Wichtig: http, **nicht**
-https — Browser ergänzen gern falsch!
+Ab jetzt: WLAN **KI-Werkstatt** beitreten → `http://10.10.10.1` öffnen
+(http, **nicht** https — Browser ergänzen gern falsch!).
 
 **Der Hotspot startet ab jetzt bei jedem Boot automatisch** (mit Vorrang
 vor deinem Heim-WLAN) — Strom an genügt, die Ausstellung ist komplett
@@ -205,7 +203,7 @@ Alles startet von selbst.
 
 ## 7b · Ausstellungsmodus mit Beamer
 
-Unter **`http://ki.lokal/beamer`** liefert die Ausstellung eine passive
+Unter **`http://10.10.10.1/beamer`** liefert die Ausstellung eine passive
 **Beamer-/TV-Ansicht** für Vorbeigehende: links das Live-Bild, rechts große
 Live-Zähler (gerade geschützte Gesichter, erkannte Objekte, „NICHT in die
 Cloud geladen", kartierter Raumanteil), dazu rotierende zweisprachige
@@ -254,9 +252,7 @@ sogar richtig, nur die Objekterkennung läuft ohne Hailo im Demo-Modus.
 ### 9.0 Die 90-Sekunden-Diagnose
 
 1. **Leuchtet die Power-LED?** Nein → Netzteil/Kabel.
-2. **Lädt `http://ki.lokal`?** Nein: erst `http://10.10.10.1` probieren
-   (klappt die IP, aber der Name nicht → Hotspot einmal neu starten:
-   `bash setup/hotspot.sh`). Lädt beides nicht → 9.1
+2. **Lädt `http://10.10.10.1`?** Nein → 9.1
 3. **Footer ansehen:** 📷 Testbild? → 9.2 · 🐢 Demo-Modus? → 9.3
 4. **Bild da, aber ruckelt?** → 9.4
 5. Alles andere → 9.5 ff.
@@ -267,8 +263,7 @@ sogar richtig, nur die Objekterkennung läuft ohne Hailo im Demo-Modus.
   heimlich zurück ins bekannte Netz, weil der Hotspot kein Internet hat.
   Meldung „Netzwerk hat kein Internet — trotzdem verbinden?“ →
   **trotzdem verbinden!**)
-- Adresse exakt `http://ki.lokal` (oder `http://10.10.10.1`) — ohne
-  https, ohne www.
+- Adresse exakt `http://10.10.10.1` — ohne https, ohne www.
 - Läuft der Hotspot? Auf dem Pi:
 
 ```bash
@@ -461,7 +456,7 @@ Besucher-Oberfläche, weil dort niemand Temperaturen sehen will.
 Angezeigt werden: Prozessortemperatur des Pi, Temperatur des KI-Chips auf
 dem AI HAT, Lüfterdrehzahl, ob der Pi je gedrosselt hat, dazu Kamera,
 Bildrate und wie oft sich die Kamera neu verbinden musste. Erreichbar
-auch direkt unter `http://ki.lokal/system`.
+auch direkt unter `http://10.10.10.1/system`.
 
 Was die Warnungen bedeuten:
 
@@ -483,6 +478,36 @@ wird nur langsamer, nichts geht kaputt). Unter 50 °C steht der Lüfter
 absichtlich still — dass man ihn dann nicht hört, ist normal. Der KI-Chip
 läuft übrigens meist deutlich kühler als der Prozessor des Pi.
 
+### 9.13 Die USB-Kamera wird heiß
+
+Warm ist normal: Das ELP-48-MP-Modul zieht rund 3 Watt auf einer nackten
+Platine und ist bis 70 °C Betriebstemperatur ausgelegt. Trotzdem lohnt es
+sich, die Temperatur zu senken — wegen neugieriger Finger und der
+Lebensdauer. Die Hebel, nach Wirkung sortiert:
+
+1. **Klebekühlkörper** (größter Einzeleffekt, ~2 €): 2–3 selbstklebende
+   Alu-Kühlkörper (ca. 10×10 mm, wie für Raspberry-Pi-Sets) auf die Chips
+   der **hinteren** Platine kleben — dort sitzt der Bildprozessor, der die
+   Wärme macht. Bringt typisch 10–15 °C.
+2. **Kamera-Standby (automatisch, schon eingebaut):** Wenn 10 Minuten lang
+   niemand verbunden ist, schaltet sich die Kamera von selbst ab und kühlt
+   aus — passend zur Ausstellung: Sie filmt wörtlich nicht, wenn niemand
+   zuschaut. Verbindet sich jemand, wacht sie in 1–2 Sekunden auf; die
+   Fußzeile zeigt solange „😴 Standby". Einstellbar in
+   [app/config.py](app/config.py) (`CAMERA_STANDBY_AFTER`, Sekunden,
+   0 = aus). Ein angeschlossener Beamer zählt als Zuschauer — die Wand
+   bleibt also immer live.
+3. **Belüftetes Gehäuse** ([hardware/](hardware/README.md)): schützt vor
+   Fingern und nutzt Kamineffekt — mit den Lüftungsschlitzen senkrecht
+   montieren, damit warme Luft oben rausziehen kann.
+4. **Autofokus feststellen** (kleiner Effekt, erst vor Ort testen): In
+   `config.py` `WEBCAM_AUTOFOCUS = False` und `WEBCAM_FOCUS` passend zur
+   Aufstell-Entfernung setzen. Spart etwas Strom und beendet nebenbei das
+   Fokus-Pumpen, wenn Leute winken. Vorher live prüfen — ein falscher
+   Wert macht das Bild unscharf!
+5. Direkte Sonne und Heizkörper meiden — klingt banal, macht auf
+   Fensterbänken aber schnell 10 °C aus.
+
 ---
 
 ## 10 · Spickzettel
@@ -500,7 +525,7 @@ läuft übrigens meist deutlich kühler als der Prozessor des Pi.
 | Änderungen einspielen | `bash setup/deploy.sh` (vom Laptop) |
 | Alles neu | Strom aus/an — startet vollautomatisch |
 
-**Adresse für Gäste:** WLAN „KI-Werkstatt“ → `http://ki.lokal`
+**Adresse für Gäste:** WLAN „KI-Werkstatt“ → `http://10.10.10.1`
 
 ---
 

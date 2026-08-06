@@ -191,9 +191,8 @@ The script writes both language versions: `setup/poster_de.html`
 (title “KI-Werkstatt”) and `setup/poster_en.html` (title
 “AI-Lab2Go”). Open the one you need in a browser and print it on A4.
 From now on: join the Wi-Fi network **KI-Werkstatt** → open
-`http://ki.lokal` (fallback if a device won't resolve the name:
-`http://10.10.10.1` — the QR codes point at the IP). Use http, **not**
-https — browsers love to "fix" this the wrong way!
+`http://10.10.10.1` (http, **not** https — browsers love to "fix"
+this the wrong way!).
 
 **From now on the hotspot starts automatically on every boot** (taking
 priority over your home Wi-Fi) — just plugging in the power is enough;
@@ -230,7 +229,7 @@ your phone.** Everything starts by itself.
 
 ## 7b · Exhibition mode with a projector
 
-At **`http://ki.lokal/beamer`** the exhibit serves a passive
+At **`http://10.10.10.1/beamer`** the exhibit serves a passive
 **projector/TV view** for passers-by: the live picture on the left, big
 live counters on the right (faces currently shielded, objects spotted,
 "NOT uploaded to any cloud", share of the room mapped), plus rotating
@@ -279,9 +278,7 @@ object detection runs in demo mode without Hailo.
 ### 9.0 The 90-second diagnosis
 
 1. **Is the power LED on?** No → power supply/cable.
-2. **Does `http://ki.lokal` load?** No: try `http://10.10.10.1` first
-   (IP works but the name doesn't → restart the hotspot once:
-   `bash setup/hotspot.sh`). Neither loads → 9.1
+2. **Does `http://10.10.10.1` load?** No → 9.1
 3. **Look at the footer:** 📷 Test pattern? → 9.2 · 🐢 Demo mode? → 9.3
 4. **Picture is there, but stutters?** → 9.4
 5. Everything else → 9.5 onwards.
@@ -292,8 +289,7 @@ object detection runs in demo mode without Hailo.
   sneak back to a known network, because the hotspot has no internet.
   Prompt "This network has no internet — stay connected?" →
   **stay connected!**)
-- Address exactly `http://ki.lokal` (or `http://10.10.10.1`) — no
-  https, no www.
+- Address exactly `http://10.10.10.1` — no https, no www.
 - Is the hotspot running? On the Pi:
 
 ```bash
@@ -486,7 +482,7 @@ interface, because nobody at a station wants to see temperatures.
 It shows the Pi's processor temperature, the temperature of the AI chip on
 the AI HAT, fan speed, whether the Pi has ever throttled, plus camera,
 frame rate and how often the camera had to reconnect. Also reachable
-directly at `http://ki.lokal/system`.
+directly at `http://10.10.10.1/system`.
 
 What the warnings mean:
 
@@ -507,6 +503,35 @@ just gets slower, nothing breaks). Below 50 °C the fan deliberately stands
 still — not hearing it is normal then. The AI chip usually runs a good
 deal cooler than the Pi's own processor.
 
+### 9.13 The USB camera runs hot
+
+Warm is normal: the ELP 48 MP module draws about 3 watts on a bare PCB and
+is rated for 70 °C operating temperature. Lowering it is still worthwhile —
+for curious fingers and for longevity. The levers, sorted by impact:
+
+1. **Stick-on heatsinks** (biggest single win, ~2 €): put 2–3 self-adhesive
+   aluminium heatsinks (about 10×10 mm, Raspberry-Pi style) on the chips of
+   the **rear** board — that's where the image processor sits and the heat
+   is made. Typically 10–15 °C.
+2. **Camera standby (automatic, already built in):** after 10 minutes with
+   nobody connected, the camera switches itself off and cools down —
+   fitting for this exhibit: it literally stops filming when nobody
+   watches. When someone joins it wakes within 1–2 seconds; the footer
+   shows "😴 standby" meanwhile. Tune it in
+   [app/config.py](app/config.py) (`CAMERA_STANDBY_AFTER`, seconds,
+   0 = off). A connected projector counts as a viewer — the wall stays
+   live at all times.
+3. **The vented housing** ([hardware/](hardware/README.md)): protects
+   fingers and uses the chimney effect — mount it with the vent slots
+   vertical so warm air can escape at the top.
+4. **Lock the autofocus** (small effect, test on site first): set
+   `WEBCAM_AUTOFOCUS = False` and a matching `WEBCAM_FOCUS` in
+   `config.py`. Saves a little power and, as a bonus, stops focus hunting
+   when people wave. Check the live picture afterwards — a wrong value
+   means a blurry exhibit!
+5. Avoid direct sunlight and radiators — obvious, but on a windowsill it
+   quickly makes a 10 °C difference.
+
 ---
 
 ## 10 · Cheat sheet
@@ -524,7 +549,7 @@ deal cooler than the Pi's own processor.
 | Deploy changes | `bash setup/deploy.sh` (from the laptop) |
 | Fresh start | Power off/on — starts fully automatically |
 
-**Address for guests:** Wi-Fi "KI-Werkstatt" → `http://ki.lokal`
+**Address for guests:** Wi-Fi "KI-Werkstatt" → `http://10.10.10.1`
 
 ---
 

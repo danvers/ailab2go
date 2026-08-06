@@ -337,6 +337,15 @@ class FaceGuard:
         self._tick = 0
         self._had_faces = False
 
+    def clear(self):
+        """Forget current boxes — called while the camera is off/standby so
+        stale rectangles can't outlive the picture they belong to. Also
+        resets the appeared-after-absent edge, so the first visitors after a
+        wake count as a fresh protection moment."""
+        self.boxes = []
+        self._hold = 0
+        self._had_faces = False
+
     @classmethod
     def _cascade_candidates(cls):
         name = "haarcascade_frontalface_default.xml"

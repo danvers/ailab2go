@@ -9,7 +9,7 @@ Antworten — es gibt gute Begründungen.
 > `setup/cards_en.html` — DIN A6 quer (148 × 105 mm), vorne das Motiv mit
 > Glitch-Look und beiden Logos, hinten dieser Text. Doppelseitig drucken,
 > **an der kurzen Seite spiegeln**.
-> Editierbar (PowerPoint, 300-dpi-Hintergründe):
+> Rohdaten für eigene Layouts (300-dpi-Hintergründe + Icons):
 > `bash setup/tools.sh cards --editable` → `assets/cards/editable/`
 
 

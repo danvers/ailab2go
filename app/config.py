@@ -73,11 +73,8 @@ EXHIBIT_IDLE_AFTER = 90       # seconds without interaction → attract mode
 EXHIBIT_ROTATE_EVERY = 25     # seconds per station while touring
 EXHIBIT_TOUR = ["detektiv", "schild", "pose", "spur"]  # the visual ones
 
-# What the wall display tells passers-by (must match setup/hotspot.sh).
-# PUBLIC_URL is the friendly name humans read and type; PUBLIC_URL_IP is the
-# always-works fallback — QR codes use the IP so they never depend on DNS.
-PUBLIC_URL = "http://ki.lokal"
-PUBLIC_URL_IP = "http://10.10.10.1"
+# What the wall display tells passers-by (must match setup/hotspot.sh)
+PUBLIC_URL = "http://10.10.10.1"
 HOTSPOT_SSID = "KI-Werkstatt"
 
 # --- Exhibit / admin -------------------------------------------------------

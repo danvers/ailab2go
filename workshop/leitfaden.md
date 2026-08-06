@@ -27,7 +27,7 @@ Es kommt darauf an, wie wir sie bauen und einsetzen.
       praktizieren die Transparenz, über die wir reden!
 - [ ] Pi einschalten — die Ausstellung startet automatisch
 - [ ] Hotspot prüfen: eigenes Handy mit WLAN `KI-Werkstatt` verbinden,
-      `http://ki.lokal` öffnen
+      `http://10.10.10.1` öffnen
 - [ ] Poster mit QR-Codes aufhängen (`python3 setup/make_poster.py`)
 - [ ] Requisiten-Kiste bereitstellen (siehe unten)
 - [ ] Optional: Stationskarten ausdrucken und auslegen (`stationskarten.md`)
@@ -126,7 +126,7 @@ Wichtigste für den schnellen Blick:
 
 | Problem | Lösung |
 |---|---|
-| Seite lädt nicht | Ist das Gerät im richtigen WLAN? `http://ki.lokal`, notfalls `http://10.10.10.1` (http, nicht https!) |
+| Seite lädt nicht | Ist das Gerät im richtigen WLAN? `http://10.10.10.1` (http, nicht https!) |
 | Stream ruckelt bei vielen Geräten | In `setup/hotspot.sh` `BAND="a"` (5 GHz) setzen; oder in `app/config.py` `STREAM_MAX_FPS` senken |
 | „Demo-Modus ohne KI-Chip" im Footer | AI HAT nicht erkannt: einmal neu starten; `hailortcli fw-control identify` prüfen. Das Exponat läuft trotzdem! |
 | Farben wirken vertauscht | In `app/config.py` `MODEL_EXPECTS_RGB` umschalten |
