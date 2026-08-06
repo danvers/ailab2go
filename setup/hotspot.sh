@@ -27,11 +27,15 @@ if [[ "${1:-}" == "off" ]]; then
     exit 0
 fi
 
-# A friendly DNS name (ki.lokal) was tried and dropped: phones with private
-# DNS bypass the hotspot's resolver, and names typed without http:// become
-# web searches. The plain IP is the version that always works. Clean up the
-# mapping in case an older version of this script installed it:
-sudo rm -f /etc/NetworkManager/dnsmasq-shared.d/ki-werkstatt.conf
+# Captive portal, part 1: the hotspot's DNS (NetworkManager runs dnsmasq
+# for shared connections) answers EVERY hostname with the Pi. Phones probe
+# a known URL right after joining; our webserver bounces that probe to the
+# exhibit, so the "sign in to network" sheet opens the start page on its
+# own. (A single friendly name — ki.lokal — was tried and dropped: browsers
+# with their own DNS-over-HTTPS never ask us. The OS connectivity check
+# does, which is why the wildcard works where the name failed.)
+sudo mkdir -p /etc/NetworkManager/dnsmasq-shared.d
+echo "address=/#/$IP" | sudo tee /etc/NetworkManager/dnsmasq-shared.d/ki-werkstatt.conf >/dev/null
 
 # Wired ethernet keeps working alongside — handy for maintenance.
 sudo nmcli connection delete "$CON_NAME" >/dev/null 2>&1 || true

@@ -3,7 +3,9 @@
 import threading
 import time
 
-from flask import Flask, Response, jsonify, render_template, request
+import ipaddress
+
+from flask import Flask, Response, jsonify, redirect, render_template, request
 
 import config
 import vision
@@ -19,9 +21,131 @@ def create_app(pipeline):
         """Station switching etc. — blocked for guests while locked."""
         return not pipeline.locked or _pin_ok(payload)
 
+    # Captive portal, part 2: with the hotspot DNS answering every name
+    # with our IP, any request addressed to a HOSTNAME (Apple/Android/
+    # Windows connectivity probes, or someone typing example.com) lands
+    # here. The flow mirrors a real hotel portal:
+    #   1. Unknown device probes → 302 to the exhibit → the phone pops its
+    #      "sign in to network" sheet showing the start page.
+    #   2. Loading the exhibit once "signs the device in": its later probes
+    #      get the answer the OS expects (204/"Success"), so the phone treats
+    #      the Wi-Fi as usable and the normal browser reaches 10.10.10.1
+    #      after the sheet closes. Honest limit: Android 9+ additionally
+    #      probes https://… — port 443 answers nothing here (serving a fake
+    #      cert would be worse), so Android shows ONE "stay connected?"
+    #      dialog; after confirming, everything works. Without the sign-in
+    #      step phones route browser traffic to mobile data instead.
+    # Requests aimed at an IP, localhost or .local always pass untouched,
+    # so ethernet/dev access keeps working no matter which address is used.
+    PROBE_SUCCESS = {
+        "/generate_204": ("", 204, {}),                       # Android
+        "/gen_204": ("", 204, {}),
+        "/hotspot-detect.html": (                             # Apple
+            "<HTML><HEAD><TITLE>Success</TITLE></HEAD>"
+            "<BODY>Success</BODY></HTML>", 200,
+            {"Content-Type": "text/html"}),
+        "/library/test/success.html": (                       # older iOS
+            "<HTML><HEAD><TITLE>Success</TITLE></HEAD>"
+            "<BODY>Success</BODY></HTML>", 200,
+            {"Content-Type": "text/html"}),
+        "/connecttest.txt": ("Microsoft Connect Test", 200,   # Windows
+                             {"Content-Type": "text/plain"}),
+        "/ncsi.txt": ("Microsoft NCSI", 200,
+                      {"Content-Type": "text/plain"}),
+        "/success.txt": ("success\n", 200,                    # Firefox
+                         {"Content-Type": "text/plain"}),
+        "/canonical.html": (                                  # Firefox portal
+            '<meta http-equiv="refresh" '
+            'content="0;url=https://support.mozilla.org/kb/captive-portal"/>',
+            200, {"Content-Type": "text/html"}),
+        "/check_network_status.txt": (                        # GNOME/Fedora
+            "NetworkManager is online\n", 200,
+            {"Content-Type": "text/plain"}),
+        "/nm": ("NetworkManager is online\n", 200,           # Debian NM
+                {"Content-Type": "text/plain"}),
+    }
+    # Ubuntu's NetworkManager probes "/" on this host and expects 204 — the
+    # generic "/" redirect must not apply there once the device is signed in.
+    PROBE_204_HOSTS = ("connectivity-check.ubuntu.com",)
+    # Sign-ins expire: a device that rejoins hours later should get the
+    # welcome sheet again (and a recycled DHCP address must not inherit an
+    # old sign-in forever). 2 h comfortably outlasts one visit.
+    SIGNIN_TTL = 2 * 3600
+    signed_in = {}      # client IP -> monotonic time of sign-in
+
+    def sign_in(ip):
+        signed_in[ip] = time.monotonic()
+
+    def is_signed_in(ip):
+        ts = signed_in.get(ip)
+        if ts is None:
+            return False
+        if time.monotonic() - ts > SIGNIN_TTL:
+            signed_in.pop(ip, None)
+            return False
+        return True
+
+    @app.before_request
+    def captive_redirect():
+        host = (request.host or "").lower()
+        if host.startswith("["):                  # [fdfb::1]:80 → fdfb::1
+            host = host[1:].split("]", 1)[0]
+        else:                                     # example.com:8099 → example.com
+            host = host.split(":", 1)[0]
+        is_ours = host == "localhost" or host.endswith(".local")
+        if not is_ours:
+            try:
+                ipaddress.ip_address(host)
+                is_ours = True                    # explicit IP — ours
+            except ValueError:
+                pass
+        if is_ours:
+            if request.path == "/":               # the exhibit was opened
+                sign_in(request.remote_addr)
+            return None
+        # foreign hostname: an OS connectivity probe or a typed URL
+        if is_signed_in(request.remote_addr):
+            if host.endswith(PROBE_204_HOSTS):
+                return Response("", 204)
+            probe = PROBE_SUCCESS.get(request.path)
+            if probe is not None:
+                body, code, headers = probe
+                return Response(body, code, headers)
+            # signed in + typing any address in the real browser → straight
+            # to the exhibit; the welcome sheet is for first contact only
+            return redirect(config.PUBLIC_URL.rstrip("/") + "/", code=302)
+        return redirect(config.PUBLIC_URL.rstrip("/") + "/portal", code=302)
+
     @app.get("/")
     def index():
         return render_template("index.html", event_name=config.EVENT_NAME)
+
+    @app.get("/portal")
+    def portal():
+        """Captive-portal landing page: poster look, one big button.
+        Loading it does NOT sign the device in — only the button
+        (→ /portal/go) does, so the sheet isn't dismissed before the tap."""
+        return render_template(
+            "portal.html", event_name=config.EVENT_NAME,
+            url_short=config.PUBLIC_URL.rstrip("/").removeprefix("http://"))
+
+    @app.get("/portal/go")
+    def portal_go():
+        """The button target: sign the device in, then guide it OUT of the
+        captive sheet. There is NO reliable programmatic escape from these
+        webviews (the x-safari:// scheme errors on current iOS — tried), so
+        the page teaches each platform its own supported exit: iOS "Done"
+        keeps the Wi-Fi BECAUSE the sign-in makes the next probe succeed;
+        Android's sheet menu has a built-in "open in browser"."""
+        sign_in(request.remote_addr)
+        ua = (request.user_agent.string or "").lower()
+        platform = ("ios" if any(k in ua for k in ("iphone", "ipad", "ipod"))
+                    else "android" if "android" in ua else "other")
+        base = config.PUBLIC_URL.rstrip("/")
+        return render_template(
+            "portal_done.html", event_name=config.EVENT_NAME,
+            platform=platform, url=base,
+            url_short=base.removeprefix("http://"))
 
     @app.get("/system")
     def system():

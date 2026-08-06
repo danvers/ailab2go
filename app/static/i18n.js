@@ -189,7 +189,7 @@ window.I18N = (() => {
       "fidget, even your gait is as unique as a fingerprint. Is “just skeleton " +
       "data” really harmless? Who should get it — your doctor? An insurer? Your boss?",
 
-    "foot.info": "<a href='https://medienbildung.team/>medienbildung.team</a> · " +
+    "foot.info": "📶 10.10.10.1 · medienbildung.team · " +
       "open source (MIT) · runs without internet",
     "foot.system": "System",
     "foot.admin": "Moderator",

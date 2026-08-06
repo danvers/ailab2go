@@ -169,6 +169,18 @@ Das Skript erzeugt beide Sprachfassungen: `setup/poster_de.html`
 Ab jetzt: WLAN **KI-Werkstatt** beitreten → `http://10.10.10.1` öffnen
 (http, **nicht** https — Browser ergänzen gern falsch!).
 
+**Meist geht es sogar ohne Tippen:** Direkt nach dem Verbinden öffnen die
+meisten Handys von selbst ein „Anmelden im Netzwerk"-Fenster mit einer
+Begrüßungsseite im Poster-Look (Captive-Portal, wie im Hotel-WLAN). Ein
+Tipp auf den großen **„Los geht's!"-Button** öffnet die Ausstellung und
+meldet das Gerät an: Das Fenster kann danach geschlossen werden, das WLAN
+bleibt nutzbar, und `http://10.10.10.1` funktioniert auch im normalen
+Browser (die Adresse steht zur Erinnerung in der Fußzeile der
+Ausstellung). Android fragt wegen des fehlenden Internets u. U. einmal
+„Trotzdem verbunden bleiben?" — bestätigen. Einzelne Geräte mit striktem
+privatem DNS zeigen das Fenster gar nicht — dann wie gehabt QR-Code
+scannen oder die Adresse eintippen.
+
 **Der Hotspot startet ab jetzt bei jedem Boot automatisch** (mit Vorrang
 vor deinem Heim-WLAN) — Strom an genügt, die Ausstellung ist komplett
 autark. Wieder ausschalten (dauerhaft, z. B. zum Updaten über WLAN):

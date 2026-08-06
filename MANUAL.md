@@ -194,6 +194,16 @@ From now on: join the Wi-Fi network **KI-Werkstatt** → open
 `http://10.10.10.1` (http, **not** https — browsers love to "fix"
 this the wrong way!).
 
+**Usually no typing is needed:** right after joining, most phones open a
+"sign in to network" sheet showing a poster-style welcome page (captive
+portal, like hotel Wi-Fi). Tapping the big **"Los geht's!" button** opens
+the exhibit and signs the device in: the sheet can then be closed, the
+Wi-Fi stays usable, and `http://10.10.10.1` works in the normal browser
+too (the address is repeated in the exhibit's footer as a reminder).
+Because there is no internet, Android may ask once "Stay connected?" —
+confirm. A few devices with strict private DNS won't show the sheet at
+all — scan the QR code or type the address as before.
+
 **From now on the hotspot starts automatically on every boot** (taking
 priority over your home Wi-Fi) — just plugging in the power is enough;
 the exhibit is fully self-contained. To turn it off again (permanently,
