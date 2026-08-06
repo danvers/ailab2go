@@ -191,8 +191,9 @@ The script writes both language versions: `setup/poster_de.html`
 (title “KI-Werkstatt”) and `setup/poster_en.html` (title
 “AI-Lab2Go”). Open the one you need in a browser and print it on A4.
 From now on: join the Wi-Fi network **KI-Werkstatt** → open
-`http://10.42.0.1` (http, **not** https — browsers love to "fix"
-this the wrong way!).
+`http://ki.lokal` (fallback if a device won't resolve the name:
+`http://10.10.10.1` — the QR codes point at the IP). Use http, **not**
+https — browsers love to "fix" this the wrong way!
 
 **From now on the hotspot starts automatically on every boot** (taking
 priority over your home Wi-Fi) — just plugging in the power is enough;
@@ -229,7 +230,7 @@ your phone.** Everything starts by itself.
 
 ## 7b · Exhibition mode with a projector
 
-At **`http://10.42.0.1/beamer`** the exhibit serves a passive
+At **`http://ki.lokal/beamer`** the exhibit serves a passive
 **projector/TV view** for passers-by: the live picture on the left, big
 live counters on the right (faces currently shielded, objects spotted,
 "NOT uploaded to any cloud", share of the room mapped), plus rotating
@@ -278,7 +279,9 @@ object detection runs in demo mode without Hailo.
 ### 9.0 The 90-second diagnosis
 
 1. **Is the power LED on?** No → power supply/cable.
-2. **Does `http://10.42.0.1` load?** No → 9.1
+2. **Does `http://ki.lokal` load?** No: try `http://10.10.10.1` first
+   (IP works but the name doesn't → restart the hotspot once:
+   `bash setup/hotspot.sh`). Neither loads → 9.1
 3. **Look at the footer:** 📷 Test pattern? → 9.2 · 🐢 Demo mode? → 9.3
 4. **Picture is there, but stutters?** → 9.4
 5. Everything else → 9.5 onwards.
@@ -289,7 +292,8 @@ object detection runs in demo mode without Hailo.
   sneak back to a known network, because the hotspot has no internet.
   Prompt "This network has no internet — stay connected?" →
   **stay connected!**)
-- Address exactly `http://10.42.0.1` — no https, no www.
+- Address exactly `http://ki.lokal` (or `http://10.10.10.1`) — no
+  https, no www.
 - Is the hotspot running? On the Pi:
 
 ```bash
@@ -447,7 +451,7 @@ If the hotspot is running (Pi not on your home network), pass the
 hotspot address:
 
 ```bash
-bash setup/deploy.sh dan@10.42.0.1
+bash setup/deploy.sh dan@10.10.10.1
 ```
 
 At the end, the script shows the status lines from the log — camera,
@@ -482,7 +486,7 @@ interface, because nobody at a station wants to see temperatures.
 It shows the Pi's processor temperature, the temperature of the AI chip on
 the AI HAT, fan speed, whether the Pi has ever throttled, plus camera,
 frame rate and how often the camera had to reconnect. Also reachable
-directly at `http://10.42.0.1/system`.
+directly at `http://ki.lokal/system`.
 
 What the warnings mean:
 
@@ -520,7 +524,7 @@ deal cooler than the Pi's own processor.
 | Deploy changes | `bash setup/deploy.sh` (from the laptop) |
 | Fresh start | Power off/on — starts fully automatically |
 
-**Address for guests:** Wi-Fi "KI-Werkstatt" → `http://10.42.0.1`
+**Address for guests:** Wi-Fi "KI-Werkstatt" → `http://ki.lokal`
 
 ---
 

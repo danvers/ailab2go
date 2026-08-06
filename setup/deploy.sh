@@ -2,7 +2,7 @@
 # Push the current project from your laptop to the Pi and restart the exhibit.
 #
 #   bash setup/deploy.sh                 # uses dan@raspi5-1.local
-#   bash setup/deploy.sh dan@10.42.0.1   # e.g. while the hotspot is running
+#   bash setup/deploy.sh dan@10.10.10.1   # e.g. while the hotspot is running
 set -euo pipefail
 
 TARGET="${1:-dan@raspi5-1.local}"

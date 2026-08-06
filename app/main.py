@@ -83,7 +83,7 @@ def main():
 
     app = webserver.create_app(pipeline)
     log.info("Serving on http://%s:%d — students join the hotspot and open "
-             "http://10.42.0.1%s", args.host, args.port,
+             "http://ki.lokal%s (10.10.10.1)", args.host, args.port,
              "" if args.port == 80 else f":{args.port}")
     # Bounded sends: an MJPEG write to a phone that walked out of Wi-Fi
     # range would otherwise block its thread (and stream slot) for many

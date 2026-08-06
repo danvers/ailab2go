@@ -13,6 +13,19 @@ WEBCAM_FPS = 20             # requested from USB cameras (phone stream is
                             # ignores this at 720p and always runs 30 fps.
 MAX_STREAM_CLIENTS = 30     # hard cap on simultaneous MJPEG viewers
 
+# Camera standby: after this many seconds with NO connected viewer the
+# camera is closed — it cools down (the ELP 48MP runs hot) and, fittingly
+# for a privacy exhibit, literally stops filming when nobody watches.
+# It wakes automatically within ~2 s when the next person joins. 0 = never.
+CAMERA_STANDBY_AFTER = 600
+
+# USB camera autofocus. None = leave the camera's default (ELP: continuous
+# AF). False = switch AF off and use WEBCAM_FOCUS — saves a little power/
+# heat and stops focus hunting when people wave; the right focus value is
+# camera-specific (ELP scale 0-1023ish, try on site), so test before events.
+WEBCAM_AUTOFOCUS = None
+WEBCAM_FOCUS = None
+
 # --- Hailo / AI HAT --------------------------------------------------------
 # The first existing .hef wins. Add your own path first if you use a custom
 # model. hailo-models ships these under /usr/share/hailo-models/.
@@ -60,8 +73,11 @@ EXHIBIT_IDLE_AFTER = 90       # seconds without interaction → attract mode
 EXHIBIT_ROTATE_EVERY = 25     # seconds per station while touring
 EXHIBIT_TOUR = ["detektiv", "schild", "pose", "spur"]  # the visual ones
 
-# What the wall display tells passers-by (must match setup/hotspot.sh)
-PUBLIC_URL = "http://10.42.0.1"
+# What the wall display tells passers-by (must match setup/hotspot.sh).
+# PUBLIC_URL is the friendly name humans read and type; PUBLIC_URL_IP is the
+# always-works fallback — QR codes use the IP so they never depend on DNS.
+PUBLIC_URL = "http://ki.lokal"
+PUBLIC_URL_IP = "http://10.10.10.1"
 HOTSPOT_SSID = "KI-Werkstatt"
 
 # --- Exhibit / admin -------------------------------------------------------

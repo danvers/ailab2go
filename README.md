@@ -67,7 +67,8 @@ bash setup/hotspot.sh
 python3 setup/make_poster.py
 ```
 
-Visitors join Wi-Fi **KI-Werkstatt** and open **<http://10.42.0.1>**. Change
+Visitors join Wi-Fi **KI-Werkstatt** and open **<http://ki.lokal>**
+(fallback: `http://10.10.10.1` — the QR codes use the IP). Change
 SSID/password in `setup/hotspot.sh` (and re-run the poster script).
 
 ## Try it on your laptop first (no Pi needed)
@@ -84,7 +85,7 @@ even emits fake detections, so every station and the whole UI can be tested.
 ## Deploying changes
 
 ```bash
-bash setup/deploy.sh              # or: bash setup/deploy.sh dan@10.42.0.1
+bash setup/deploy.sh              # or: bash setup/deploy.sh dan@10.10.10.1
 ```
 
 Syncs the project, installs it to `/opt/ki-werkstatt`, restarts the service

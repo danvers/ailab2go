@@ -166,8 +166,10 @@ python3 setup/make_poster.py
 Das Skript erzeugt beide Sprachfassungen: `setup/poster_de.html`
 (Titel „KI-Werkstatt“) und `setup/poster_en.html` (Titel
 „AI-Lab2Go“). Die passende im Browser öffnen und auf A4 drucken.
-Ab jetzt: WLAN **KI-Werkstatt** beitreten → `http://10.42.0.1` öffnen
-(http, **nicht** https — Browser ergänzen gern falsch!).
+Ab jetzt: WLAN **KI-Werkstatt** beitreten → `http://ki.lokal` öffnen
+(Rückfall, falls ein Gerät den Namen nicht auflöst: `http://10.10.10.1`
+— die QR-Codes zeigen direkt auf die IP). Wichtig: http, **nicht**
+https — Browser ergänzen gern falsch!
 
 **Der Hotspot startet ab jetzt bei jedem Boot automatisch** (mit Vorrang
 vor deinem Heim-WLAN) — Strom an genügt, die Ausstellung ist komplett
@@ -203,7 +205,7 @@ Alles startet von selbst.
 
 ## 7b · Ausstellungsmodus mit Beamer
 
-Unter **`http://10.42.0.1/beamer`** liefert die Ausstellung eine passive
+Unter **`http://ki.lokal/beamer`** liefert die Ausstellung eine passive
 **Beamer-/TV-Ansicht** für Vorbeigehende: links das Live-Bild, rechts große
 Live-Zähler (gerade geschützte Gesichter, erkannte Objekte, „NICHT in die
 Cloud geladen", kartierter Raumanteil), dazu rotierende zweisprachige
@@ -252,7 +254,9 @@ sogar richtig, nur die Objekterkennung läuft ohne Hailo im Demo-Modus.
 ### 9.0 Die 90-Sekunden-Diagnose
 
 1. **Leuchtet die Power-LED?** Nein → Netzteil/Kabel.
-2. **Lädt `http://10.42.0.1`?** Nein → 9.1
+2. **Lädt `http://ki.lokal`?** Nein: erst `http://10.10.10.1` probieren
+   (klappt die IP, aber der Name nicht → Hotspot einmal neu starten:
+   `bash setup/hotspot.sh`). Lädt beides nicht → 9.1
 3. **Footer ansehen:** 📷 Testbild? → 9.2 · 🐢 Demo-Modus? → 9.3
 4. **Bild da, aber ruckelt?** → 9.4
 5. Alles andere → 9.5 ff.
@@ -263,7 +267,8 @@ sogar richtig, nur die Objekterkennung läuft ohne Hailo im Demo-Modus.
   heimlich zurück ins bekannte Netz, weil der Hotspot kein Internet hat.
   Meldung „Netzwerk hat kein Internet — trotzdem verbinden?“ →
   **trotzdem verbinden!**)
-- Adresse exakt `http://10.42.0.1` — ohne https, ohne www.
+- Adresse exakt `http://ki.lokal` (oder `http://10.10.10.1`) — ohne
+  https, ohne www.
 - Läuft der Hotspot? Auf dem Pi:
 
 ```bash
@@ -420,7 +425,7 @@ bash setup/deploy.sh
 Läuft der Hotspot (Pi nicht im Heimnetz), gib die Hotspot-Adresse mit:
 
 ```bash
-bash setup/deploy.sh dan@10.42.0.1
+bash setup/deploy.sh dan@10.10.10.1
 ```
 
 Am Ende zeigt das Skript die Statuszeilen aus dem Log — dort müssen
@@ -456,7 +461,7 @@ Besucher-Oberfläche, weil dort niemand Temperaturen sehen will.
 Angezeigt werden: Prozessortemperatur des Pi, Temperatur des KI-Chips auf
 dem AI HAT, Lüfterdrehzahl, ob der Pi je gedrosselt hat, dazu Kamera,
 Bildrate und wie oft sich die Kamera neu verbinden musste. Erreichbar
-auch direkt unter `http://10.42.0.1/system`.
+auch direkt unter `http://ki.lokal/system`.
 
 Was die Warnungen bedeuten:
 
@@ -495,7 +500,7 @@ läuft übrigens meist deutlich kühler als der Prozessor des Pi.
 | Änderungen einspielen | `bash setup/deploy.sh` (vom Laptop) |
 | Alles neu | Strom aus/an — startet vollautomatisch |
 
-**Adresse für Gäste:** WLAN „KI-Werkstatt“ → `http://10.42.0.1`
+**Adresse für Gäste:** WLAN „KI-Werkstatt“ → `http://ki.lokal`
 
 ---
 

@@ -132,6 +132,13 @@ class WebcamSource:
         self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
         self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
         self.cap.set(cv2.CAP_PROP_FPS, config.WEBCAM_FPS)
+        # Optional fixed focus (see config): cap.set just returns False on
+        # cameras that don't support the control — never an error.
+        if config.WEBCAM_AUTOFOCUS is not None:
+            self.cap.set(cv2.CAP_PROP_AUTOFOCUS,
+                         1 if config.WEBCAM_AUTOFOCUS else 0)
+            if not config.WEBCAM_AUTOFOCUS and config.WEBCAM_FOCUS is not None:
+                self.cap.set(cv2.CAP_PROP_FOCUS, config.WEBCAM_FOCUS)
 
     @staticmethod
     def _fit(frame):

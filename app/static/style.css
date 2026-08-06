@@ -128,7 +128,7 @@ h1 { font-size: 1.1rem; font-weight: 650; letter-spacing: 0.3px; line-height: 1.
 nav#tiles {
   display: flex;
   gap: 6px;
-  padding: 6px 16px;
+  padding: 32px 16px;
   overflow-x: auto;
   scrollbar-width: none;
   overflow-anchor: none;  /* keep the browser from nudging scrollLeft itself */

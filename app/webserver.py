@@ -40,7 +40,8 @@ def create_app(pipeline):
             import io
             import qrcode
             buf = io.BytesIO()
-            qrcode.make(config.PUBLIC_URL, box_size=8, border=1).save(buf, "PNG")
+            # QR carries the IP — works even if a device ignores our DNS
+            qrcode.make(config.PUBLIC_URL_IP, box_size=8, border=1).save(buf, "PNG")
             qr_uri = ("data:image/png;base64," +
                       base64.b64encode(buf.getvalue()).decode())
         except Exception:

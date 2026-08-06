@@ -23,7 +23,8 @@ from pathlib import Path
 # --- event data (identical on both posters — these are facts, not copy) ----
 SSID = "KI-Werkstatt"
 PASSWORD = "lernen-mit-ki"
-URL = "http://10.42.0.1"
+URL = "http://ki.lokal"          # what humans type (hotspot DNS resolves it)
+URL_IP = "http://10.10.10.1"     # QR target + spoken/printed fallback
 
 try:
     import qrcode
@@ -56,7 +57,7 @@ def _data_uri(path: Path) -> str:
 
 
 wifi_qr = qr_data_uri(f"WIFI:T:WPA;S:{SSID};P:{PASSWORD};;")
-url_qr = qr_data_uri(URL)
+url_qr = qr_data_uri(URL_IP)
 
 # The posters must stay single self-contained files → embed the logos.
 _static = Path(__file__).parent.parent / "app" / "static"
@@ -78,7 +79,7 @@ STRINGS = {
         "pass": "Passwort:",
         "or_type": "oder eintippen:",
         "fine1": "„Kein Internet“? Trotzdem verbinden!",
-        "fine2": "http — ohne „s“, ohne www",
+        "fine2": "http — ohne „s“, ohne www · Notfall: {ip}",
         "phone": "📱 Dein Handy genügt — keine App, keine Anmeldung.",
         "stations_head": "Sechs Stationen warten auf dich",
         "stations": [
@@ -107,7 +108,7 @@ STRINGS = {
         "pass": "Password:",
         "or_type": "or type in:",
         "fine1": "“No internet” warning? Connect anyway!",
-        "fine2": "http — no “s”, no www",
+        "fine2": "http — no “s”, no www · fallback: {ip}",
         "phone": "📱 Your phone is all you need — no app, no sign-up.",
         "stations_head": "Six stations are waiting for you",
         "stations": [
@@ -257,7 +258,7 @@ def build(s: dict) -> str:
       <span class="badge">{s['badge2']}</span>
       <img src="{url_qr}" alt="Address QR code">
       <div class="cred">{s['or_type']}<br><code>{URL}</code>
-        <span class="fine">{s['fine2']}</span></div>
+        <span class="fine">{s['fine2'].format(ip=URL_IP.removeprefix('http://'))}</span></div>
     </div>
   </div>
 
