@@ -457,7 +457,15 @@ If the hotspot is running (Pi not on your home network), pass the
 hotspot address:
 
 ```bash
-bash setup/deploy.sh dan@10.10.10.1
+bash setup/deploy.sh <user>@10.10.10.1
+```
+
+To make the bare `bash setup/deploy.sh` work, save your Pi once. The file
+is git-ignored, so your username and device name never reach the public
+repository:
+
+```bash
+echo 'DEPLOY_TARGET="<user>@raspberrypi.local"' > setup/deploy.local
 ```
 
 At the end, the script shows the status lines from the log — camera,

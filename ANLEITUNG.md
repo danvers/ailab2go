@@ -432,7 +432,15 @@ bash setup/deploy.sh
 Läuft der Hotspot (Pi nicht im Heimnetz), gib die Hotspot-Adresse mit:
 
 ```bash
-bash setup/deploy.sh dan@10.10.10.1
+bash setup/deploy.sh <benutzer>@10.10.10.1
+```
+
+Damit `bash setup/deploy.sh` ohne Adresse funktioniert, hinterlege deinen
+Pi einmalig. Die Datei ist git-ignoriert — dein Benutzername und der Name
+deines Geräts landen also nie im öffentlichen Repository:
+
+```bash
+echo 'DEPLOY_TARGET="<benutzer>@raspberrypi.local"' > setup/deploy.local
 ```
 
 Am Ende zeigt das Skript die Statuszeilen aus dem Log — dort müssen

@@ -7,3 +7,6 @@ setup/poster_*.pdf
 setup/cards_*.html
 .DS_Store
 .claude
+setup/deploy.local
+~$*
+.~lock.*#

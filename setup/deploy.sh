@@ -1,12 +1,33 @@
 #!/usr/bin/env bash
 # Push the current project from your laptop to the Pi and restart the exhibit.
 #
-#   bash setup/deploy.sh                 # uses dan@raspi5-1.local
-#   bash setup/deploy.sh dan@10.10.10.1   # e.g. while the hotspot is running
+#   bash setup/deploy.sh                      # uses your saved target
+#   bash setup/deploy.sh pi@10.10.10.1        # e.g. while the hotspot is running
+#
+# Save your own Pi once, so plain `bash setup/deploy.sh` just works:
+#
+#   echo 'DEPLOY_TARGET="pi@raspberrypi.local"' > setup/deploy.local
+#
+# setup/deploy.local is git-ignored — your username and hostname stay on your
+# machine and never reach the public repository.
 set -euo pipefail
 
-TARGET="${1:-dan@raspi5-1.local}"
-REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_DIR="$(cd "$HERE/.." && pwd)"
+
+# precedence: command-line argument > setup/deploy.local > $DEPLOY_TARGET
+if [[ -z "${1:-}" && -f "$HERE/deploy.local" ]]; then
+    # shellcheck source=/dev/null
+    source "$HERE/deploy.local"
+fi
+TARGET="${1:-${DEPLOY_TARGET:-}}"
+if [[ -z "$TARGET" ]]; then
+    echo "No target set. Either pass one:" >&2
+    echo "    bash setup/deploy.sh pi@raspberrypi.local" >&2
+    echo "  or save it once:" >&2
+    echo "    echo 'DEPLOY_TARGET=\"pi@raspberrypi.local\"' > setup/deploy.local" >&2
+    exit 2
+fi
 
 echo "→ Syncing $REPO_DIR → $TARGET:ki-werkstatt/"
 rsync -rlt --delete \

@@ -84,7 +84,14 @@ even emits fake detections, so every station and the whole UI can be tested.
 ## Deploying changes
 
 ```bash
-bash setup/deploy.sh              # or: bash setup/deploy.sh dan@10.10.10.1
+bash setup/deploy.sh              # or: bash setup/deploy.sh pi@10.10.10.1
+```
+
+Save your own Pi once and the bare command keeps working — the file is
+git-ignored, so your username and hostname never end up in the repository:
+
+```bash
+echo 'DEPLOY_TARGET="pi@raspberrypi.local"' > setup/deploy.local
 ```
 
 Syncs the project, installs it to `/opt/ki-werkstatt`, restarts the service
