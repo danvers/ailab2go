@@ -70,6 +70,10 @@ def _ch_t_pose(kpts):
     return level and wide
 
 
+# NOTE bilingual: the German text here is what the server publishes (and the
+# client's fallback). The web UI re-renders each challenge BY POSITION from
+# the two "poseCh" lists in app/static/i18n.js (DE + EN) — when you edit,
+# reorder or extend this list, update BOTH lists there to match.
 POSE_CHALLENGES = [
     ("👋", "Heb eine Hand über den Kopf!", _ch_one_hand),
     ("🙌", "Beide Hände hoch!", _ch_both_hands),

@@ -236,6 +236,8 @@ window.I18N = (() => {
       aiDemo: (m) => `🐢 Demo-Modus ohne KI-Chip — ${m}`,
       devices: (n) => `👀 ${n} Gerät${n === 1 ? "" : "e"}`,
       duration: (h, m, s) => h ? `${h} Std ${m} Min` : (m ? `${m} Min ${s} Sek` : `${s} Sek`),
+      // matched BY POSITION to POSE_CHALLENGES in app/stations.py —
+      // keep this list and the EN one below in the same order
       poseCh: ["Heb eine Hand über den Kopf!", "Beide Hände hoch!",
                "Beide Hände vor der Brust zusammen!",
                "Mach ein T — Arme waagerecht zur Seite!"],
