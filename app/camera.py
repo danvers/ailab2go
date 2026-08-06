@@ -274,6 +274,8 @@ class CameraManager:
         self._lock = threading.Lock()   # guards _source and _pending
         self._pending = None            # opened+verified by the prober thread
         self._closing = False
+        self._standby = False           # deliberately off — nobody watching
+        self._wake = threading.Event()  # pokes the prober for a fast resume
         # Initial open happens synchronously (we are still in startup) but
         # WITH the sanity read: a half-seated ribbon must degrade to the
         # placeholder, not into a boot loop of watchdog restarts.
@@ -323,7 +325,12 @@ class CameraManager:
 
     def _probe_loop(self):
         while not self._closing:
-            time.sleep(self.RETRY_EVERY)
+            # Event instead of sleep: leaving standby must not cost the
+            # visitor a full retry interval — set_standby() wakes us.
+            self._wake.wait(timeout=self.RETRY_EVERY)
+            self._wake.clear()
+            if self._standby:
+                continue                 # deliberately off — don't reopen
             with self._lock:
                 idle = self._source is None and self._pending is None
             if not idle:
@@ -346,8 +353,31 @@ class CameraManager:
         return self._source is not None
 
     @property
+    def standby(self):
+        return self._standby
+
+    @property
     def name(self):
+        if self._standby:
+            return "Standby"
         return self._source.name if self._source else "Keine Kamera"
+
+    def set_standby(self, on):
+        """Power the camera down while nobody is watching (and back up).
+
+        Called from the pipeline thread only; idempotent and cheap when the
+        state doesn't change. Off → the prober is woken immediately, so the
+        first viewer waits ~1-2 s, not a full retry interval.
+        """
+        if on == self._standby:
+            return
+        self._standby = on
+        if on:
+            self._log.info("Camera standby — no viewers, powering down")
+            self._drop_source(log=False)
+        else:
+            self._log.info("Camera wake — viewer joined")
+            self._wake.set()
 
     @property
     def fake_detections(self):
@@ -359,6 +389,8 @@ class CameraManager:
     def read(self):
         """Always returns a BGR frame at FRAME_SIZE. Never raises, and never
         blocks longer than one bounded source read."""
+        if self._standby:
+            return self._placeholder(standby=True)
         if self._source is not None:
             try:
                 frame = self._source.read()
@@ -407,9 +439,10 @@ class CameraManager:
                 pass
         self._fails = 0
 
-    def _placeholder(self, brief=False):
+    def _placeholder(self, brief=False, standby=False):
         """Friendly bilingual 'no camera' frame — for facilitators who
-        cannot debug: it says what to do and heals on its own."""
+        cannot debug: it says what to do and heals on its own. The standby
+        variant reassures instead of alarming: pausing is intentional."""
         w, h = config.FRAME_SIZE
         frame = np.zeros((h, w, 3), np.uint8)
         frame[:] = (23, 17, 13)
@@ -421,6 +454,26 @@ class CameraManager:
         cv2.rectangle(frame, (bx0, by0), (bx1, by1), (90, 100, 110), 3)
         cv2.rectangle(frame, (bx1, by0 + 10), (bx1 + 22, by1 - 10),
                       (90, 100, 110), 3)
+        if standby:
+            # "z Z" over the lens — asleep on purpose, not broken
+            if (self._blink // 20) % 2 == 0:
+                cv2.putText(frame, "z", (bx1 + 30, by0 - 6), f, 0.7,
+                            (140, 170, 150), 2, cv2.LINE_AA)
+                cv2.putText(frame, "Z", (bx1 + 48, by0 - 22), f, 0.9,
+                            (140, 170, 150), 2, cv2.LINE_AA)
+            msgs = [("Kamera pausiert - niemand schaut zu", 0.8,
+                     (200, 230, 205)),
+                    ("Sobald sich jemand verbindet, startet sie sofort.",
+                     0.55, (170, 175, 185)),
+                    ("Camera paused - joins wake it instantly.",
+                     0.5, (130, 135, 145))]
+            y = h // 2 + 16
+            for text, size, col in msgs:
+                (tw, _), _ = cv2.getTextSize(text, f, size, 2)
+                cv2.putText(frame, text, (cx - tw // 2, y), f, size, col, 2,
+                            cv2.LINE_AA)
+                y += 34
+            return frame
         if (self._blink // 15) % 2 == 0:   # gentle blink = alive, not frozen
             cv2.line(frame, (bx0 - 14, by1 + 14), (bx1 + 34, by0 - 14),
                      (60, 60, 230), 4)
