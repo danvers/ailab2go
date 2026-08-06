@@ -249,7 +249,7 @@ window.I18N = (() => {
         trick: "Live-Kamerabild mit markierten erkannten Objekten",
         pose: "Live-Kamerabild mit erkannten Skelett-Punkten",
       },
-      source: { "Pi-Kamera": "Pi-Kamera", "USB-Webcam": "USB-Webcam", "Testbild": "Testbild", "Keine Kamera": "Keine Kamera" },
+      source: { "Pi-Kamera": "Pi-Kamera", "USB-Webcam": "USB-Webcam", "Testbild": "Testbild", "Keine Kamera": "Keine Kamera", "Standby": "Standby" },
     },
     en: {
       badgeToast: "🔒 Everything runs on a Raspberry Pi in this room — there isn’t " +
@@ -301,7 +301,7 @@ window.I18N = (() => {
         trick: "Live camera picture with detected objects marked",
         pose: "Live camera picture with detected skeleton points",
       },
-      source: { "Pi-Kamera": "Pi camera", "USB-Webcam": "USB webcam", "Testbild": "Test pattern", "Keine Kamera": "no camera" },
+      source: { "Pi-Kamera": "Pi camera", "USB-Webcam": "USB webcam", "Testbild": "Test pattern", "Keine Kamera": "no camera", "Standby": "standby" },
       status: {
         "Kein Hailo-Modell gefunden": "no Hailo model found",
         "Kein Pose-Modell gefunden": "no pose model found",

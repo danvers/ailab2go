@@ -200,8 +200,15 @@ class Pipeline:
     def _run(self):
         log = logging.getLogger("pipeline")
         last_error_log = 0.0
+        set_standby = getattr(self.source, "set_standby", None)
         while self.running:
             t0 = time.monotonic()
+            # Camera standby: nobody connected for a while -> power down the
+            # camera (it runs hot); the first viewer wakes it in ~1-2 s.
+            if set_standby and config.CAMERA_STANDBY_AFTER:
+                set_standby(self.stream_clients == 0 and
+                            time.monotonic() - self.last_interaction
+                            > config.CAMERA_STANDBY_AFTER)
             try:
                 frame = self.source.read()
             except Exception:
@@ -460,6 +467,7 @@ class Pipeline:
             },
             "heatmap": {"since_s": int(time.time() - self.heatmap.since)},
             "system": self._system_health(),
+            "camera_standby": getattr(self.source, "standby", False),
             "exhibit": {
                 "attract": self.attract,
                 "frames": self.frames_total,

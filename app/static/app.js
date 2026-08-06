@@ -439,8 +439,9 @@ function render(s) {
   $("#stat-fps").textContent = `${s.fps} fps`;
   $("#stat-clients").textContent = t("devices", s.clients);
   const srcChip = $("#stat-source");
-  srcChip.textContent = `📷 ${t("source")[s.source] || s.source}`;
-  srcChip.className = "chip" + (s.camera_ok === false ? " warn" : "");
+  const asleep = s.camera_standby === true;
+  srcChip.textContent = `${asleep ? "😴" : "📷"} ${t("source")[s.source] || s.source}`;
+  srcChip.className = "chip" + (s.camera_ok === false && !asleep ? " warn" : "");
   const lockChip = $("#stat-lock");
   lockChip.textContent = t("lockedChip");
   lockChip.classList.toggle("hidden", !s.locked);
