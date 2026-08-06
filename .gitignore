@@ -3,6 +3,7 @@ __pycache__/
 .venv/
 .venv-tools/
 setup/poster_*.html
+setup/poster_*.pdf
 setup/cards_*.html
 .DS_Store
 .claude
