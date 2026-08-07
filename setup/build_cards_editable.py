@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Editable export of the A6 card deck — called by make_cards.py --editable.
 
-Writes to assets/cards/editable/:
+Writes to material/source/cards/:
     front_<n>.png       front backgrounds (glow + scanlines + noise bars),
                         one per card, language-independent, 300 dpi
     icon_<n>.png        the emoji icon, transparent
@@ -17,7 +17,7 @@ from pathlib import Path
 
 HERE = Path(__file__).parent
 ROOT = HERE.parent
-OUT = ROOT / "assets" / "cards" / "editable"
+OUT = ROOT / "material" / "source" / "cards"
 
 MM_PER_IN = 25.4
 DPI = 300                      # raster resolution for the background layers
@@ -139,7 +139,7 @@ Use `front_NN.png` as the background layer and set your own type on top
 
 ## Print-ready / vector
 
-Open `setup/cards_de.html` (or `_en`) in a browser and print to PDF — the
+Open `material/cards/cards_de.html` (or `_en`) in a browser and print to PDF — the
 PDF keeps the text as editable vector type. Double-sided: flip on the
 **short** edge.
 """

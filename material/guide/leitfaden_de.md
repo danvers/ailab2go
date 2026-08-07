@@ -28,9 +28,10 @@ Es kommt darauf an, wie wir sie bauen und einsetzen.
 - [ ] Pi einschalten — die Ausstellung startet automatisch
 - [ ] Hotspot prüfen: eigenes Handy mit WLAN `KI-Werkstatt` verbinden,
       `http://10.10.10.1` öffnen
-- [ ] Poster mit QR-Codes aufhängen (`python3 setup/make_poster.py`)
+- [ ] Poster mit QR-Codes aufhängen (`../poster/poster_de.pdf`)
 - [ ] Requisiten-Kiste bereitstellen (siehe unten)
-- [ ] Optional: Stationskarten ausdrucken und auslegen (`stationskarten.md`)
+- [ ] Optional: Stationskarten ausdrucken und auslegen
+      (`../cards/cards_de.pdf`, Karten 1–6)
 
 ### Requisiten-Kiste (macht den Unterschied!)
 
@@ -106,8 +107,8 @@ Genau das kann eine Maschine auch."
 
 ## Abschlussrunde (10–15 Min.)
 
-Die Diskussionskarten (`diskussionskarten-privatsphaere.md`) ausdrucken
-und ausschneiden. Kleingruppen ziehen je eine Karte, 5 Minuten
+Die Diskussionskarten (`../cards/cards_de.pdf`, Karten 7–12 — die zweite
+Hälfte des Decks) ausdrucken und ausschneiden. Kleingruppen ziehen je eine Karte, 5 Minuten
 Diskussionszeit, dann 1-Satz-Fazit pro Gruppe.
 
 Guter Schlusssatz für die Moderation:
@@ -121,7 +122,7 @@ Guter Schlusssatz für die Moderation:
 ## Pannenhilfe
 
 Ausführliche Diagnose-Schritte (Kamera, Hailo, Hotspot, Logs) stehen in
-der [ANLEITUNG.md](../ANLEITUNG.md), Abschnitt 9 — hier nur das
+der [ANLEITUNG.md](../../ANLEITUNG.md), Abschnitt 9 — hier nur das
 Wichtigste für den schnellen Blick:
 
 | Problem | Lösung |

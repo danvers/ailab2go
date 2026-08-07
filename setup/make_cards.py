@@ -2,8 +2,8 @@
 """Generate the printable A6 postcard deck (station + discussion cards).
 
     bash setup/tools.sh cards                # or:
-    python3 setup/make_cards.py              # → setup/cards_de.html
-                                             #   setup/cards_en.html
+    python3 setup/make_cards.py              # → material/cards/cards_de.html
+                                             #   material/cards/cards_en.html
     python3 setup/make_cards.py --editable   # + editable PowerPoint + layers
 
 Format: DIN A6 landscape (148 × 105 mm) — classic postcard size.
@@ -439,7 +439,9 @@ def main():
         if stations is None:
             print(f"⚠ {lang}: setup/cards_{lang}.json fehlt — übersprungen")
             continue
-        out = HERE / f"cards_{lang}.html"
+        out_dir = ROOT / "material" / "cards"
+        out_dir.mkdir(parents=True, exist_ok=True)
+        out = out_dir / f"cards_{lang}.html"
         out.write_text(build_html(lang, stations, discussion), encoding="utf-8")
         n = len(stations) + len(discussion)
         print(f"✓ {out.name} — {n} Karten ({n * 2} A6-Seiten, {lang.upper()})")

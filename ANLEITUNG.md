@@ -3,30 +3,32 @@
 Diese Anleitung führt dich von der leeren SD-Karte bis zur laufenden
 Ausstellung — und hilft, wenn etwas klemmt. Für die inhaltliche
 Moderation (Stationen, Lernziele, Diskussion) siehe
-[workshop/leitfaden.md](workshop/leitfaden.md).
+[material/guide/leitfaden_de.md](material/guide/leitfaden_de.md). Alles zum
+Ausdrucken (Poster, Kartendeck, Stationsschilder) liegt in
+[material/](material/README.md).
 
 > 🇬🇧 English version: [MANUAL.md](MANUAL.md)
 
-![Sechs Stationen. Eine Kamera. Deine Daten.](assets/stations/overview_de.png)
+![Sechs Stationen. Eine Kamera. Deine Daten.](material/stations/overview_de.png)
 
 ## Die Stationen auf einen Blick
 
 <table>
   <tr>
-    <td><img src="assets/stations/detektiv_de.png" alt="Objekt-Detektiv — Was sieht die KI?"></td>
-    <td><img src="assets/stations/trainer_de.png" alt="Trainiere die KI — Du bist der Coach"></td>
+    <td><img src="material/stations/detektiv_de.png" alt="Objekt-Detektiv — Was sieht die KI?"></td>
+    <td><img src="material/stations/trainer_de.png" alt="Trainiere die KI — Du bist der Coach"></td>
   </tr>
   <tr>
-    <td><img src="assets/stations/schild_de.png" alt="Privatsphäre-Schild — Schutz eingebaut"></td>
-    <td><img src="assets/stations/spur_de.png" alt="Die Datenspur — Was Kameras sammeln"></td>
+    <td><img src="material/stations/schild_de.png" alt="Privatsphäre-Schild — Schutz eingebaut"></td>
+    <td><img src="material/stations/spur_de.png" alt="Die Datenspur — Was Kameras sammeln"></td>
   </tr>
   <tr>
-    <td><img src="assets/stations/trick_de.png" alt="Täusche die KI — Finde ihre Grenzen"></td>
-    <td><img src="assets/stations/pose_de.png" alt="Skelett-Spiegel — Spiel ohne Bild"></td>
+    <td><img src="material/stations/trick_de.png" alt="Täusche die KI — Finde ihre Grenzen"></td>
+    <td><img src="material/stations/pose_de.png" alt="Skelett-Spiegel — Spiel ohne Bild"></td>
   </tr>
 </table>
 
-*Alle Bilder liegen in [assets/stations/](assets/stations/) (DE + EN) und
+*Alle Bilder liegen in [material/stations/](material/stations/) (DE + EN) und
 werden mit `python3 setup/make_station_cards.py` neu erzeugt.*
 
 ---
@@ -163,8 +165,8 @@ bash setup/hotspot.sh
 python3 setup/make_poster.py
 ```
 
-Das Skript erzeugt beide Sprachfassungen: `setup/poster_de.html`
-(Titel „KI-Werkstatt“) und `setup/poster_en.html` (Titel
+Das Skript erzeugt beide Sprachfassungen: `material/poster/poster_de.pdf`
+(Titel „KI-Werkstatt“) und `material/poster/poster_en.pdf` (Titel
 „AI-Lab2Go“). Die passende im Browser öffnen und auf A4 drucken.
 Ab jetzt: WLAN **KI-Werkstatt** beitreten → `http://10.10.10.1` öffnen
 (http, **nicht** https — Browser ergänzen gern falsch!).

@@ -5,28 +5,30 @@
 This manual takes you from a blank SD card all the way to a running
 exhibit — and helps you out when something gets stuck. For the content
 side of running the show (stations, learning goals, discussion), see
-[workshop/leitfaden.md](workshop/leitfaden.md) (German only for now).
+[material/guide/guide_en.md](material/guide/guide_en.md). All printable
+material (poster, card deck, station signs) is in
+[material/](material/README.md).
 
-![Six stations. One camera. Your data.](assets/stations/overview_en.png)
+![Six stations. One camera. Your data.](material/stations/overview_en.png)
 
 ## The stations at a glance
 
 <table>
   <tr>
-    <td><img src="assets/stations/detektiv_en.png" alt="Object Detective — What does the AI see?"></td>
-    <td><img src="assets/stations/trainer_en.png" alt="Train the AI — You are the coach"></td>
+    <td><img src="material/stations/detektiv_en.png" alt="Object Detective — What does the AI see?"></td>
+    <td><img src="material/stations/trainer_en.png" alt="Train the AI — You are the coach"></td>
   </tr>
   <tr>
-    <td><img src="assets/stations/schild_en.png" alt="Privacy Shield — Protection built in"></td>
-    <td><img src="assets/stations/spur_en.png" alt="The Data Trail — What cameras collect"></td>
+    <td><img src="material/stations/schild_en.png" alt="Privacy Shield — Protection built in"></td>
+    <td><img src="material/stations/spur_en.png" alt="The Data Trail — What cameras collect"></td>
   </tr>
   <tr>
-    <td><img src="assets/stations/trick_en.png" alt="Fool the AI — Find its limits"></td>
-    <td><img src="assets/stations/pose_en.png" alt="Skeleton Mirror — Play without pictures"></td>
+    <td><img src="material/stations/trick_en.png" alt="Fool the AI — Find its limits"></td>
+    <td><img src="material/stations/pose_en.png" alt="Skeleton Mirror — Play without pictures"></td>
   </tr>
 </table>
 
-*All images live in [assets/stations/](assets/stations/) (DE + EN) and are
+*All images live in [material/stations/](material/stations/) (DE + EN) and are
 regenerated with `python3 setup/make_station_cards.py`.*
 
 ---
@@ -187,8 +189,8 @@ bash setup/hotspot.sh
 python3 setup/make_poster.py
 ```
 
-The script writes both language versions: `setup/poster_de.html`
-(title “KI-Werkstatt”) and `setup/poster_en.html` (title
+The script writes both language versions: `material/poster/poster_de.pdf`
+(title “KI-Werkstatt”) and `material/poster/poster_en.pdf` (title
 “AI-Lab2Go”). Open the one you need in a browser and print it on A4.
 From now on: join the Wi-Fi network **KI-Werkstatt** → open
 `http://10.10.10.1` (http, **not** https — browsers love to "fix"

@@ -7,7 +7,7 @@ their own phones or laptops — no app, no internet, no cloud, and (by design)
 **no stored images**. Privacy literacy isn't a chapter at the end; it's baked
 into every station.
 
-![Six stations. One camera. Your data.](assets/stations/overview_en.png)
+![Six stations. One camera. Your data.](material/stations/overview_en.png)
 
 ## The six stations
 
@@ -22,9 +22,9 @@ into every station.
 
 | | |
 | --- | --- |
-| ![Object Detective — What does the AI see?](assets/stations/detektiv_en.png) | ![Train the AI — You are the coach](assets/stations/trainer_en.png) |
-| ![Privacy Shield — Protection built in](assets/stations/schild_en.png) | ![The Data Trail — What cameras collect](assets/stations/spur_en.png) |
-| ![Fool the AI — Find its limits](assets/stations/trick_en.png) | ![Skeleton Mirror — Play without pictures](assets/stations/pose_en.png) |
+| ![Object Detective — What does the AI see?](material/stations/detektiv_en.png) | ![Train the AI — You are the coach](material/stations/trainer_en.png) |
+| ![Privacy Shield — Protection built in](material/stations/schild_en.png) | ![The Data Trail — What cameras collect](material/stations/spur_en.png) |
+| ![Fool the AI — Find its limits](material/stations/trick_en.png) | ![Skeleton Mirror — Play without pictures](material/stations/pose_en.png) |
 
 Everything degrades gracefully: without the AI HAT (or on your laptop) the app
 runs in CPU demo mode, so the exhibit never shows a blank screen.
@@ -128,7 +128,7 @@ part of `all`, since the finished STLs are already committed.
 
 ## Station advertising cards
 
-[assets/stations/](assets/stations/) holds ready-made promo images
+[material/stations/](material/stations/) holds ready-made promo images
 (1600×900 PNG) for every station in German and English —
 `<station>_{de,en}.png` plus an `overview_{de,en}.png` banner. Use them in
 the manuals, on social media or in print. They are generated (macOS only,
@@ -149,7 +149,7 @@ The PNGs are flattened. For designing on top of them:
 python3 setup/make_station_cards.py --editable
 ```
 
-writes [assets/stations/editable/](assets/stations/editable/) —
+writes [material/source/stations/](material/source/stations/) —
 per card the separate layers (`_bg`, `_screen`, `_icon`) as full-canvas
 transparent PNGs, a 2× flattened version (3200×1800), a self-contained
 `.svg` with **title and tagline as live text**, both logos, and
@@ -182,15 +182,24 @@ the global face-anonymisation default.
 Moderator functions (lock stations, reset everything) are behind the
 "Moderator:in" link in the page footer + PIN.
 
-## Workshop materials (German)
+## Teaching material → [`material/`](material/)
 
-- [workshop/leitfaden.md](workshop/leitfaden.md) — facilitator guide: setup
-  checklist, prop box, 45/90-min formats, per-station learning goals,
-  troubleshooting
-- [workshop/stationskarten.md](workshop/stationskarten.md) — printable
-  station cards incl. rally tasks
-- [workshop/diskussionskarten-privatsphaere.md](workshop/diskussionskarten-privatsphaere.md)
-  — discussion cards for the closing round
+Everything a facilitator needs sits in one folder, **print-ready, no Python
+required** — see [material/README.md](material/README.md) for a bilingual
+index of what to print and why.
+
+| | DE | EN |
+|---|---|---|
+| Poster (A4, both QR codes) | [poster_de.pdf](material/poster/poster_de.pdf) | [poster_en.pdf](material/poster/poster_en.pdf) |
+| Card deck A6 — 6 station + 6 discussion cards | [cards_de.pdf](material/cards/cards_de.pdf) | [cards_en.pdf](material/cards/cards_en.pdf) |
+| Facilitator guide — checklist, prop box, 45/90-min formats, learning goals | [leitfaden_de.md](material/guide/leitfaden_de.md) | [guide_en.md](material/guide/guide_en.md) |
+| Station signs (16:9) | [material/stations/](material/stations/) | ← same folder |
+| Editable raw layers (Photoshop/Illustrator/PowerPoint) | [material/source/](material/source/) | ← same folder |
+
+Card texts live exactly once — German in
+[setup/make_cards.py](setup/make_cards.py), English in
+[setup/cards_en.json](setup/cards_en.json) — so translating needs no coding.
+Regenerate everything with `bash setup/tools.sh all`.
 
 ## Architecture
 

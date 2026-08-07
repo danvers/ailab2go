@@ -44,4 +44,4 @@ case "$target" in
     *) echo "unknown target: $target (poster|cards|stations|case|all)"; exit 1 ;;
 esac
 echo
-echo "✓ done — output in setup/ and assets/stations/"
+echo "✓ done — output in material/"

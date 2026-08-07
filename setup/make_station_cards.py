@@ -2,9 +2,9 @@
 """Generate advertising cards for the six stations (DE + EN).
 
     python3 setup/make_station_cards.py
-    → assets/stations/<station>_<lang>.png   (1600×900 each)
-    → assets/stations/overview_<lang>.png    (all six in one banner)
-    → assets/stations/contact_<lang>.png     (preview sheet)
+    → material/stations/<station>_<lang>.png   (1600×900 each)
+    → material/stations/overview_<lang>.png    (all six in one banner)
+    → material/stations/contact_<lang>.png     (preview sheet)
 
 Design language mirrors the exhibit UI: dark background, per-station accent
 colour, a mock "live screen" showing what visitors experience there, the
@@ -36,7 +36,7 @@ except ImportError:
         "    .venv-tools/bin/python3 setup/make_station_cards.py")
 
 ROOT = Path(__file__).parent.parent
-OUT = ROOT / "assets" / "stations"
+OUT = ROOT / "material" / "stations"
 LOGO = ROOT / "app" / "static" / "logo.png"
 LOGO2 = ROOT / "app" / "static" / "logo2.png"   # aiwareness Lab
 
@@ -489,7 +489,7 @@ def export_editable():
     <key>_<lang>.svg        all of the above stacked, title/tagline as REAL
                             editable text (self-contained, base64-embedded)
     """
-    edit = OUT / "editable"
+    edit = ROOT / "material" / "source" / "stations"
     edit.mkdir(parents=True, exist_ok=True)
 
     def b64(img):

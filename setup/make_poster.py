@@ -2,8 +2,8 @@
 """Generate the printable A4 event posters with QR codes — DE and EN.
 
     python3 setup/make_poster.py
-    → setup/poster_de.html   (title: KI-Werkstatt)
-    → setup/poster_en.html   (title: AI-Lab2go)
+    → material/poster/poster_de.html + .pdf   (title: KI-Werkstatt)
+    → material/poster/poster_en.html + .pdf   (title: AI-Lab2go)
 
 Open in a browser and print on A4. Keep SSID/PASSWORD in sync with
 setup/hotspot.sh — the QR code encodes them, so a mismatch means visitors
@@ -279,12 +279,40 @@ def build(s: dict) -> str:
 """
 
 
+def render_pdf(html_path):
+    """Print-ready PDF next to the HTML, via headless Chrome if it is around.
+    Teachers get a file they can send straight to a printer; without Chrome
+    the HTML is still there to print from any browser."""
+    import shutil
+    import subprocess
+    chrome = next((c for c in (
+        "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+        "/Applications/Chromium.app/Contents/MacOS/Chromium",
+        shutil.which("google-chrome"), shutil.which("chromium"),
+        shutil.which("chromium-browser")) if c and Path(c).exists()), None)
+    if chrome is None:
+        return None
+    pdf = html_path.with_suffix(".pdf")
+    try:
+        subprocess.run([chrome, "--headless", "--disable-gpu",
+                        "--no-pdf-header-footer",
+                        f"--print-to-pdf={pdf}", html_path.as_uri()],
+                       check=True, capture_output=True, timeout=120)
+        return pdf
+    except Exception:
+        return None
+
+
 def main():
-    here = Path(__file__).parent
+    out_dir = Path(__file__).parent.parent / "material" / "poster"
+    out_dir.mkdir(parents=True, exist_ok=True)
     for lang, s in STRINGS.items():
-        out = here / f"poster_{lang}.html"
+        out = out_dir / f"poster_{lang}.html"
         out.write_text(build(s), encoding="utf-8")
-        print(f"✓ {out.name} — “{s['title']}” (open in a browser, print A4)")
+        pdf = render_pdf(out)
+        where = f"material/poster/{pdf.name}" if pdf else f"material/poster/{out.name}"
+        hint = "print A4" if pdf else "open in a browser, print A4"
+        print(f"✓ {where} — “{s['title']}” ({hint})")
 
 
 if __name__ == "__main__":

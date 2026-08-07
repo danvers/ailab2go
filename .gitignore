@@ -2,9 +2,11 @@ __pycache__/
 *.pyc
 .venv/
 .venv-tools/
-setup/poster_*.html
-setup/poster_*.pdf
-setup/cards_*.html
+# generated print files — the ready-to-print PDFs in material/ ARE
+# committed (teachers must not need Python); only the intermediate
+# HTML the generators produce is ignored
+material/poster/*.html
+material/cards/*.html
 .DS_Store
 .claude
 setup/deploy.local
