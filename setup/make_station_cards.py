@@ -250,7 +250,11 @@ def scene_trick(cv, d, r, accent, lang):
     x0, y0, x1, y1 = r
     w, h = x1 - x0, y1 - y0
     paste_emoji(cv, "🧍", 190, x0 + w * 0.32, y0 + h * 0.55)
-    paste_emoji(cv, "🍌", 120, x0 + w * 0.72, y0 + h * 0.62)
+    # The joke of this station: the AI misses the actual person and calls an
+    # everyday object one instead. The object is a COCO class the exhibit
+    # really knows, and is on the prop-box list in the facilitator guide,
+    # so a group can reproduce the gag with a thing from the box.
+    paste_emoji(cv, "☂️", 130, x0 + w * 0.72, y0 + h * 0.62)
     t = {"de": ("??? 8%", "Person 91%"), "en": ("??? 8%", "Person 91%")}[lang]
     label_box(cv, d, [x0 + w * 0.20, y0 + h * 0.30, x0 + w * 0.45, y0 + h * 0.88], t[0], accent)
     label_box(cv, d, [x0 + w * 0.62, y0 + h * 0.44, x0 + w * 0.84, y0 + h * 0.80], t[1], accent)
