@@ -109,8 +109,8 @@ which skeleton is which of you? How? A machine can do exactly the same."
 
 ## Closing round (10–15 min)
 
-Print the discussion cards (`../cards/cards_en.pdf`, discussion cards 1–6,
-the second half of the deck) and cut them out. Each small group draws one
+Print the discussion cards (`../cards/cards_en.pdf`, cards 7–11, the second
+half of the deck) and cut them out. Each small group draws one
 card, 5 minutes of discussion time, then one sentence of takeaway per
 group.
 

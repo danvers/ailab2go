@@ -107,7 +107,7 @@ Genau das kann eine Maschine auch."
 
 ## Abschlussrunde (10–15 Min.)
 
-Die Diskussionskarten (`../cards/cards_de.pdf`, Karten 7–12 — die zweite
+Die Diskussionskarten (`../cards/cards_de.pdf`, Karten 7–11 — die zweite
 Hälfte des Decks) ausdrucken und ausschneiden. Kleingruppen ziehen je eine Karte, 5 Minuten
 Diskussionszeit, dann 1-Satz-Fazit pro Gruppe.
 

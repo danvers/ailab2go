@@ -19,7 +19,6 @@ import base64
 import io
 import math
 import os
-import random
 import sys
 from pathlib import Path
 
@@ -168,24 +167,43 @@ def scene_trainer(cv, d, r, accent, lang):
     chip(cv, d, x0 + w * 0.54, y1 - h * 0.16, b, (48, 42, 66), TEXT, size=26)
 
 
+# The two people on the privacy-shield card. Deliberately not the default
+# yellow emoji (which read as blond and white): the exhibit is about who
+# gets protected by a technology, so the faces it protects should look like
+# the range of people in the room. DE and EN show different pairs, so the
+# printed set as a whole shows four.
+SHIELD_FACES = {
+    "de": ("👩🏾", "🧔🏽"),
+    "en": ("🧕🏽", "👨🏿"),
+}
+
+
+def pixelate(canvas, box, block):
+    """Real mosaic: average each block of what is already on the canvas —
+    exactly what the live face shield does. Sampling instead of painting
+    invented skin tones means it matches whatever face is shown."""
+    x0, y0, x1, y1 = (int(v) for v in box)
+    region = canvas.crop((x0, y0, x1, y1))
+    w, h = region.size
+    if w < block or h < block:
+        return
+    small = region.resize((max(1, w // block), max(1, h // block)),
+                          Image.BOX)
+    canvas.paste(small.resize((w, h), Image.NEAREST), (x0, y0))
+
+
 def scene_schild(cv, d, r, accent, lang):
     x0, y0, x1, y1 = r
     w, h = x1 - x0, y1 - y0
-    rng = random.Random(7)
+    faces = SHIELD_FACES.get(lang, SHIELD_FACES["de"])
     for i, fx in enumerate((0.30, 0.64)):
         cx, cy = x0 + w * fx, y0 + h * 0.48
         size = 180 if i == 0 else 150
-        paste_emoji(cv, "🧑" if i == 0 else "👩", size, cx, cy)
-        # pixel mosaic over the eye/nose region only — hair and chin stay
-        # visible, so it clearly reads as a *pixelated face*
-        px = 13 * S
-        bx0, by0 = int(cx - size * S * 0.30), int(cy - size * S * 0.26)
-        bx1, by1 = int(cx + size * S * 0.30), int(cy + size * S * 0.16)
-        for yy in range(by0, by1, px):
-            for xx in range(bx0, bx1, px):
-                tone = rng.choice([(198, 164, 138), (172, 140, 118),
-                                   (150, 120, 100), (214, 182, 154)])
-                d.rectangle([xx, yy, xx + px - S, yy + px - S], fill=tone)
+        paste_emoji(cv, faces[i], size, cx, cy)
+        # mosaic over the eye/nose region only — hair, headscarf and chin
+        # stay visible, so it clearly reads as a *pixelated face*
+        pixelate(cv, [cx - size * S * 0.30, cy - size * S * 0.26,
+                      cx + size * S * 0.30, cy + size * S * 0.16], 13 * S)
         # accent detection frame around each face, like the real overlay
         rounded(d, [int(cx - size * S * 0.42), int(cy - size * S * 0.45),
                     int(cx + size * S * 0.42), int(cy + size * S * 0.38)],

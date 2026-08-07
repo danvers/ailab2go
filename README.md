@@ -191,15 +191,16 @@ index of what to print and why.
 | | DE | EN |
 |---|---|---|
 | Poster (A4, both QR codes) | [poster_de.pdf](material/poster/poster_de.pdf) | [poster_en.pdf](material/poster/poster_en.pdf) |
-| Card deck A6 — 6 station + 6 discussion cards | [cards_de.pdf](material/cards/cards_de.pdf) | [cards_en.pdf](material/cards/cards_en.pdf) |
+| Card deck A6 — 6 station + 5 discussion cards | [cards_de.pdf](material/cards/cards_de.pdf) | [cards_en.pdf](material/cards/cards_en.pdf) |
 | Facilitator guide — checklist, prop box, 45/90-min formats, learning goals | [leitfaden_de.md](material/guide/leitfaden_de.md) | [guide_en.md](material/guide/guide_en.md) |
 | Station signs (16:9) | [material/stations/](material/stations/) | ← same folder |
 | Editable raw layers (Photoshop/Illustrator/PowerPoint) | [material/source/](material/source/) | ← same folder |
 
-Card texts live exactly once — German in
-[setup/make_cards.py](setup/make_cards.py), English in
-[setup/cards_en.json](setup/cards_en.json) — so translating needs no coding.
-Regenerate everything with `bash setup/tools.sh all`.
+The printed cards are designed in PowerPoint:
+[material/source/cards/](material/source/cards/) holds `cards_de.pptx` and
+`cards_en.pptx` — **the design master**. `bash setup/tools.sh cards` only
+converts them to PDF, it never re-designs. Everything else:
+`bash setup/tools.sh all`.
 
 ## Architecture
 
