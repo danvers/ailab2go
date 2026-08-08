@@ -63,8 +63,8 @@ P = dict(
     # -- 4-pin plug, bottom centre, pointing backwards -------------------
     plug_w=10.0,         # plug housing width  (measured)
     plug_h=5.0,          # plug housing height (measured)
-    plug_clear=2.0,      # clearance per side around it
-    plug_lift=1.0,       # bottom of plug above the board's bottom edge
+    plug_clear=1.0,      # clearance per side -> a 12 x 7 window whose lower
+    plug_lift=1.0,       #    edge sits flush with the board's bottom edge
 
     # -- the shell -------------------------------------------------------
     outer=50.0,          # outer edge length
