@@ -21,8 +21,13 @@ bash setup/tools.sh case
 Für ältere ELP-Module gibt es viele fertige Gehäuse auf Thingiverse und
 Printables — aber **keines passt auf dieses Modul**. Die vorhandenen Modelle
 sind für einlagige Platinen mit M12-Objektivtubus gebaut; das 48-MP-Modul ist
-ein zweilagiger Platinenstapel (rund 13 mm dick) mit einem winzigen
-Autofokus-Block statt eines Objektivgewindes.
+ein zweilagiger Platinenstapel mit winzigem Autofokus-Block statt
+Objektivgewinde — und in unserem Aufbau sitzt dahinter zusätzlich ein
+**passiver Kühlkörper auf 12-mm-Abstandshaltern** (Platte 4 mm). Der
+4-Pin-Stecker verlässt den Stapel **unten mittig nach hinten**. Beides ist
+in Rev 2 eingearbeitet: Das Gehäuse ist tiefer, die Rückplatte ist ein
+Lamellengitter über dem Kühler mit Durchlass für Stecker und Kabel, und
+alle Wände tragen gefaste Kühlrippen.
 
 Dazu kommt der eigentliche Anlass: **das Modul wird im Betrieb spürbar warm.**
 Ein dichtes Gehäuse würde das verschlimmern, deshalb ist dieses hier an allen
@@ -51,12 +56,13 @@ Ausstellungsraum bewegt. PETG hält rund 75 °C aus. ASA oder ABS gehen auch.
 | Schichthöhe | 0,2 mm |
 | Perimeter | 3 |
 | Füllung | 20 % |
-| Materialbedarf | ca. 36 cm³, rund 46 g |
-| Druckzeit | ungefähr 4 Stunden |
+| Materialbedarf | ca. 29 cm³, rund 37 g |
+| Druckzeit | gut 3 Stunden |
 
-Fertiges Maß: **50 × 50 × 31 mm**, der Stativsockel ragt 9 mm nach unten.
+Fertiges Maß: **50 × 50 × 35 mm**, der Stativsockel ragt 9 mm nach unten.
 Die einzigen Überhänge sind die Decken der Lüftungsschlitze — kurze Brücken
-von 6,5 mm, die jeder Drucker schafft.
+von gut 5 mm, die jeder Drucker schafft; die 45°-Fasen an Rippen und
+Außenkanten drucken stützenfrei.
 
 ## 4 · Zusammenbau
 
@@ -69,14 +75,15 @@ von 6,5 mm, die jeder Drucker schafft.
    sich abnehmen — das macht den Einbau leichter.
 3. **Platine einlegen**, Objektiv voran. Sie fällt in den Schacht und liegt
    vorn auf vier Ecknasen auf.
-4. **Kabel wieder anstecken** und durch einen der Lüftungsschlitze
-   nach außen führen. Alle Schlitze sind breit genug für den Stecker,
-   du kannst also die Seite wählen, die zum Aufbau passt.
-5. **Rückplatte auflegen** und mit den vier M3-Schrauben festziehen.
-   *Wackelt die Platine noch?* Rückplatte abnehmen, einen Ausgleichsrahmen
-   (`shim`) hinter die Platine legen, erneut schließen. Bis zu vier Rahmen
-   passen — die Bauhöhe des Platinenstapels schwankt zwischen
-   Produktionsserien.
+4. **Kabel wieder anstecken.** Stecker und Kabel verlassen das Gehäuse
+   durch die **Kerbe unten in der Rückplatte** — der Spalt zwischen den
+   beiden unteren Andruckbalken ist genau dafür da.
+5. **Rückplatte auflegen** und mit den vier M3-Schrauben festziehen. Ihre
+   Andruckbalken drücken auf die **Kühlerplatte** (nicht auf die
+   Elektronik); der Kühler gibt die Kraft über seine Abstandshalter an die
+   Platinen weiter. *Wackelt das Modul noch?* Einen Ausgleichsrahmen
+   (`shim`) zwischen Kühler und Balken legen, erneut schließen — die
+   Bauhöhen schwanken zwischen Produktionsserien.
 6. **Bild prüfen.** Steht es auf dem Kopf, die Platine um 180° gedreht
    einlegen. Die Software dreht das Bild nicht.
 
@@ -99,13 +106,28 @@ Frontwand ─ 4 Ecknasen ─ [Platinenstapel] ─ Andruckrahmen ─ Rückplatte
 ```
 
 Die Ecknasen landen dabei auf den Schraubenköpfen, mit denen die beiden
-Platinen verschraubt sind — das ist gewollt und stabil. Zwei Maße sind
-geschätzt und in `case_elp48mp.py` oben eingestellt:
+Platinen verschraubt sind — das ist gewollt und stabil. Die Gehäusetiefe
+wird nicht geraten, sondern **aus der Stapelkette berechnet** — der
+Generator druckt bei jedem Lauf eine Passungstabelle und prüft per
+Kollisionstest, dass Gehäuse und Modul sich nirgends schneiden:
+
+```
+Frontwand · Linsenluft · Platinen · Abstandshalter · Kühler · Andruckspalt
+   2,6         6,0         6,0          12,0           4,0        1,0
+```
+
+Nachgemessen am echten Modul sind Abstandshalter (12), Kühler (4) und der
+Stecker (10 × 5, unten mittig). Geschätzt bleiben:
 
 | Parameter | Annahme | Wenn es nicht passt |
 |---|---|---|
-| `stack_h` | 13 mm Stapelhöhe | Ausgleichsrahmen zulegen (Schritt 4) |
-| `lens_offset` | 8 mm Luft vor der Platine | Wert erhöhen, wenn der Autofokus-Block anstößt |
+| `stack_h` | 6 mm Platinen-Sandwich | Wert anpassen — die Tiefe rechnet sich selbst nach |
+| `lens_offset` | 6 mm Luft vor der Platine | erhöhen, wenn der Autofokus-Block anstößt |
+| `cooler_w` | 38 mm Kühlerbreite | verkleinern, falls der Kühler schmaler ist |
+
+Eine einzige Messung am echten Gerät klärt alles: **Vorderkante Platine bis
+Rückseite Kühler.** Weicht sie von 22 mm ab, `stack_h` entsprechend ändern
+und neu generieren — Tiefe, Balken und Kerbe ziehen automatisch mit.
 
 Alles andere ist mit Toleranz gebaut: 0,4 mm Luft ringsum die Platine, und
 die Linsenöffnung ist mit 14 mm innen deutlich größer als nötig, damit der
@@ -117,8 +139,9 @@ Die Kamera wird warm — das ist bei diesem Modul normal und kein Defekt
 (ELP nennt 0–70 °C Betriebstemperatur). Das Gehäuse hilft dabei, statt zu
 schaden:
 
-* Zwölf Lüftungsschlitze plus offene Rückplatte, rund ein Drittel der
-  Wandfläche.
+* Zwanzig gefaste Lamellenschlitze in den Wänden plus Lamellengitter in
+  der Rückplatte direkt über dem Kühler — der Kamineffekt zieht die warme
+  Luft am Kühlkörper vorbei nach draußen.
 * Der Sockel hält das Gehäuse von der Tischplatte weg, sodass unten Luft
   nachströmen kann.
 

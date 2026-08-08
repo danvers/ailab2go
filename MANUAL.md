@@ -82,15 +82,17 @@ built for older single-deck boards with an M12 lens barrel.
 |---|---|
 | Print | body lens-face down, back plate flat, **no supports** |
 | Material | **PETG, not PLA** — the module runs warm and PLA softens near 55 °C |
-| Settings | 0.2 mm layers, 3 perimeters, 20 % infill, ≈ 40 g |
+| Settings | 0.2 mm layers, 3 perimeters, 20 % infill, ≈ 37 g |
 | Also needed | 4× M3 × 12 mm self-tapping screws, 1× ¼"-20 hex nut (only for the tripod thread) |
 
 Assembly: slide the nut into the pedestal slot, unplug the camera cable,
-drop the board in lens-first, plug the cable back in and route it out of any
-ventilation slot, then screw the back plate on. If the board still has play,
-add one of the printed 1 mm shims behind it — the stack height varies
-between production runs. Check the live picture afterwards: if it is upside
-down, turn the board 180°, because the software does not rotate it.
+drop the module in lens-first (boards, stands and cooler stay assembled),
+plug the cable back in and lead it out through the notch at the bottom of
+the back plate, then screw the plate on — its press bars push on the cooler
+plate, not on the electronics. If the module still has play, add one of the
+printed 1 mm shims between cooler and bars — stack heights vary between
+production runs. Check the live picture afterwards: if it is upside down,
+turn the module 180°, because the software does not rotate it.
 
 Full details, including which dimensions are measured and which are
 assumed, are in [hardware/README.md](hardware/README.md) (German).

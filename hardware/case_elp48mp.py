@@ -10,19 +10,32 @@ Printables are all for the older single-deck boards with an M12 lens barrel
 and do not fit. This one is built for an exhibit: vented on all six sides,
 tripod-mountable, and printable without support.
 
-── How the board is held ────────────────────────────────────────────────
+── How the module is held ──────────────────────────────────────────────
 The one number the manufacturer does NOT publish is the mounting-hole
-pattern, so the case deliberately ignores it. The PCB is captured like a
-pane of glass instead:
+pattern, so the case deliberately ignores it. The module is captured like
+a pane of glass instead:
 
-    front wall ─ 4 corner pads ─ [PCB stack] ─ pressure boss ─ back plate
+    front wall ─ 4 corner pads ─ [PCB stack + stands + cooler] ─ press
+    bars ─ back plate
 
 The cavity walls locate it in X/Y, four corner pads stop it at the front
 (they land on the board's own corner screw heads, which is fine), and the
-back plate's boss presses it home. Stack height varies between production
-runs, so shim.stl (1 mm) takes up the slack — print as many as needed.
+back plate's press bars push on the COOLER PLATE, which passes the force
+through its stands into the boards. Stack heights are field-measured and
+vary, so shim.stl takes up the slack — print as many as needed.
 
-All dimensions in millimetres. Change PARAMS and re-run.
+Rev 2, after measuring the real module (thanks Dan):
+  * the module carries a passive cooler on 12 mm stands (plate 4 mm) —
+    the case is deeper and the back is a fin grid so the cooler breathes;
+  * the 4-pin plug leaves the stack at the BOTTOM CENTRE towards the back
+    — the back plate has a notch and the lower press bar is split so plug
+    and cable pass;
+  * walls carry fin arrays (chamfered ribs) instead of three slots: more
+    cooling edge, less material, nicer to look at.
+
+All dimensions in millimetres. Change PARAMS, re-run, and READ THE FIT
+TABLE it prints — it shows where every part of the stack ends up and
+flags collisions before you print.
 """
 
 import os
@@ -37,17 +50,29 @@ P = dict(
     # -- the module (ELP datasheet: "Double-deck, 38mm x 38mm") ----------
     board=38.0,          # PCB edge length
     board_fit=0.4,       # clearance per side, so the cavity is 38.8
-    stack_h=13.0,        # front of top PCB to back of bottom PCB
-    lens_offset=8.0,     # corner pads: how far the PCB sits behind the wall
+    stack_h=6.0,         # PCB sandwich: front of top PCB to back of rear PCB
+    lens_offset=6.0,     # corner pads: how far the PCB sits behind the wall
+
+    # -- cooler on stands (field-measured on the real module) ------------
+    stand_h=12.0,        # rear PCB to cooler plate
+    cooler_h=4.0,        # cooler plate thickness
+    cooler_w=38.0,       # cooler edge length (assumed = board; shrink ok)
+    press_gap=1.0,       # air between cooler back and the press bars
+                         # before shims — one shim closes it
+
+    # -- 4-pin plug, bottom centre, pointing backwards -------------------
+    plug_w=10.0,         # plug housing width  (measured)
+    plug_h=5.0,          # plug housing height (measured)
+    plug_clear=2.0,      # clearance per side around it
+    plug_lift=1.0,       # bottom of plug above the board's bottom edge
 
     # -- the shell -------------------------------------------------------
     outer=50.0,          # outer edge length
     corner_r=4.0,        # outer corner radius
     pad=5.5,             # corner rest pads: edge length of each square
     front_wall=2.6,      # thickness of the face the lens looks through
-    depth=28.0,          # front face to back rim
+    chamfer=1.2,         # bevel on the outer front and back edges
     plate_h=3.0,         # back plate thickness
-    boss_h=2.4,          # how far the back plate reaches into the cavity
 
     # -- lens opening (HFOV 70 deg / DFOV 82 deg -> flare it generously) --
     lens_in=14.0,        # diameter at the inside of the front wall
@@ -75,14 +100,33 @@ P = dict(
     nut_z=18.5,          # seat centre, clear of the chamfer and the rim
     tripod_d=7.0,        # clearance for the 1/4" screw
 
-    # -- ventilation -----------------------------------------------------
-    # Every wall carries three slots. They are wide enough for the 4-pin plug
-    # to pass lengthwise, so the cable can leave on whichever side ELP put
-    # the socket — and they keep a warm module cool.
-    vent_w=6.5,          # slot width across the wall
-    vent_len=15.0,       # slot length along the optical axis
-    vent_at=(-8.5, 0.0, 8.5),   # positions along each wall, from its centre
+    # -- ventilation: fin arrays -----------------------------------------
+    # Every wall carries a row of slots; the material left between them is
+    # the cooling ribs. Both slot openings are flared (45 deg), which gives
+    # every rib a chamfered edge — more surface, no sharp corners, and the
+    # flare prints support-free in the face-down orientation.
+    fin_slots=5,         # slots per wall (ribs between = fin_slots - 1)
+    # Geometry constraint: slot_w + 2*flare must stay below the pitch
+    # (fin_span / fin_slots = 6.4), or neighbouring flares intersect and
+    # the ribs taper to knife edges instead of keeping a flat crown.
+    fin_slot_w=3.4,      # slot width at the inner wall
+    fin_flare=0.9,       # each opening widens by this much at the skin
+                         # -> 5.2 outer opening, 1.2 flat rib crown
+    fin_span=32.0,       # the row's total width along the wall
+    fin_z0=5.0,          # slot start behind the front face
+    fin_margin=3.6,      # solid rim kept before the back edge
+
+    # -- back plate press bars (push on the cooler, not the PCB) ---------
+    bar_w=3.4,           # bar thickness in Y
+    bar_seg=12.0,        # length of the two lower segments (plug passes
+                         # between them, exactly like Dan's hand-cut plate)
 )
+
+# Everything sits on the optical axis, so the case depth is not a guess but
+# the sum of the stack — change any layer above and the case follows:
+#   front wall + lens block + PCBs + stands + cooler + press gap
+P["depth"] = (P["front_wall"] + P["lens_offset"] + P["stack_h"]
+              + P["stand_h"] + P["cooler_h"] + P["press_gap"])
 
 EPS = 0.01
 OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "stl")
@@ -169,29 +213,62 @@ def _post_centres():
     return [(a, a), (a, -a), (-a, a), (-a, -a)]
 
 
-def _vent_cuts(cavity):
-    """Slots through all four walls. They stay clear of the corner rest pads
-    (a slot that reached into a pad would leave a paper-thin sliver), and
-    each one is wide enough to pass the camera's 4-pin plug, so the cable can
-    leave on whichever side ELP happened to put the socket."""
-    z_mid = P["front_wall"] + (P["depth"] - P["front_wall"]) / 2
-    t = P["outer"] / 2 - cavity / 2 + 2.0   # through the wall, into the void
-    mid = (P["outer"] / 2 + cavity / 2) / 2
+def _flared_slot(w_in, length, z0, wall_t, horizontal, pos, side):
+    """One vent slot whose opening widens 45 deg towards the skin: the hull
+    of a narrow box at the inner wall face and a wider one at the outer
+    face. Cutting with these is what puts the chamfer on every rib."""
+    w_out = w_in + 2 * P["fin_flare"]
+    zc = z0 + length / 2
+    r_in = P["board"] / 2 + P["board_fit"] - 0.5      # just inside the wall
+    r_out = P["outer"] / 2 + 1.0                      # just outside the skin
+    boxes = []
+    for r, w in ((r_in, w_in), (r_out, w_out)):
+        if horizontal:
+            boxes.append(slab(w, 0.02, length, x=pos, y=side * r, z=zc))
+        else:
+            boxes.append(slab(0.02, w, length, x=side * r, y=pos, z=zc))
+    return trimesh.util.concatenate(boxes).convex_hull
+
+
+def _fin_cuts():
+    """Fin arrays on all four walls: n slots, ribs in between, every edge
+    chamfered by the flare. The row stays inside fin_span, clear of the
+    corner posts that carry the screws."""
+    n, span = P["fin_slots"], P["fin_span"]
+    pitch = span / n
+    length = P["depth"] - P["fin_z0"] - P["fin_margin"]
     cuts = []
-    for wall in (-1, 1):
-        for a in P["vent_at"]:
-            cuts.append(slab(P["vent_w"], t, P["vent_len"],
-                             x=a, y=wall * mid, z=z_mid))
-            cuts.append(slab(t, P["vent_w"], P["vent_len"],
-                             x=wall * mid, y=a, z=z_mid))
+    for i in range(n):
+        pos = -span / 2 + pitch * (i + 0.5)
+        for side in (-1, 1):
+            for horizontal in (True, False):
+                cuts.append(_flared_slot(P["fin_slot_w"], length,
+                                         P["fin_z0"], 0, horizontal,
+                                         pos, side))
     return cuts
+
+
+def _edge_chamfers(depth):
+    """45 deg bevels on the outer front and back edges — the hull of a thin
+    full-size slab and a thin inset slab, used as the shell's end caps."""
+    c, w, r = P["chamfer"], P["outer"], P["corner_r"]
+    def cap(z_small, z_big):
+        small = rrect(w - 2 * c, w - 2 * c, 0.02, max(r - c, 0.6), z0=z_small)
+        big = rrect(w, w, 0.02, r, z0=z_big)
+        return trimesh.util.concatenate([small, big]).convex_hull
+    return (cap(0.0, c),                     # front: narrow at the face
+            cap(depth - 0.02, depth - c))    # back: narrow at the rim
 
 
 def build_body():
     cavity = P["board"] + 2 * P["board_fit"]
     d, fw = P["depth"], P["front_wall"]
 
-    shell = rrect(P["outer"], P["outer"], d, P["corner_r"])
+    # straight prism between two chamfered end caps
+    c = P["chamfer"]
+    front_cap, back_cap = _edge_chamfers(d)
+    shell = add(rrect(P["outer"], P["outer"], d - 2 * c, P["corner_r"], z0=c),
+                front_cap, back_cap)
 
     # Everything hollow is built as one solid and removed in a single pass.
     # Cutting piece by piece leaves coplanar faces where two cuts meet, and
@@ -209,7 +286,7 @@ def build_body():
 
     void = add(void,
                cone(P["lens_out"], P["lens_in"], -EPS, fw + EPS),
-               *_vent_cuts(cavity))
+               *_fin_cuts())
     shell = cut(shell, void)
 
     bores = []
@@ -264,21 +341,57 @@ def _pedestal_bores():
     return [screw, nut, slot]
 
 
+def _plug_notch():
+    """Keep-out for the 4-pin plug and its cable: bottom centre, from deep
+    inside the case out through the back plate. Kept as one tool so body
+    tests, press bars and the plate all honour the same window."""
+    w = P["plug_w"] + 2 * P["plug_clear"]
+    h = P["plug_h"] + 2 * P["plug_clear"]
+    y = -P["board"] / 2 + P["plug_lift"] + h / 2 - P["plug_clear"]
+    return slab(w, h, 40, x=0, y=y, z=0), y
+
+
 def build_back():
-    """Vented back plate. Its boss is a rim, not a slab: it presses on the
-    outer 3 mm of the PCB only, so nothing lands on the components or the
-    USB socket in the middle of the lower board."""
+    """Back plate, rev 2. Three jobs:
+    * a FIN GRID over the cooler instead of a closed lid — same chamfered
+      ribs as the walls, so the passive cooler actually convects;
+    * PRESS BARS instead of a rim: a full-width bar above, two short
+      segments below, pushing on the cooler plate. The gap between the
+      lower segments is the plug's doorway (Dan's hand-cut layout);
+    * a NOTCH at the bottom so plug and cable leave through the plate."""
     cavity = P["board"] + 2 * P["board_fit"]
     plate = rrect(P["outer"], P["outer"], P["plate_h"], P["corner_r"])
-    rim = cut(rrect(cavity - 0.4, cavity - 0.4, P["boss_h"] + EPS, 1.0,
-                    z0=-P["boss_h"]),
-              rrect(cavity - 7.0, cavity - 7.0, P["boss_h"] * 3, 1.0,
-                    z0=-P["boss_h"] * 2))
-    plate = add(plate, rim)
+
+    # press bars, stopping a tenth short of the cooler's nominal back face:
+    # the screws close that last bit, shims take production spread — and the
+    # collision check below stays a real proof instead of measuring its own
+    # deliberate overlap
+    reach = P["press_gap"] - 0.1
+    bar_y = P["cooler_w"] / 2 - P["bar_w"] / 2 - 1.0
+    bars = [slab(P["cooler_w"] - 2.0, P["bar_w"], reach,
+                 y=bar_y, z=-reach / 2)]
+    for sx in (-1, 1):
+        bars.append(slab(P["bar_seg"], P["bar_w"], reach,
+                         x=sx * (P["cooler_w"] / 2 - P["bar_seg"] / 2 - 1.0),
+                         y=-bar_y, z=-reach / 2))
+    plate = add(plate, *bars)
 
     cuts = []
-    for i in (-1, 0, 1):                    # let the warm air out
-        cuts.append(slab(5.0, 26.0, 20, x=i * 8.0, y=0, z=0))
+    # fin grid over the cooler: flared slots -> chamfered ribs, like the walls
+    n, span = P["fin_slots"], P["cooler_w"] - 6.0
+    pitch = span / n
+    grid_h = P["cooler_w"] - 10.0
+    for i in range(n):
+        x = -span / 2 + pitch * (i + 0.5)
+        inner = slab(P["fin_slot_w"], grid_h, 0.02, x=x, y=1.0, z=-EPS)
+        outer = slab(P["fin_slot_w"] + 2 * P["fin_flare"],
+                     grid_h + 2 * P["fin_flare"], 0.02,
+                     x=x, y=1.0, z=P["plate_h"] + EPS)
+        cuts.append(trimesh.util.concatenate([inner, outer]).convex_hull)
+
+    notch, _ = _plug_notch()
+    cuts.append(notch)
+
     for x, y in _post_centres():
         free = cylinder(radius=P["screw_free"] / 2, height=20, sections=32)
         free.apply_translation([x, y, 0])
@@ -295,6 +408,62 @@ def build_shim():
     cavity = P["board"] + 2 * P["board_fit"]
     ring = rrect(cavity - 0.6, cavity - 0.6, 1.0, 1.0)
     return cut(ring, slab(28, 28, 4))
+
+
+def module_mock():
+    """Stand-in of the real module for previews and the collision check:
+    PCB sandwich, four corner stands, cooler plate, lens block in front and
+    the plug leaving the stack at the bottom, pointing backwards."""
+    z0 = P["front_wall"] + P["lens_offset"]
+    z1 = z0 + P["stack_h"]
+    z2 = z1 + P["stand_h"]
+    parts = [slab(P["board"], P["board"], P["stack_h"],
+                  z=z0 + P["stack_h"] / 2)]
+    for sx in (-1, 1):
+        for sy in (-1, 1):
+            s = cylinder(radius=2.2, height=P["stand_h"], sections=24)
+            s.apply_translation([sx * 15, sy * 15, z1 + P["stand_h"] / 2])
+            parts.append(s)
+    parts.append(slab(P["cooler_w"], P["cooler_w"], P["cooler_h"],
+                      z=z2 + P["cooler_h"] / 2))
+    _, plug_y = _plug_notch()
+    plug_len = P["stand_h"] + P["cooler_h"] + 5.0
+    parts.append(slab(P["plug_w"], P["plug_h"], plug_len,
+                      x=0, y=plug_y, z=z1 + plug_len / 2))
+    lens = cylinder(radius=4.2, height=P["lens_offset"] + 1.5, sections=48)
+    lens.apply_translation([0, 0, z0 - (P["lens_offset"] + 1.5) / 2 + 0.5])
+    parts.append(lens)
+    return trimesh.util.concatenate(parts)
+
+
+def fit_report(body, back):
+    """The assembly in numbers, then hard proof: the assembled case must
+    not intersect the module mock. Eyeballed measurements go in PARAMS;
+    this table is where they either add up or get caught."""
+    z0 = P["front_wall"] + P["lens_offset"]
+    z1, d = z0 + P["stack_h"], P["depth"]
+    z2 = z1 + P["stand_h"]
+    z3 = z2 + P["cooler_h"]
+    print("\n  fit table (mm along the optical axis, 0 = front face)")
+    for name, a, b in (("front wall", 0, P["front_wall"]),
+                       ("lens block / corner pads", P["front_wall"], z0),
+                       ("PCB sandwich", z0, z1),
+                       ("cooler stands", z1, z2),
+                       ("cooler plate", z2, z3),
+                       ("press gap (add shims here)", z3, d),
+                       ("back plate", d, d + P["plate_h"])):
+        print(f"    {a:5.1f} … {b:5.1f}   {name}")
+    ok = True
+    assembled = back.copy()
+    assembled.apply_translation([0, 0, d])
+    mock = module_mock()
+    for name, part in (("body", body), ("back plate", assembled)):
+        inter = trimesh.boolean.intersection([part, mock])
+        vol = 0.0 if inter is None or inter.is_empty else abs(inter.volume)
+        flag = "  <- COLLISION, do not print" if vol > 1.0 else "  ok"
+        print(f"    module vs {name}: overlap {vol:6.2f} mm3{flag}")
+        ok &= vol <= 1.0
+    return ok
 
 
 # ── Preview renderer ────────────────────────────────────────────────────
@@ -357,10 +526,7 @@ def previews(body, back, shim):
     Everything is tipped upright first, so the pictures show the camera the
     way it stands on a tripod rather than lying on its back."""
     shell, plate, pcb = "#7fb2d9", "#e2a862", "#39424d"
-    board = slab(P["board"], P["board"], P["stack_h"],
-                 z=10.6 + P["stack_h"] / 2)
-    lens = cylinder(radius=4.2, height=6.5, sections=48)
-    lens.apply_translation([0, 0, 10.6 - 3.25])
+    mock = module_mock()
 
     seated = back.copy()
     seated.apply_translation([0, 0, P["depth"]])
@@ -380,7 +546,7 @@ def previews(body, back, shim):
     # after the rotation the lens looks towards +Y, so the camera goes there
     view([(body, shell), (seated, plate)], "preview-front.png", 18, 62)
     view([(body, shell), (seated, plate)], "preview-back.png", 16, -118)
-    view([(body, shell), (board, pcb), (lens, "#11161b"), (apart, plate)],
+    view([(body, shell), (mock, pcb), (apart, plate)],
          "preview-exploded.png", 14, -115)
     print("  preview-front.png, preview-back.png, preview-exploded.png")
 
@@ -407,6 +573,8 @@ def main():
               f"   watertight={check.is_watertight}"
               f"   {check.volume / 1000:.1f} cm3")
 
+    ok &= fit_report(built["elp48-case-body"], built["elp48-case-back"])
+
     try:
         previews(built["elp48-case-body"], built["elp48-case-back"],
                  built["elp48-case-shim"])
@@ -415,7 +583,8 @@ def main():
 
     print(f"\n→ {OUT}")
     if not ok:
-        print("!! a part is not watertight — do not print it yet")
+        print("!! a check failed above (watertightness or fit) — "
+              "do not print yet")
     return 0 if ok else 1
 
 

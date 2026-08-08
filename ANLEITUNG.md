@@ -73,7 +73,7 @@ werden mit `python3 setup/make_station_cards.py` neu erzeugt.*
 **Optional: Gehäuse für die USB-Kamera.** Das ELP-48-MP-Modul ist eine nackte
 Platine — im Publikumsbetrieb unpraktisch und empfindlich. Unter
 [`hardware/`](hardware/README.md) liegen fertige STL-Dateien für ein
-belüftetes Gehäuse mit Stativgewinde. Druckzeit rund vier Stunden, Material
+belüftetes Gehäuse mit Stativgewinde. Druckzeit gut drei Stunden, Material
 PETG (kein PLA — die Kamera wird warm).
 
 ---
