@@ -50,15 +50,18 @@ P = dict(
     # -- the module (ELP datasheet: "Double-deck, 38mm x 38mm") ----------
     board=38.0,          # PCB edge length
     board_fit=0.4,       # clearance per side, so the cavity is 38.8
-    stack_h=6.0,         # PCB sandwich: front of top PCB to back of rear PCB
+    stack_h=9.0,         # PCB sandwich: front of top PCB to back of rear
+                         # PCB. Sets the press-pillar length — if the
+                         # pillars come out long/short, measure THIS.
     lens_offset=6.0,     # corner pads: how far the PCB sits behind the wall
 
     # -- cooler on stands (field-measured on the real module) ------------
-    stand_h=12.0,        # rear PCB to cooler plate
+    module_depth=20.0,   # MEASURED: front of top PCB to back of cooler,
+                         # everything included — the one firm number
     cooler_h=4.0,        # cooler plate thickness
-    cooler_w=38.0,       # cooler edge length (assumed = board; shrink ok)
-    press_gap=1.0,       # air between cooler back and the press bars
-                         # before shims — one shim closes it
+    cooler_w=30.0,       # cooler edge length — NARROWER than the board, so
+                         # the press pillars can reach past it to the PCB
+    cooler_air=1.0,      # guaranteed air between cooler back and the plate
 
     # -- 4-pin plug, bottom centre, pointing backwards -------------------
     plug_w=10.0,         # plug housing width  (measured)
@@ -105,28 +108,45 @@ P = dict(
     # the cooling ribs. Both slot openings are flared (45 deg), which gives
     # every rib a chamfered edge — more surface, no sharp corners, and the
     # flare prints support-free in the face-down orientation.
-    fin_slots=5,         # slots per wall (ribs between = fin_slots - 1)
+    # Sized for an exhibit that children poke at: ribs are 4.8 mm at the
+    # base with a 3.2 mm flat crown (they will not snap under a finger),
+    # and no opening exceeds 4.8 mm, so small fingers stay outside.
     # Geometry constraint: slot_w + 2*flare must stay below the pitch
-    # (fin_span / fin_slots = 6.4), or neighbouring flares intersect and
+    # (fin_span / fin_slots = 8.0), or neighbouring flares intersect and
     # the ribs taper to knife edges instead of keeping a flat crown.
-    fin_slot_w=3.4,      # slot width at the inner wall
-    fin_flare=0.9,       # each opening widens by this much at the skin
-                         # -> 5.2 outer opening, 1.2 flat rib crown
+    fin_slots=4,         # slots per wall (ribs between = fin_slots - 1)
+    fin_slot_w=3.2,      # slot width at the inner wall
+    fin_flare=0.8,       # each opening widens by this much at the skin
+                         # -> 4.8 outer opening, 3.2 flat rib crown
     fin_span=32.0,       # the row's total width along the wall
     fin_z0=5.0,          # slot start behind the front face
     fin_margin=3.6,      # solid rim kept before the back edge
 
-    # -- back plate press bars (push on the cooler, not the PCB) ---------
-    bar_w=3.4,           # bar thickness in Y
-    bar_seg=12.0,        # length of the two lower segments (plug passes
-                         # between them, exactly like Dan's hand-cut plate)
+    # -- intake ring: a circle of bevelled air holes around the lens -----
+    # Cool air enters at the front, washes over the boards, and leaves
+    # through the wall fins and the back grid — a chimney with the cooler
+    # in the middle. Round holes cannot snap, whatever pokes them.
+    intake_n=12,         # number of holes
+    intake_r=14.0,       # circle radius around the lens axis
+    intake_d=3.2,        # hole diameter at the inner face
+    intake_flare=0.7,    # widens per side towards the skin -> 4.6 outside
+
+    # -- back plate press pillars (fix the PCB, never touch the cooler) --
+    # Tall pillars reach from the plate past the cooler's top and bottom
+    # edges down to the rear PCB, pressing on its outer rim: three above,
+    # two below (the middle is the plug's doorway). The cooler floats free.
+    pillar_w=5.0,        # pillar width along the wall (X)
+    pillar_t=3.0,        # pillar depth onto the board rim (Y)
+    pillar_x=(-9.5, 0.0, 9.5),   # top-row positions; bottom row skips 0
 )
 
 # Everything sits on the optical axis, so the case depth is not a guess but
-# the sum of the stack — change any layer above and the case follows:
-#   front wall + lens block + PCBs + stands + cooler + press gap
-P["depth"] = (P["front_wall"] + P["lens_offset"] + P["stack_h"]
-              + P["stand_h"] + P["cooler_h"] + P["press_gap"])
+# derived from the measured module — change a number above and the case,
+# the pillars and the fit table all follow:
+P["stand_h"] = P["module_depth"] - P["stack_h"] - P["cooler_h"]
+assert P["stand_h"] > 2.0, "stack_h + cooler_h nearly fills module_depth"
+P["depth"] = (P["front_wall"] + P["lens_offset"] + P["module_depth"]
+              + P["cooler_air"])
 
 EPS = 0.01
 OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "stl")
@@ -222,11 +242,14 @@ def _flared_slot(w_in, length, z0, wall_t, horizontal, pos, side):
     r_in = P["board"] / 2 + P["board_fit"] - 0.5      # just inside the wall
     r_out = P["outer"] / 2 + 1.0                      # just outside the skin
     boxes = []
-    for r, w in ((r_in, w_in), (r_out, w_out)):
+    # the outer box is longer as well as wider: the slot ENDS get the same
+    # 45-degree bevel as the flanks — chamfer all round, no sharp pockets
+    for r, w, ln in ((r_in, w_in, length),
+                     (r_out, w_out, length + 2 * P["fin_flare"])):
         if horizontal:
-            boxes.append(slab(w, 0.02, length, x=pos, y=side * r, z=zc))
+            boxes.append(slab(w, 0.02, ln, x=pos, y=side * r, z=zc))
         else:
-            boxes.append(slab(0.02, w, length, x=side * r, y=pos, z=zc))
+            boxes.append(slab(0.02, w, ln, x=side * r, y=pos, z=zc))
     return trimesh.util.concatenate(boxes).convex_hull
 
 
@@ -248,16 +271,16 @@ def _fin_cuts():
     return cuts
 
 
-def _edge_chamfers(depth):
-    """45 deg bevels on the outer front and back edges — the hull of a thin
-    full-size slab and a thin inset slab, used as the shell's end caps."""
+def _front_chamfer():
+    """45 deg bevel on the outer FRONT edge only — the hull of a thin
+    inset slab at the face and a full-size one behind it. The BACK edge
+    stays deliberately square: the back plate has square edges too, so
+    body and plate meet in one flush, continuous surface instead of a
+    V-groove around the seam."""
     c, w, r = P["chamfer"], P["outer"], P["corner_r"]
-    def cap(z_small, z_big):
-        small = rrect(w - 2 * c, w - 2 * c, 0.02, max(r - c, 0.6), z0=z_small)
-        big = rrect(w, w, 0.02, r, z0=z_big)
-        return trimesh.util.concatenate([small, big]).convex_hull
-    return (cap(0.0, c),                     # front: narrow at the face
-            cap(depth - 0.02, depth - c))    # back: narrow at the rim
+    small = rrect(w - 2 * c, w - 2 * c, 0.02, max(r - c, 0.6), z0=0.0)
+    big = rrect(w, w, 0.02, r, z0=c)
+    return trimesh.util.concatenate([small, big]).convex_hull
 
 
 def build_body():
@@ -266,9 +289,10 @@ def build_body():
 
     # straight prism between two chamfered end caps
     c = P["chamfer"]
-    front_cap, back_cap = _edge_chamfers(d)
-    shell = add(rrect(P["outer"], P["outer"], d - 2 * c, P["corner_r"], z0=c),
-                front_cap, back_cap)
+    # chamfered front cap; the back rim stays square so it sits flush
+    # against the back plate's square edge
+    shell = add(rrect(P["outer"], P["outer"], d - c, P["corner_r"], z0=c),
+                _front_chamfer())
 
     # Everything hollow is built as one solid and removed in a single pass.
     # Cutting piece by piece leaves coplanar faces where two cuts meet, and
@@ -284,9 +308,17 @@ def build_body():
                              z=fw + P["lens_offset"] / 2))
     void = cut(void, *pads)
 
+    intakes = []
+    for i in range(P["intake_n"]):
+        a = 2 * np.pi * i / P["intake_n"]
+        hole = cone(P["intake_d"] + 2 * P["intake_flare"], P["intake_d"],
+                    -EPS, fw + EPS)
+        hole.apply_translation([P["intake_r"] * np.cos(a),
+                                P["intake_r"] * np.sin(a), 0])
+        intakes.append(hole)
     void = add(void,
                cone(P["lens_out"], P["lens_in"], -EPS, fw + EPS),
-               *_fin_cuts())
+               *intakes, *_fin_cuts())
     shell = cut(shell, void)
 
     bores = []
@@ -362,19 +394,26 @@ def build_back():
     cavity = P["board"] + 2 * P["board_fit"]
     plate = rrect(P["outer"], P["outer"], P["plate_h"], P["corner_r"])
 
-    # press bars, stopping a tenth short of the cooler's nominal back face:
-    # the screws close that last bit, shims take production spread — and the
-    # collision check below stays a real proof instead of measuring its own
-    # deliberate overlap
-    reach = P["press_gap"] - 0.1
-    bar_y = P["cooler_w"] / 2 - P["bar_w"] / 2 - 1.0
-    bars = [slab(P["cooler_w"] - 2.0, P["bar_w"], reach,
-                 y=bar_y, z=-reach / 2)]
-    for sx in (-1, 1):
-        bars.append(slab(P["bar_seg"], P["bar_w"], reach,
-                         x=sx * (P["cooler_w"] / 2 - P["bar_seg"] / 2 - 1.0),
-                         y=-bar_y, z=-reach / 2))
-    plate = add(plate, *bars)
+    # Press pillars: from the plate, past the cooler's top/bottom edges
+    # (>= 1 mm side clearance), onto the rear PCB's outer rim. They stop a
+    # tenth short of the nominal board face — screws close that last bit,
+    # shim strips take production spread — so the collision check stays a
+    # real proof instead of measuring its own deliberate overlap.
+    reach = (P["depth"]
+             - (P["front_wall"] + P["lens_offset"] + P["stack_h"]) - 0.1)
+    pillar_y = P["board"] / 2 - P["pillar_t"] / 2
+    side_air = pillar_y - P["pillar_t"] / 2 - P["cooler_w"] / 2
+    assert side_air >= 0.9, (
+        f"pillars would graze the cooler ({side_air:.1f} mm side air) — "
+        "shrink cooler_w or pillar_t")
+    pillars = []
+    for x in P["pillar_x"]:
+        pillars.append(slab(P["pillar_w"], P["pillar_t"], reach,
+                            x=x, y=pillar_y, z=-reach / 2))
+        if x != 0.0:                    # bottom row leaves the plug doorway
+            pillars.append(slab(P["pillar_w"], P["pillar_t"], reach,
+                                x=x, y=-pillar_y, z=-reach / 2))
+    plate = add(plate, *pillars)
 
     cuts = []
     # Fin grid over the cooler: flared slots -> chamfered ribs, like the
@@ -388,7 +427,12 @@ def build_back():
     grid_bot = notch_top + bridge
     grid_h = grid_top - grid_bot
     grid_yc = (grid_top + grid_bot) / 2
-    n, span = P["fin_slots"], P["cooler_w"] - 6.0
+    # The grid gets its OWN slot count from the same ~8 mm pitch as the
+    # walls. Reusing fin_slots here once shrank the pitch to 6 when the
+    # cooler got narrower — and quietly brought back the 1.2 mm knife-edge
+    # ribs on exactly the surface children push hardest.
+    span = P["cooler_w"] - 6.0
+    n = max(3, int(round(span / 8.0)))
     pitch = span / n
     for i in range(n):
         x = -span / 2 + pitch * (i + 0.5)
@@ -412,10 +456,11 @@ def build_back():
 
 
 def build_shim():
-    """1 mm spacer ring — stack it behind the board if it has any play."""
-    cavity = P["board"] + 2 * P["board_fit"]
-    ring = rrect(cavity - 0.6, cavity - 0.6, 1.0, 1.0)
-    return cut(ring, slab(28, 28, 4))
+    """1 mm shim STRIP: lies on the board's top or bottom rim, under the
+    press pillars. (The old full ring would land on the cooler stands.)
+    Print a pair per millimetre of play; assemble lens-down so gravity
+    holds them while the plate goes on."""
+    return slab(26.0, P["pillar_t"], 1.0, z=0.5)
 
 
 def module_mock():
@@ -458,8 +503,9 @@ def fit_report(body, back):
                        ("PCB sandwich", z0, z1),
                        ("cooler stands", z1, z2),
                        ("cooler plate", z2, z3),
-                       ("press gap (add shims here)", z3, d),
-                       ("back plate", d, d + P["plate_h"])):
+                       ("air above the cooler", z3, d),
+                       ("back plate (pillars reach %.1f)" % (z1 + 0.1), d,
+                        d + P["plate_h"])):
         print(f"    {a:5.1f} … {b:5.1f}   {name}")
     ok = True
     assembled = back.copy()

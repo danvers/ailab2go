@@ -39,7 +39,7 @@ vier Seiten und auf der Rückseite offen.
 |---|---|---|
 | `elp48-case-body.stl` | 1× | Gehäusekörper |
 | `elp48-case-back.stl` | 1× | Rückplatte |
-| `elp48-case-shim.stl` | 0–4× | 1-mm-Ausgleichsrahmen, siehe Schritt 5 |
+| `elp48-case-shim.stl` | 0–4 Paare | 1-mm-Ausgleichsstreifen, siehe Schritt 5 |
 | Schrauben M3 × 12 mm, selbstschneidend | 4× | Blech- oder Kunststoffschrauben; Holzschrauben gehen auch |
 | Sechskantmutter ¼"-20 (UNC) | 1× | nur wenn du das Stativgewinde nutzen willst |
 
@@ -59,10 +59,10 @@ Ausstellungsraum bewegt. PETG hält rund 75 °C aus. ASA oder ABS gehen auch.
 | Materialbedarf | ca. 29 cm³, rund 37 g |
 | Druckzeit | gut 3 Stunden |
 
-Fertiges Maß: **50 × 50 × 35 mm**, der Stativsockel ragt 9 mm nach unten.
+Fertiges Maß: **50 × 50 × 33 mm**, der Stativsockel ragt 9 mm nach unten.
 Die einzigen Überhänge sind die Decken der Lüftungsschlitze — kurze Brücken
-von gut 5 mm, die jeder Drucker schafft; die 45°-Fasen an Rippen und
-Außenkanten drucken stützenfrei.
+unter 5 mm, die jeder Drucker schafft; alle Fasen (Rippen, Schlitzenden,
+Einlasslöcher, Außenkanten) drucken stützenfrei.
 
 ## 4 · Zusammenbau
 
@@ -79,11 +79,13 @@ Außenkanten drucken stützenfrei.
    durch die **Kerbe unten in der Rückplatte** — der Spalt zwischen den
    beiden unteren Andruckbalken ist genau dafür da.
 5. **Rückplatte auflegen** und mit den vier M3-Schrauben festziehen. Ihre
-   Andruckbalken drücken auf die **Kühlerplatte** (nicht auf die
-   Elektronik); der Kühler gibt die Kraft über seine Abstandshalter an die
-   Platinen weiter. *Wackelt das Modul noch?* Einen Ausgleichsrahmen
-   (`shim`) zwischen Kühler und Balken legen, erneut schließen — die
-   Bauhöhen schwanken zwischen Produktionsserien.
+   fünf **Andrucksäulen** greifen oben und unten am Kühler vorbei und
+   drücken auf die Ränder der hinteren Platine — der Kühler selbst wird
+   nie berührt und behält 1 mm Luft zur Platte. *Wackelt das Modul noch?*
+   Je einen Ausgleichsstreifen (`shim`) auf den oberen und unteren
+   Platinenrand legen (Objektiv nach unten, dann hält die Schwerkraft sie
+   fest) und erneut schließen — die Bauhöhen schwanken zwischen
+   Produktionsserien.
 6. **Bild prüfen.** Steht es auf dem Kopf, die Platine um 180° gedreht
    einlegen. Die Software dreht das Bild nicht.
 
@@ -112,22 +114,25 @@ Generator druckt bei jedem Lauf eine Passungstabelle und prüft per
 Kollisionstest, dass Gehäuse und Modul sich nirgends schneiden:
 
 ```
-Frontwand · Linsenluft · Platinen · Abstandshalter · Kühler · Andruckspalt
-   2,6         6,0         6,0          12,0           4,0        1,0
+Frontwand · Linsenluft · Platinen · Abstandshalter · Kühler · Luftspalt
+   2,6         6,0         9,0        7,0 (folgt)      4,0       1,0
 ```
 
-Nachgemessen am echten Modul sind Abstandshalter (12), Kühler (4) und der
-Stecker (10 × 5, unten mittig). Geschätzt bleiben:
+Nachgemessen am echten Modul sind die **Gesamttiefe des Moduls
+(20 mm inklusive Kühler, `module_depth`)**, der Kühler (4) und der Stecker
+(10 × 5, unten mittig); die Ständerhöhe ergibt sich daraus von selbst.
+Geschätzt bleiben:
 
 | Parameter | Annahme | Wenn es nicht passt |
 |---|---|---|
-| `stack_h` | 6 mm Platinen-Sandwich | Wert anpassen — die Tiefe rechnet sich selbst nach |
+| `stack_h` | 9 mm Platinen-Sandwich | Wert anpassen — Säulenlänge und Tiefe rechnen sich selbst nach |
 | `lens_offset` | 6 mm Luft vor der Platine | erhöhen, wenn der Autofokus-Block anstößt |
-| `cooler_w` | 38 mm Kühlerbreite | verkleinern, falls der Kühler schmaler ist |
+| `cooler_w` | 30 mm Kühlerbreite | anpassen; muss schmaler als die Platine bleiben, sonst kommen die Säulen nicht vorbei (der Generator bricht mit Hinweis ab) |
 
-Eine einzige Messung am echten Gerät klärt alles: **Vorderkante Platine bis
-Rückseite Kühler.** Weicht sie von 22 mm ab, `stack_h` entsprechend ändern
-und neu generieren — Tiefe, Balken und Kerbe ziehen automatisch mit.
+Falls die Säulen nicht sauber auf den Platinenrändern landen, ist eine
+Messung fällig: **Vorderkante der vorderen Platine bis Rückkante der
+hinteren Platine** — das ist `stack_h`. Ändern, neu generieren; Säulen,
+Tiefe und Fenster ziehen automatisch mit.
 
 Alles andere ist mit Toleranz gebaut: 0,4 mm Luft ringsum die Platine, und
 die Linsenöffnung ist mit 14 mm innen deutlich größer als nötig, damit der
@@ -139,9 +144,15 @@ Die Kamera wird warm — das ist bei diesem Modul normal und kein Defekt
 (ELP nennt 0–70 °C Betriebstemperatur). Das Gehäuse hilft dabei, statt zu
 schaden:
 
-* Zwanzig gefaste Lamellenschlitze in den Wänden plus Lamellengitter in
+* Sechzehn gefaste Lamellenschlitze in den Wänden plus Lamellengitter in
   der Rückplatte direkt über dem Kühler — der Kamineffekt zieht die warme
-  Luft am Kühlkörper vorbei nach draußen.
+  Luft am Kühlkörper vorbei nach draußen. Frischluft kommt vorn durch den
+  **Ring aus zwölf gefasten Einlassöffnungen** um die Linse herein.
+* Kindersicher dimensioniert: Alle Rippen haben 4,8 mm Basis und 3,2 mm
+  flache Krone (nichts bricht unter einem Finger), keine Öffnung ist
+  breiter als 4,8 mm (kein Kinderfinger passt hinein), und jede Kante —
+  Schlitzflanken, Schlitzenden, Löcher, Außenkanten — trägt eine
+  45°-Fase.
 * Der Sockel hält das Gehäuse von der Tischplatte weg, sodass unten Luft
   nachströmen kann.
 

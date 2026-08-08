@@ -87,11 +87,12 @@ built for older single-deck boards with an M12 lens barrel.
 
 Assembly: slide the nut into the pedestal slot, unplug the camera cable,
 drop the module in lens-first (boards, stands and cooler stay assembled),
-plug the cable back in and lead it out through the notch at the bottom of
-the back plate, then screw the plate on — its press bars push on the cooler
-plate, not on the electronics. If the module still has play, add one of the
-printed 1 mm shims between cooler and bars — stack heights vary between
-production runs. Check the live picture afterwards: if it is upside down,
+plug the cable back in and lead it out through the window at the bottom of
+the back plate, then screw the plate on — its five press pillars reach past
+the cooler and hold the board by its top and bottom edges; the cooler
+itself is never touched and keeps 1 mm of air. If the module still has
+play, lay a printed 1 mm shim strip on each board edge — stack heights
+vary between production runs. Check the live picture afterwards: if it is upside down,
 turn the module 180°, because the software does not rotate it.
 
 Full details, including which dimensions are measured and which are
