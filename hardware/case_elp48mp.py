@@ -377,19 +377,27 @@ def build_back():
     plate = add(plate, *bars)
 
     cuts = []
-    # fin grid over the cooler: flared slots -> chamfered ribs, like the walls
+    # Fin grid over the cooler: flared slots -> chamfered ribs, like the
+    # walls. The grid's lower edge stops a BRIDGE above the plug window —
+    # without it the two middle ribs would end in mid-air over the notch
+    # and the whole grid would hang from its top edge alone.
+    notch, notch_y = _plug_notch()
+    notch_top = notch_y + (P["plug_h"] + 2 * P["plug_clear"]) / 2
+    bridge = 3.0
+    grid_top = P["cooler_w"] / 2 - 4.0
+    grid_bot = notch_top + bridge
+    grid_h = grid_top - grid_bot
+    grid_yc = (grid_top + grid_bot) / 2
     n, span = P["fin_slots"], P["cooler_w"] - 6.0
     pitch = span / n
-    grid_h = P["cooler_w"] - 10.0
     for i in range(n):
         x = -span / 2 + pitch * (i + 0.5)
-        inner = slab(P["fin_slot_w"], grid_h, 0.02, x=x, y=1.0, z=-EPS)
+        inner = slab(P["fin_slot_w"], grid_h, 0.02, x=x, y=grid_yc, z=-EPS)
         outer = slab(P["fin_slot_w"] + 2 * P["fin_flare"],
                      grid_h + 2 * P["fin_flare"], 0.02,
-                     x=x, y=1.0, z=P["plate_h"] + EPS)
+                     x=x, y=grid_yc, z=P["plate_h"] + EPS)
         cuts.append(trimesh.util.concatenate([inner, outer]).convex_hull)
 
-    notch, _ = _plug_notch()
     cuts.append(notch)
 
     for x, y in _post_centres():
