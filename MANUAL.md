@@ -441,7 +441,7 @@ quality, not the camera image itself.
 
 The face finder needs **frontal, well-lit** faces — side profiles and
 backlight defeat it. This is intentional, or rather honestly built in
-(see station 3: "Honest warning" / „Ehrliche Warnung"), and a teaching
+(see station 3: "Warning" / „Warnung"), and a teaching
 moment, not a defect. To improve it: light from the front, camera at
 face height.
 

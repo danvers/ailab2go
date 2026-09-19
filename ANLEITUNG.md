@@ -417,8 +417,8 @@ Erkennungsqualität, nicht das Kamerabild selbst.
 ### 9.6 Gesichtsschutz erkennt Gesichter schlecht
 
 Der Gesichtsfinder braucht **frontale, gut beleuchtete** Gesichter —
-Seitenprofile und Gegenlicht versagen. Das ist Absicht bzw. ehrlich
-eingebaut (siehe Station 3: „Ehrliche Warnung“) und ein Lernmoment,
+Seitenprofile und Gegenlicht versagen. Das ist Absicht eingebaut
+(siehe Station 3: „Warnung“) und ein Lernmoment,
 kein Defekt. Verbessern: Licht von vorn, Kamera auf Gesichtshöhe.
 
 ### 9.7 „Trainiere die KI“ rät schlecht

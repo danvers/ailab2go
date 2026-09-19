@@ -118,7 +118,7 @@ window.I18N = (() => {
       "This station only does the former — and even uses it to <em>protect</em> you. " +
       "So the same basic technology can surveil <em>or</em> preserve privacy. It all " +
       "depends on how it’s used.",
-    "schild.limitSummary": "⚠️ Honest warning: the shield isn’t perfect",
+    "schild.limitSummary": "⚠️ Warning: the shield isn’t perfect",
     "schild.limitBody": "Turn your face sideways — the shield fails! The face finder " +
       "was mostly trained on frontal faces. That’s a lesson too: <strong>never " +
       "blindly trust an AI promise.</strong> Always ask: how well does it really " +
