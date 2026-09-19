@@ -21,6 +21,57 @@ def create_app(pipeline):
     # guest tap while locked passes through here.
     pin_fails = {}      # client IP -> [wrong tries, locked-out until]
 
+    def _portal_lang():
+        """Language for the captive pages and /system: forced via
+        config.PORTAL_LANG, otherwise the device's own language."""
+        if config.PORTAL_LANG in ("de", "en"):
+            return config.PORTAL_LANG
+        return request.accept_languages.best_match(("de", "en"), "de")
+
+    def _browser_name():
+        return (config.EVENT_NAME if _portal_lang() == "de"
+                else config.EVENT_NAME_EN)
+
+    # Captive pages render in ONE language per device (see _portal_lang) —
+    # single-language cards stay short, which captive sheets need.
+    # Markup in these strings is server-owned; templates insert with |safe.
+    PORTAL_T = {
+        "de": {
+            "go": "🚀 Los geht&rsquo;s!", "go_small": "Zur Ausstellung",
+            "fine_portal": "100&nbsp;% lokal, keine Cloud —",
+            "connected": "Verbunden!", "sub": "Noch zwei Schritte:",
+            "s1_ios": "Oben auf <strong>„Fertig&ldquo;</strong> tippen.",
+            "s1s_ios": "Falls gefragt: <strong>„Ohne Internet verwenden&ldquo;</strong>.",
+            "s2_ios": "Unten <strong>antippen</strong> — oder in Safari eintippen:",
+            "s1_android": "Oben rechts <strong>⋮</strong> → <strong>„Im Browser öffnen&ldquo;</strong>.",
+            "s1s_android": "„Trotzdem verbunden bleiben?&ldquo; → <strong>Ja</strong>.",
+            "s2_android": "Dann <strong>antippen</strong> oder eintippen:",
+            "s1_other": "Dieses Fenster <strong>schließen</strong>.",
+            "s1s_other": "Falls gefragt: im Netzwerk bleiben.",
+            "s2_other": "<strong>Antippen</strong> — oder im Browser eintippen:",
+            "tap": "👆 Antippen öffnet die Ausstellung direkt",
+            "fine_done": "Andere Adressen scheitern oft (Browser erzwingen "
+                         "HTTPS). Abkürzung: <strong>Poster-QR scannen</strong>.",
+        },
+        "en": {
+            "go": "🚀 Let&rsquo;s go!", "go_small": "Enter the exhibit",
+            "fine_portal": "100&nbsp;% local, no cloud —",
+            "connected": "Connected!", "sub": "Two steps to go:",
+            "s1_ios": "Tap <strong>“Done”</strong> at the top.",
+            "s1s_ios": "If asked: <strong>“Use without internet”</strong>.",
+            "s2_ios": "<strong>Tap below</strong> — or type it into Safari:",
+            "s1_android": "Top right <strong>⋮</strong> → <strong>“Open in browser”</strong>.",
+            "s1s_android": "“Stay connected anyway?” → <strong>Yes</strong>.",
+            "s2_android": "Then <strong>tap</strong> or type it:",
+            "s1_other": "<strong>Close</strong> this window.",
+            "s1s_other": "If asked: stay on the network.",
+            "s2_other": "<strong>Tap</strong> — or type it into your browser:",
+            "tap": "👆 Tapping opens the exhibit directly",
+            "fine_done": "Other addresses often fail (browsers force "
+                         "HTTPS). Shortcut: <strong>scan the poster QR</strong>.",
+        },
+    }
+
     def _pin_ok(payload):
         pin = payload.get("pin")
         if pin is None:
@@ -145,7 +196,8 @@ def create_app(pipeline):
 
     @app.get("/")
     def index():
-        return render_template("index.html", event_name=config.EVENT_NAME)
+        return render_template("index.html", event_name=config.EVENT_NAME,
+                               event_name_en=config.EVENT_NAME_EN)
 
     @app.get("/portal")
     def portal():
@@ -153,7 +205,8 @@ def create_app(pipeline):
         Loading it does NOT sign the device in — only the button
         (→ /portal/go) does, so the sheet isn't dismissed before the tap."""
         return render_template(
-            "portal.html", event_name=config.EVENT_NAME,
+            "portal.html", event_name=_browser_name(),
+            t=PORTAL_T[_portal_lang()],
             url_short=config.PUBLIC_URL.rstrip("/").removeprefix("http://"))
 
     @app.get("/portal/go")
@@ -170,7 +223,8 @@ def create_app(pipeline):
                     else "android" if "android" in ua else "other")
         base = config.PUBLIC_URL.rstrip("/")
         return render_template(
-            "portal_done.html", event_name=config.EVENT_NAME,
+            "portal_done.html", event_name=_browser_name(),
+            t=PORTAL_T[_portal_lang()],
             platform=platform, url=base,
             url_short=base.removeprefix("http://"))
 
@@ -179,7 +233,7 @@ def create_app(pipeline):
         """Technical readout in its own window: temperatures, fan, camera.
         Deliberately off the visitor UI — nobody at a station needs this,
         but a facilitator debugging a warm or stuttering exhibit does."""
-        return render_template("system.html", event_name=config.EVENT_NAME)
+        return render_template("system.html", event_name=_browser_name())
 
     @app.get("/beamer")
     def beamer():
@@ -197,6 +251,7 @@ def create_app(pipeline):
         except Exception:
             pass
         return render_template("beamer.html", event_name=config.EVENT_NAME,
+                               event_name_en=config.EVENT_NAME_EN,
                                qr_uri=qr_uri, public_url=config.PUBLIC_URL,
                                ssid=config.HOTSPOT_SSID)
 
@@ -365,6 +420,20 @@ def create_app(pipeline):
             pipeline.locked = False
         elif action == "reset_all":
             pipeline.reset_all()
+        elif action == "set_pin":
+            new_pin = str(payload.get("new_pin", ""))
+            if not (new_pin.isdigit() and 4 <= len(new_pin) <= 8):
+                return jsonify(error="bad pin"), 400
+            # persist OUTSIDE /opt: deploys rsync --delete that tree
+            try:
+                import os
+                os.makedirs(os.path.dirname(config.PIN_FILE), exist_ok=True)
+                with open(config.PIN_FILE, "w") as f:
+                    f.write(new_pin + "\n")
+            except OSError:
+                return jsonify(error="not writable"), 500
+            config.ADMIN_PIN = new_pin
+            return jsonify(ok=True)
         else:
             return jsonify(error="unknown action"), 400
         return jsonify(ok=True, locked=pipeline.locked)

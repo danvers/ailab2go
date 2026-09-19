@@ -54,25 +54,25 @@ COCO-Datensatzes — die Kiste bewusst danach sortieren:
 
 | Format | Dauer | Ablauf |
 |---|---|---|
-| **Offenes Exponat** | beliebig | Selbsterklärend, läuft allein. Alle 30–45 Min. kurz vorbeischauen, ggf. „Alles zurücksetzen" (Moderationsleiste). |
+| **Offenes Exponat** | beliebig | Selbsterklärend, läuft allein. Alle 30–45 Min. kurz vorbeischauen, ggf. „♻️ Zurücksetzen" (Moderationsleiste). |
 | **Workshop kompakt** | 45 Min. | 10 Min. Intro → 25 Min. freies Erkunden in Gruppen → 10 Min. Abschlussrunde mit Diskussionskarten |
 | **Workshop vertieft** | 90 Min. | Wie kompakt, plus: 20 Min. Stationen-Rallye mit Aufgaben (Stationskarten) und 15 Min. Diskussion in Kleingruppen |
 
 **Tipp für Gruppen:** Alle sehen dasselbe Kamerabild und steuern gemeinsam.
 Das ist Absicht (gemeinsames Erleben!), kann aber bei großen Gruppen
-chaotisch werden. Dann: Moderationsleiste → „Stationen sperren" und
-gemeinsam durch die Stationen führen. PIN steht in `app/config.py`.
+chaotisch werden. Dann: Moderationsleiste → „🔒 Sperren" und
+gemeinsam durch die Stationen führen. PIN steht in `app/config.py` und lässt sich im System-Fenster (Moderationsleiste → 🖥️ System) jederzeit ändern.
 
 **Ablauf mit einer Schulklasse (ca. 15 Schüler:innen, 1–2 Lehrkräfte):**
 
 1. Vorher auf dem eigenen Handy: unten „Moderator:in" antippen, PIN eingeben.
-2. **Geführte Phase:** „Stationen sperren" — nur ihr wechselt die Station,
+2. **Geführte Phase:** „🔒 Sperren" — nur ihr wechselt die Station,
    alle sehen dasselbe Bild auf ihren Handys. Der Erkennungs-Regler bleibt
    absichtlich für alle frei: damit dürfen sie spielen.
-3. **Freie Phase:** „Stationen freigeben" — die Klasse erkundet selbst. Jeder
+3. **Freie Phase:** „🔓 Freigeben" — die Klasse erkundet selbst. Jeder
    Stationswechsel setzt alle Regler automatisch auf den Startzustand
    zurück, niemand erbt fremde Einstellungen.
-4. **Nächste Klasse:** „Alles zurücksetzen" (zweimal tippen) — trainierte
+4. **Nächste Klasse:** „♻️ Zurücksetzen" (zweimal tippen) — trainierte
    Klassen, Wärmebild und Zähler sind wieder frisch.
 
 ---

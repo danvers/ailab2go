@@ -84,9 +84,16 @@
     font-size: 1.4rem; font-weight: 700; letter-spacing: 0.03em;
     background: linear-gradient(120deg, #2a1245, #400b67);
     color: #fff;
-    border-radius: 12px; padding: 13px 10px; margin-bottom: 10px;
+    border-radius: 12px; padding: 11px 10px 9px; margin-bottom: 10px;
     text-decoration: none;
   }
+  .addr small {
+    display: block; margin-top: 3px;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    font-size: 0.72rem; font-weight: 600; letter-spacing: 0;
+    color: rgba(255, 255, 255, 0.75);
+  }
+  .addr:active { transform: scale(0.985); }
   .fine { color: #6b7390; font-size: 0.76rem; line-height: 1.5; }
 </style>
 </head>
@@ -94,42 +101,21 @@
   <main class="card">
     <div class="top">
       <div class="check" aria-hidden="true">✓</div>
-      <h1>Verbunden!</h1>
+      <h1>{{ t.connected }}</h1>
     </div>
-    <p class="sub">Noch zwei Schritte:
-      <span class="en" lang="en">· two steps to go</span></p>
+    <p class="sub">{{ t.sub }}</p>
 
-    {% if platform == "ios" %}
+    {% set key = platform if platform in ("ios", "android") else "other" %}
     <div class="steps">
-      <div class="step"><span>Oben auf <strong>„Fertig"</strong> tippen.<br>
-        <small>Falls gefragt: <strong>„Ohne Internet
-        verwenden"</strong>.</small></span></div>
-      <div class="step"><span><strong>Safari öffnen</strong> und
-        eintippen:</span></div>
+      <div class="step"><span>{{ t["s1_" + key]|safe }}<br>
+        <small>{{ t["s1s_" + key]|safe }}</small></span></div>
+      <div class="step"><span>{{ t["s2_" + key]|safe }}</span></div>
     </div>
-    {% elif platform == "android" %}
-    <div class="steps">
-      <div class="step"><span>Oben rechts <strong>⋮</strong> →
-        <strong>„Im Browser öffnen"</strong>.<br>
-        <small>„Trotzdem verbunden bleiben?" →
-        <strong>Ja</strong>.</small></span></div>
-      <div class="step"><span>Dann diese Adresse öffnen:</span></div>
-    </div>
-    {% else %}
-    <div class="steps">
-      <div class="step"><span>Dieses Fenster <strong>schließen</strong>.<br>
-        <small>Falls gefragt: im Netzwerk bleiben.</small></span></div>
-      <div class="step"><span><strong>Browser öffnen</strong> und
-        eintippen:</span></div>
-    </div>
-    {% endif %}
 
-    <a class="addr" href="{{ url }}">{{ url_short }}</a>
+    <a class="addr" href="{{ url }}">{{ url_short }}
+      <small>{{ t.tap }}</small></a>
 
-    <p class="fine">Genau diese Adresse tippen — andere erzwingen oft
-      HTTPS und scheitern. Abkürzung: <strong>Poster-QR scannen</strong>.
-      <span lang="en">· Type exactly this address, or scan the
-      poster&nbsp;QR.</span></p>
+    <p class="fine">{{ t.fine_done|safe }}</p>
   </main>
 </body>
 </html>

@@ -18,8 +18,11 @@ html, body { height: 100%; }
 body {
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   background: radial-gradient(1400px 700px at 85% -10%, #1c2440 0%, var(--bg) 55%) fixed;
-  color: var(--text); overflow: hidden; cursor: none;
+  color: var(--text); overflow: hidden;
 }
+/* video-player pattern: the cursor shows while the mouse moves (setup!)
+   and hides itself after a few idle seconds so the wall stays clean */
+body.idle, body.idle * { cursor: none; }
 main { display: grid; grid-template-columns: minmax(0, 8fr) minmax(0, 5fr);
        gap: 1.2vw; height: 100vh; padding: 1.2vw; }
 
@@ -163,7 +166,7 @@ body.lang-en .join .line .en { color: var(--muted); }
       <img src="/static/logo.png" alt="SKILL">
       <img src="/static/logo2.png" alt="aiwareness Lab">
       <span class="rule"></span>
-      <h1>{{ event_name }}</h1>
+      <h1><span class="de">{{ event_name }}</span><span class="dot"> · </span><span class="en">{{ event_name_en }}</span></h1>
     </header>
 
     <div class="stats">
@@ -286,6 +289,16 @@ async function poll() {
   setTimeout(poll, 1000);
 }
 poll();
+
+// cursor: visible while moving, gone after 3 s idle (wall stays clean)
+let cursorTimer;
+function cursorIdle() { document.body.classList.add("idle"); }
+document.addEventListener("mousemove", () => {
+  document.body.classList.remove("idle");
+  clearTimeout(cursorTimer);
+  cursorTimer = setTimeout(cursorIdle, 3000);
+});
+cursorTimer = setTimeout(cursorIdle, 3000);
 
 // stream self-healing (projector browsers left alone for hours)
 const stream = $("#stream");

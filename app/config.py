@@ -103,5 +103,20 @@ PUBLIC_URL = "http://10.10.10.1"
 HOTSPOT_SSID = "KI-Werkstatt"
 
 # --- Exhibit / admin -------------------------------------------------------
-ADMIN_PIN = "2468"          # unlocks the moderator bar in the web UI
-EVENT_NAME = "KI-Werkstatt" # shown in the header
+ADMIN_PIN = "2468"          # unlocks the moderator bar in the web UI.
+# The PIN can be changed in the /system window; the choice is stored in
+# PIN_FILE (outside /opt, so deploys and reboots keep it). Forgot it?
+# Delete that file on the Pi and restart — the value above applies again.
+PIN_FILE = "/var/lib/ki-werkstatt/pin"
+try:
+    with open(PIN_FILE) as _f:
+        ADMIN_PIN = _f.read().strip() or ADMIN_PIN
+except OSError:
+    pass
+EVENT_NAME = "KI-Werkstatt" # shown in the header (German)
+EVENT_NAME_EN = "AI-Lab2go"  # the same exhibit when the UI runs in English
+# Language of the captive welcome pages (Wi-Fi login) and /system:
+#   "auto" — follow each phone's own language (German otherwise)
+#   "de" / "en" — force ONE language for the whole event; set this once
+#                 when you configure the kit for a German or English group
+PORTAL_LANG = "auto"

@@ -56,25 +56,25 @@ dataset — sort the box accordingly, on purpose:
 
 | Format | Length | How it runs |
 |---|---|---|
-| **Open exhibit** | any | Self-explanatory, runs on its own. Look in every 30–45 min and hit "♻️ Reset everything" (Moderator bar) if needed. |
+| **Open exhibit** | any | Self-explanatory, runs on its own. Look in every 30–45 min and hit "♻️ Reset" (Moderator bar) if needed. |
 | **Compact workshop** | 45 min | 10 min intro → 25 min free exploring in groups → 10 min closing round with the discussion cards |
 | **Extended workshop** | 90 min | Like the compact one, plus: 20 min station rally with tasks (station cards) and 15 min small-group discussion |
 
 **Tip for groups:** everyone sees the same camera picture and steers it
 together. That is deliberate (shared experience!), but it can get chaotic
-with big groups. Then use the Moderator bar → "🔒 Lock stations" and walk
-through the stations together. The PIN is in `app/config.py`.
+with big groups. Then use the Moderator bar → "🔒 Lock" and walk
+through the stations together. The PIN is in `app/config.py` and can be changed any time in the System window (moderator bar → 🖥️ System).
 
 **Running a school class (about 15 students, 1–2 teachers):**
 
 1. Beforehand, on your own phone: tap "Moderator" in the footer, enter the PIN.
-2. **Guided phase:** "🔒 Lock stations" — only you switch stations, and
+2. **Guided phase:** "🔒 Lock" — only you switch stations, and
    everyone sees the same picture on their phones. The detection slider
    deliberately stays free for everyone: that one is for playing.
-3. **Free phase:** "🔓 Unlock stations" — the class explores on its own. Every station
+3. **Free phase:** "🔓 Unlock" — the class explores on its own. Every station
    switch automatically resets all controls to their starting values, so
    nobody inherits someone else's settings.
-4. **Next class:** "♻️ Reset everything" (tap twice) — trained classes,
+4. **Next class:** "♻️ Reset" (tap twice) — trained classes,
    heatmap and counters start fresh again.
 
 ---

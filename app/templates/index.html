@@ -18,14 +18,14 @@
       replaced wholesale on a language switch, which would delete the element
       that app.js talks to. Split the sentence instead (see trick.hint1/2).
 -->
-<body>
+<body data-event-de="{{ event_name }}" data-event-en="{{ event_name_en }}">
 
 <header>
   <div class="brand">
     <span class="logo"><img src="/static/logo.png" alt="SKILL"></span>
     <span class="logo"><img src="/static/logo2.png" alt="aiwareness Lab"></span>
     <span class="brand-rule" aria-hidden="true"></span>
-    <h1>{{ event_name }}</h1>
+    <h1 id="event-title">{{ event_name }}</h1>
   </div>
   <div class="head-right">
     <!-- On phones the badge collapses to icon-only via font-size:0 — the
@@ -88,7 +88,7 @@
 
     <!-- ══════════ START ══════════ -->
     <section class="station" data-mode="start" style="--accent:#8b949e">
-      <h2 data-i18n="start.h2">👋 Willkommen in der KI-Werkstatt!</h2>
+      <h2 data-i18n="start.h2">Willkommen in der KI-Werkstatt!</h2>
       <p class="intro" data-i18n="start.intro">Das Bild oben kommt live von einer
         Kamera in diesem Raum — verarbeitet von einem Mini-Computer
         (Raspberry&nbsp;Pi&nbsp;5) mit einem eigenen KI-Chip. Alles passiert
@@ -211,7 +211,7 @@
         <div class="segmented" id="privacy-style" role="group"
              data-i18n-aria-label="schild.styleAria" aria-label="Art der Unkenntlichmachung">
           <button data-style="pixel" class="active" aria-pressed="true" data-i18n="schild.pixel">🟦 Pixel</button>
-          <button data-style="blur" aria-pressed="false" data-i18n="schild.blur">🌫️ Weichzeichner</button>
+          <button data-style="blur" aria-pressed="false" data-i18n="schild.blur">🌫️ Unschärfe</button>
           <button data-style="smiley" aria-pressed="false" data-i18n="schild.smiley">🙂 Smiley</button>
         </div>
         <p class="hint" data-i18n="schild.hint">Der gewählte Schutz gilt an
@@ -382,12 +382,12 @@
   </div>
   <div class="foot-links">
     <span data-i18n="foot.info">📶 10.10.10.1 · medienbildung.team · Open&nbsp;Source (MIT) · läuft ohne Internet</span>
-    <a href="/system" target="_blank" rel="noopener" data-i18n="foot.system">System</a>
     <a href="#" id="admin-link" data-i18n="foot.admin">Moderator:in</a>
   </div>
   <div id="admin-bar" class="admin-bar hidden">
     <button id="admin-lock"></button>
-    <button id="admin-reset" class="danger" data-i18n="foot.resetAll">♻️ Alles zurücksetzen</button>
+    <button id="admin-reset" class="danger" data-i18n="foot.resetAll">♻️ Zurücksetzen</button>
+    <a class="admin-btn" href="/system" target="_blank" rel="noopener">🖥️ System</a>
   </div>
 </footer>
 

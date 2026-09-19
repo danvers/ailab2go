@@ -1,4 +1,4 @@
-# AI-Lab2Go — a mobile computer-vision & privacy-literacy exhibit framework for Raspberry Pi 5
+# AI-Lab2go — a mobile computer-vision & privacy-literacy exhibit framework for Raspberry Pi 5
 
 An out-of-the-box, self-explanatory AI workshop station: the Raspberry Pi 5
 (with AI HAT+ 2) runs a live camera feed through real neural networks and serves

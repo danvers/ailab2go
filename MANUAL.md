@@ -228,12 +228,14 @@ bash setup/hotspot.sh off
 After that, the Pi connects to your home Wi-Fi again as usual;
 `bash setup/hotspot.sh` switches back to event mode.
 
-**Change before the event:** the moderation PIN in
-[app/config.py](app/config.py) (`ADMIN_PIN`) and the hotspot password.
-After changes: run `bash setup/install.sh` again (copies the files to
-`/opt`) and `sudo systemctl restart ki-werkstatt`.
-While the default PIN is active, the `/system` window shows a warning —
-it is public in the repository.
+**Change before the event:** the moderation PIN — easiest directly in
+the **System window** (moderator bar → 🖥️ System → "Change moderator
+PIN"): applies immediately and survives reboots and updates (stored in
+`/var/lib/ki-werkstatt/pin`; forgot it? delete that file on the Pi and
+restart the service, then the value from
+[app/config.py](app/config.py) applies again). Also change the hotspot
+password (`setup/hotspot.sh`). While the default PIN is active, the
+System window shows a warning — it is public in the repository.
 
 ### Classroom security — what the Wi-Fi does on its own
 
@@ -294,7 +296,7 @@ bash setup/kiosk.sh
   Chromium then starts full-screen on the wall page on every boot (screen
   blanking disabled). Turn off again: `bash setup/kiosk.sh off`.
 
-- The counters live in RAM only; "♻️ Reset everything" in the moderation
+- The counters live in RAM only; "♻️ Reset" in the moderation
   bar clears them too.
 
 ---

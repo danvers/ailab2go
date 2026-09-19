@@ -201,12 +201,14 @@ bash setup/hotspot.sh off
 Danach verbindet sich der Pi wieder normal mit dem Heim-WLAN;
 `bash setup/hotspot.sh` schaltet zurück in den Veranstaltungsmodus.
 
-**Vor der Veranstaltung ändern:** Moderations-PIN in
-[app/config.py](app/config.py) (`ADMIN_PIN`) und das Hotspot-Passwort.
-Nach Änderungen: `bash setup/install.sh` erneut ausführen (kopiert die
-Dateien nach `/opt`) und `sudo systemctl restart ki-werkstatt`.
-Solange die Standard-PIN aktiv ist, warnt das `/system`-Fenster —
-sie steht öffentlich im Repository.
+**Vor der Veranstaltung ändern:** die Moderations-PIN — am einfachsten
+direkt im **System-Fenster** (Moderationsleiste → 🖥️ System →
+„Moderations-PIN ändern"): gilt sofort, übersteht Neustarts und Updates
+(gespeichert in `/var/lib/ki-werkstatt/pin`; PIN vergessen? Datei auf dem
+Pi löschen und den Dienst neu starten, dann gilt wieder der Wert aus
+[app/config.py](app/config.py)). Auch das Hotspot-Passwort anpassen
+(`setup/hotspot.sh`). Solange die Standard-PIN aktiv ist, warnt das
+System-Fenster — sie steht öffentlich im Repository.
 
 ### Sicherheit im Klassenbetrieb — was das WLAN von sich aus tut
 
@@ -236,7 +238,7 @@ Morgens nur: **Strom an, 2 Minuten warten, mit dem Handy testen.**
 Alles startet von selbst.
 
 - Moderationsfunktionen: Footer-Link „Moderator:in“ → PIN eingeben →
-  Stationen sperren / alles zurücksetzen
+  Sperren / Zurücksetzen / System
 - Zwischendurch aufräumen (Trainingsdaten, Datenspur): „♻️ Alles
   zurücksetzen“ in der Moderationsleiste
 - Notfall-Universallösung: Strom aus/an. Der Pi bootet direkt wieder in

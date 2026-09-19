@@ -92,11 +92,10 @@
     </div>
     <h1>{{ event_name }}</h1>
 
-    <a class="go" href="/portal/go">🚀 Los geht&rsquo;s!
-      <small>Zur Ausstellung · <span lang="en">Enter the exhibit</span></small></a>
+    <a class="go" href="/portal/go">{{ t.go|safe }}
+      <small>{{ t.go_small }}</small></a>
 
-    <p class="fine">100&nbsp;% lokal, keine Cloud
-      <span lang="en">· fully local</span> — <code>{{ url_short }}</code></p>
+    <p class="fine">{{ t.fine_portal|safe }} <code>{{ url_short }}</code></p>
   </main>
 </body>
 </html>

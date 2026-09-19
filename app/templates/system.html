@@ -114,10 +114,41 @@
   <tr><td data-i18n="rowThrottle">Drosselung</td><td id="r-throttle">–</td></tr>
 </table>
 
+<div class="card" id="pin-card">
+  <h2 data-i18n="pinTitle">Moderations-PIN ändern</h2>
+  <form id="pin-form" autocomplete="off">
+    <input id="pin-cur" type="password" inputmode="numeric" required
+           data-i18n-placeholder="pinCur" placeholder="Aktuelle PIN">
+    <input id="pin-new" type="password" inputmode="numeric" required
+           minlength="4" maxlength="8" pattern="[0-9]{4,8}"
+           data-i18n-placeholder="pinNew" placeholder="Neue PIN (4–8 Ziffern)">
+    <button type="submit" data-i18n="pinSave">Speichern</button>
+  </form>
+  <div class="note" id="pin-msg" data-i18n="pinNote">Gilt sofort für alle —
+    übersteht Neustarts und Updates.</div>
+</div>
+
 <footer>
   <a href="/" data-i18n="back">← zurück zur Werkstatt</a>
 </footer>
 
+<style>
+#pin-form { display: flex; gap: 8px; flex-wrap: wrap; margin: 10px 0 6px; }
+#pin-form input {
+  flex: 1 1 130px; min-width: 0; font: inherit; font-size: 0.9rem;
+  padding: 8px 10px; border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.06); color: inherit;
+}
+#pin-form button {
+  font: inherit; font-size: 0.9rem; font-weight: 600; cursor: pointer;
+  padding: 8px 14px; border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.10); color: inherit;
+}
+#pin-msg.ok { color: #7ee2a8; }
+#pin-msg.err { color: #ff9d9d; }
+</style>
 <script>
 "use strict";
 
@@ -134,11 +165,22 @@ const LANG = {
   rowFace: "Face detection", rowViewers: "Viewers right now",
   rowMode: "Active station", rowUptime: "Running for",
   rowThrottle: "Throttling",
+  pinTitle: "Change moderator PIN",
+  pinSave: "Save",
+  pinNote: "Applies immediately for everyone — survives reboots and updates.",
   back: "← back to the workshop",
+};
+const LANG_PH = {   // placeholders swap separately (inputs have no innerHTML)
+  pinCur: "Current PIN",
+  pinNew: "New PIN (4–8 digits)",
 };
 
 const DYN = {
   de: {
+    pinOk: "✓ PIN geändert — gilt ab sofort.",
+    pinWrong: "Aktuelle PIN falsch (nach 5 Fehlversuchen: 60 s Sperre).",
+    pinBad: "Neue PIN: 4–8 Ziffern.",
+    pinFail: "Speichern fehlgeschlagen — Moderation fragen.",
     noFan: "nicht erkannt",
     fanOff: "steht still",
     rpmUnit: "U/min",
@@ -165,6 +207,10 @@ const DYN = {
     off: "aus", on: "an",
   },
   en: {
+    pinOk: "✓ PIN changed — effective immediately.",
+    pinWrong: "Current PIN wrong (5 misses lock you out for 60 s).",
+    pinBad: "New PIN: 4–8 digits.",
+    pinFail: "Saving failed — ask the facilitator.",
     noFan: "not detected",
     fanOff: "stopped",
     rpmUnit: "rpm",
@@ -195,6 +241,10 @@ const DE = {};
 document.querySelectorAll("[data-i18n]").forEach(el => {
   DE[el.dataset.i18n] = el.innerHTML;
 });
+const DE_PH = {};
+document.querySelectorAll("[data-i18n-placeholder]").forEach(el => {
+  DE_PH[el.dataset.i18nPlaceholder] = el.placeholder;
+});
 
 function setLang(next) {
   lang = next;
@@ -202,6 +252,11 @@ function setLang(next) {
   const table = next === "en" ? LANG : DE;
   document.querySelectorAll("[data-i18n]").forEach(el => {
     if (table[el.dataset.i18n] !== undefined) el.innerHTML = table[el.dataset.i18n];
+  });
+  const ph = next === "en" ? LANG_PH : DE_PH;
+  document.querySelectorAll("[data-i18n-placeholder]").forEach(el => {
+    if (ph[el.dataset.i18nPlaceholder] !== undefined)
+      el.placeholder = ph[el.dataset.i18nPlaceholder];
   });
   document.querySelectorAll(".langswitch button").forEach(b => {
     b.setAttribute("aria-pressed", String(b.dataset.lang === next));
@@ -314,6 +369,24 @@ async function tick() {
 }
 tick();
 setInterval(tick, 3000);
+
+document.getElementById("pin-form").addEventListener("submit", async (ev) => {
+  ev.preventDefault();
+  const msg = $("#pin-msg");
+  let res;
+  try {
+    res = await fetch("/api/admin", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ pin: $("#pin-cur").value, action: "set_pin",
+                             new_pin: $("#pin-new").value }),
+    });
+  } catch (e) { res = { ok: false, status: 0 }; }
+  msg.className = "note " + (res.ok ? "ok" : "err");
+  msg.textContent = res.ok ? d().pinOk
+    : res.status === 403 ? d().pinWrong
+    : res.status === 400 ? d().pinBad : d().pinFail;
+  if (res.ok) { $("#pin-cur").value = ""; $("#pin-new").value = ""; }
+});
 </script>
 </body>
 </html>

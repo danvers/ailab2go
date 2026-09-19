@@ -41,7 +41,7 @@ window.I18N = (() => {
     "pose.done": "🎉 You did it!",
     "start.overlayTitle": "👋 Welcome!",
     "start.overlaySub": "Pick a station",
-    "start.h2": "👋 Welcome to the KI-Werkstatt!",
+    "start.h2": "Welcome to AI-Lab2go!",
     "start.intro": "The picture above is live from a camera in this room — processed " +
       "by a mini computer (Raspberry&nbsp;Pi&nbsp;5) with its own AI chip. Everything " +
       "happens <strong>right here</strong>: no image ever leaves this room.",
@@ -194,7 +194,6 @@ window.I18N = (() => {
 
     "foot.info": "📶 10.10.10.1 · medienbildung.team · " +
       "open source (MIT) · runs without internet",
-    "foot.system": "System",
     "foot.admin": "Moderator",
     "foot.resetAll": "♻️ Reset everything",
   };
@@ -214,7 +213,7 @@ window.I18N = (() => {
       teachResetLabel: "🗑️ Alles vergessen lassen",
       teachResetToast: "🗑️ Alle Trainingsdaten gelöscht. Recht auf Löschung ausgeübt!",
       heatResetLabel: "🧹 Datenspur löschen",
-      adminResetLabel: "♻️ Alles zurücksetzen",
+      adminResetLabel: "♻️ Zurücksetzen",
       heatResetToast: "🧹 Datenspur gelöscht — die Sammlung beginnt von vorn.",
       capture: "📸 Beispiel aufnehmen",
       captureOk: "✨ gespeichert!",
@@ -232,8 +231,8 @@ window.I18N = (() => {
       wrongPin: "❌ Falsche PIN.",
       adminShown: "🔧 Moderationsleiste eingeblendet.",
       adminResetToast: "♻️ Trainingsdaten, Datenspur und Zähler zurückgesetzt.",
-      lockBtn: "🔒 Stationen sperren",
-      unlockBtn: "🔓 Stationen freigeben",
+      lockBtn: "🔒 Sperren",
+      unlockBtn: "🔓 Freigeben",
       lockedChip: "🔒 Stationen gesperrt",
       aiOk: (m) => `⚡ KI-Chip aktiv (${m})`,
       aiDemo: (m) => `🐢 Demo-Modus ohne KI-Chip — ${m}`,
@@ -269,7 +268,7 @@ window.I18N = (() => {
       teachResetLabel: "🗑️ Make it forget everything",
       teachResetToast: "🗑️ All training data deleted. Right to erasure exercised!",
       heatResetLabel: "🧹 Erase the data trail",
-      adminResetLabel: "♻️ Reset everything",
+      adminResetLabel: "♻️ Reset",
       heatResetToast: "🧹 Data trail erased — collection starts over.",
       capture: "📸 Capture example",
       captureOk: "✨ saved!",
@@ -287,8 +286,8 @@ window.I18N = (() => {
       wrongPin: "❌ Wrong PIN.",
       adminShown: "🔧 Moderator bar enabled.",
       adminResetToast: "♻️ Training data, data trail and counters reset.",
-      lockBtn: "🔒 Lock stations",
-      unlockBtn: "🔓 Unlock stations",
+      lockBtn: "🔒 Lock",
+      unlockBtn: "🔓 Unlock",
       lockedChip: "🔒 Stations locked",
       aiOk: (m) => `⚡ AI chip active (${m})`,
       aiDemo: (m) => `🐢 Demo mode without AI chip — ${m}`,
@@ -362,6 +361,13 @@ window.I18N = (() => {
       b.classList.toggle("active", on);
       b.setAttribute("aria-pressed", String(on));
     });
+    // the exhibit is called KI-Werkstatt in German, AI-Lab2go in English —
+    // both names come from config via body data attributes, so a renamed
+    // event stays renameable in ONE place (app/config.py)
+    const brand = lang === "en" ? document.body.dataset.eventEn
+                                : document.body.dataset.eventDe;
+    const titleEl = document.getElementById("event-title");
+    if (brand && titleEl) { titleEl.textContent = brand; document.title = brand; }
   }
 
   function set(next) {
