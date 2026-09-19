@@ -6,8 +6,20 @@ After=network-online.target
 Wants=network-online.target
 
 [Service]
+# Boot race: we are started long before the Hailo driver has created its
+# device node — a failed first open would leave the exhibit in demo mode
+# until the next restart. Wait up to 30 s for /dev/hailo0 (plus a moment
+# for the firmware to settle), then start either way: a Pi without a HAT
+# still gets its demo mode, just 30 s later.
+ExecStartPre=/bin/sh -c 'for i in $(seq 30); do [ -e /dev/hailo0 ] && sleep 2 && exit 0; sleep 1; done; exit 0'
 # Root is needed for port 80; the app itself only touches the camera,
-# the Hailo device and its own directory.
+# the Hailo device and its own directory. The directives below cost
+# nothing and cut what a compromised process could reach: no privilege
+# escalation, its own /tmp, no user homes, read-only /usr and /etc.
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=full
 ExecStart=/usr/bin/python3 /opt/ki-werkstatt/app/main.py --host 0.0.0.0 --port 80
 WorkingDirectory=/opt/ki-werkstatt/app
 Restart=always

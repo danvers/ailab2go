@@ -150,6 +150,9 @@ const DYN = {
     never: "nie",
     now: "wird gerade gedrosselt",
     ever: "war schon gedrosselt",
+    pinAlert: "&#9888;&#65039; Die Moderations-PIN ist noch der " +
+      "&ouml;ffentliche Standardwert aus dem Repository. Vor einer echten " +
+      "Veranstaltung eine eigene PIN in app/config.py (ADMIN_PIN) setzen.",
     fanAlert: "<b>Kein Lüfter erkannt.</b> Der Pi hat beim Einschalten keinen " +
       "Lüfter gefunden. Der kleine 4-polige Stecker sitzt oben rechts " +
       "zwischen der GPIO-Stiftleiste und den USB-Buchsen — beim AI HAT " +
@@ -173,6 +176,9 @@ const DYN = {
     never: "never",
     now: "throttling right now",
     ever: "has throttled before",
+    pinAlert: "&#9888;&#65039; The moderator PIN is still the public " +
+      "default from the repository. Set your own in app/config.py " +
+      "(ADMIN_PIN) before running a real event.",
     fanAlert: "<b>No fan detected.</b> The Pi found no fan at power-on. The " +
       "small 4-pin plug sits at the top right between the GPIO header and " +
       "the USB sockets — with an AI HAT fitted it ends up underneath, and " +
@@ -264,8 +270,9 @@ function paint(s) {
   // "no fan" only means something on a machine that reports a CPU temperature
   const fanMissing = sys.temp_c != null && sys.fan_rpm == null;
   const tooHot = (sys.temp_c || 0) >= 80 || (sys.hailo_c || 0) >= 85;
-  if (fanMissing || tooHot) {
-    alert.innerHTML = fanMissing ? d().fanAlert : d().hotAlert;
+  if (fanMissing || tooHot || sys.default_pin) {
+    alert.innerHTML = fanMissing ? d().fanAlert
+                    : tooHot ? d().hotAlert : d().pinAlert;
     alert.classList.remove("hidden");
   } else {
     alert.classList.add("hidden");

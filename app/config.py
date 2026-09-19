@@ -6,7 +6,24 @@ Everything an event facilitator might want to tweak lives here.
 # --- Video -----------------------------------------------------------------
 FRAME_SIZE = (640, 360)     # display/stream resolution (16:9)
 JPEG_QUALITY = 70           # stream compression (lower = less bandwidth)
-STREAM_MAX_FPS = 12         # per-client cap, keeps the hotspot happy
+STREAM_MAX_FPS = 24         # per-client ceiling with FEW viewers; the
+                            # cap scales down as viewers join (24 up to 4,
+                            # 15 up to 8, 10 beyond) so a full class does
+                            # not saturate the hotspot radio.
+PROCESS_MAX_FPS = 30        # video passes (overlays + JPEG) per second.
+                            # Keep this AT or ABOVE the camera rate: frames
+                            # arrive on the camera's grid, so a cap between
+                            # half and full rate just quantizes DOWN (a 24
+                            # cap on a 30 fps camera lands on 15), and the
+                            # per-viewer caps then starve on a slow
+                            # publisher. Cheap per-frame work (draw + JPEG)
+                            # makes full rate affordable — the heat lives
+                            # in INFER_MAX_FPS below.
+INFER_MAX_FPS = 12          # AI passes (Hailo detect/pose, trainer) per
+                            # second — heat. Video and AI are decoupled:
+                            # frames publish at PROCESS_MAX_FPS with the
+                            # latest smoothed overlays drawn on, while the
+                            # accelerator only runs this often.
 WEBCAM_FPS = 20             # requested from USB cameras (phone stream is
                             # capped at 12 fps anyway). NOTE: many UVC models
                             # only offer fixed rates per mode — the ELP 48MP
@@ -54,7 +71,9 @@ POSE_HOLD_SECONDS = 0.8      # how long a pose must be held to pass a challenge
 
 # --- Stations --------------------------------------------------------------
 DEFAULT_MODE = "start"
-DETECT_THRESHOLD_DEFAULT = 0.5   # confidence slider start value
+DETECT_THRESHOLD_DEFAULT = 0.4   # confidence slider start value — COCO
+                                 # scores real-world props conservatively;
+                                 # 0.5 hid too much (the slider stays)
 # Steadiness of the detection overlay (anti-flicker). An object must be seen
 # for ENTER consecutive frames before it appears, and survives HOLD frames of
 # dropout before it disappears. Higher = calmer but more sluggish.
@@ -69,7 +88,13 @@ FACE_GUARD_GLOBAL_DEFAULT = True # anonymise faces in every station by default
 # /beamer is a passive full-screen wall display (projector or TV): live
 # stream, big counters, rotating "did you know" facts. No controls.
 EXHIBIT_AUTOROTATE = True     # tour the stations while nobody interacts
-EXHIBIT_IDLE_AFTER = 90       # seconds without interaction → attract mode
+EXHIBIT_IDLE_AFTER = 300      # seconds without interaction → attract mode.
+                              # Generous on purpose: someone holding props
+                              # in front of the camera taps nothing for a
+                              # while — at 90 s the tour yanked the station
+                              # away mid-experiment (and, since the
+                              # reset-on-switch feature, snapped their
+                              # threshold slider back too).
 EXHIBIT_ROTATE_EVERY = 25     # seconds per station while touring
 EXHIBIT_TOUR = ["detektiv", "schild", "pose", "spur"]  # the visual ones
 

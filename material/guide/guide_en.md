@@ -36,11 +36,19 @@ protect. What matters is how we build it and how we use it.
 
 ### The prop box (this is what makes the difference!)
 
-Mug, banana, apple, book, teddy bear, bottle, scissors, umbrella — all
-things the AI knows. Plus things it does **not** know (a toy dinosaur,
-tools, any vegetable other than broccoli or carrot) → essential for
-stations 1 and 5. Sunglasses, a hat, a scarf → for stations 3 and 5. And a
-phone with photos of animals on it → the "Ghosts" challenge in station 5.
+The built-in model knows exactly the 80 everyday classes of the COCO
+dataset — sort the box accordingly, on purpose:
+
+- **Works reliably (station 1):** mug, banana, apple, orange, bottle,
+  book, teddy bear, scissors, ball, umbrella, phone, laptop, clock,
+  spoon.
+- **Fails on purpose** (a toy dinosaur, hammer/screwdriver, any
+  vegetable other than broccoli or carrot): don't toss these! Train
+  them at station 2 first — the Detective then recognises them as
+  "✨ self-trained" — and at station 5 they are your best ammunition.
+- Sunglasses, a hat, a scarf → for stations 3 and 5.
+- A phone with photos of animals on it → the "Ghosts" challenge in
+  station 5.
 
 ---
 
@@ -56,6 +64,18 @@ phone with photos of animals on it → the "Ghosts" challenge in station 5.
 together. That is deliberate (shared experience!), but it can get chaotic
 with big groups. Then use the Moderator bar → "🔒 Lock stations" and walk
 through the stations together. The PIN is in `app/config.py`.
+
+**Running a school class (about 15 students, 1–2 teachers):**
+
+1. Beforehand, on your own phone: tap "Moderator" in the footer, enter the PIN.
+2. **Guided phase:** "🔒 Lock stations" — only you switch stations, and
+   everyone sees the same picture on their phones. The detection slider
+   deliberately stays free for everyone: that one is for playing.
+3. **Free phase:** "🔓 Unlock stations" — the class explores on its own. Every station
+   switch automatically resets all controls to their starting values, so
+   nobody inherits someone else's settings.
+4. **Next class:** "♻️ Reset everything" (tap twice) — trained classes,
+   heatmap and counters start fresh again.
 
 ---
 
@@ -75,6 +95,12 @@ skewed AI (bias). Bonus: the right to erasure, experienced first-hand.
 **Facilitation prompt:** have them train it "badly" on purpose (every
 example from the same angle) and watch it fail together. That is the
 learning moment!
+**Bridge to station 1:** whatever is trained here (at least two
+classes) joins the Object Detective afterwards — a golden frame marked
+"✨ self-trained" in the centre of the picture, right next to the
+factory detections. A strong comparison: the frozen factory model
+versus your own training. Tip: also training an "empty table" class
+makes the results noticeably cleaner.
 
 ### 🛡️ 3 · Privacy Shield
 **Learning goal:** detection ≠ recognition; technology can *protect*

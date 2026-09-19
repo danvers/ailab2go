@@ -35,11 +35,18 @@ Es kommt darauf an, wie wir sie bauen und einsetzen.
 
 ### Requisiten-Kiste (macht den Unterschied!)
 
-Tasse, Banane, Apfel, Buch, Teddybär, Flasche, Schere, Regenschirm —
-alles Dinge, die die KI kennt. Dazu Dinge, die sie **nicht** kennt
-(Spielzeugdino, Werkzeug, Gemüse außer Brokkoli/Karotte) → wichtig für
-Station 1 und 5. Sonnenbrille, Mütze, Schal → für Station 3 und 5.
-Ein Handy mit Tierfotos → „Geister"-Challenge in Station 5.
+Das eingebaute Modell kennt genau die 80 Alltagsklassen des
+COCO-Datensatzes — die Kiste bewusst danach sortieren:
+
+- **Klappt zuverlässig (Station 1):** Tasse, Banane, Apfel, Orange,
+  Flasche, Buch, Teddybär, Schere, Ball, Regenschirm, Handy, Laptop,
+  Uhr, Löffel.
+- **Scheitert absichtlich** (Spielzeugdino, Hammer/Schraubenzieher,
+  Gemüse außer Brokkoli/Karotte): nicht wegwerfen! Erst an Station 2
+  antrainieren — dann erkennt der Detektiv sie als „✨ selbst trainiert"
+  — und an Station 5 sind sie die beste Munition.
+- Sonnenbrille, Mütze, Schal → für Station 3 und 5.
+- Ein Handy mit Tierfotos → „Geister"-Challenge in Station 5.
 
 ---
 
@@ -55,6 +62,18 @@ Ein Handy mit Tierfotos → „Geister"-Challenge in Station 5.
 Das ist Absicht (gemeinsames Erleben!), kann aber bei großen Gruppen
 chaotisch werden. Dann: Moderationsleiste → „Stationen sperren" und
 gemeinsam durch die Stationen führen. PIN steht in `app/config.py`.
+
+**Ablauf mit einer Schulklasse (ca. 15 Schüler:innen, 1–2 Lehrkräfte):**
+
+1. Vorher auf dem eigenen Handy: unten „Moderator:in" antippen, PIN eingeben.
+2. **Geführte Phase:** „Stationen sperren" — nur ihr wechselt die Station,
+   alle sehen dasselbe Bild auf ihren Handys. Der Erkennungs-Regler bleibt
+   absichtlich für alle frei: damit dürfen sie spielen.
+3. **Freie Phase:** „Stationen freigeben" — die Klasse erkundet selbst. Jeder
+   Stationswechsel setzt alle Regler automatisch auf den Startzustand
+   zurück, niemand erbt fremde Einstellungen.
+4. **Nächste Klasse:** „Alles zurücksetzen" (zweimal tippen) — trainierte
+   Klassen, Wärmebild und Zähler sind wieder frisch.
 
 ---
 
@@ -73,6 +92,12 @@ verzerrte KI (Bias). Bonus: Recht auf Löschung praktisch erlebt.
 **Moderationsimpuls:** Absichtlich „schlecht" trainieren lassen (alle
 Beispiele aus einem Winkel) und gemeinsam scheitern sehen. Das ist der
 Lernmoment!
+**Brücke zu Station 1:** Was hier trainiert wird (mindestens zwei
+Klassen), erkennt der Objekt-Detektiv danach mit — als goldener Rahmen
+„✨ selbst trainiert" in der Bildmitte, neben den Werks-Erkennungen.
+Starker Vergleich: das eingefrorene Fabrikmodell gegen euer eigenes
+Training. Tipp: eine Klasse „leerer Tisch" mittrainieren macht die
+Ergebnisse deutlich sauberer.
 
 ### 🛡️ 3 · Privatsphäre-Schild
 **Lernziel:** Erkennen ≠ Wiedererkennen; Technik kann Privatsphäre

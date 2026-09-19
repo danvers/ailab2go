@@ -38,6 +38,8 @@ rsync -rlt --delete \
 echo "→ Installing to /opt and restarting the service"
 ssh "$TARGET" '
     sudo rsync -a --delete --exclude .git ~/ki-werkstatt/ /opt/ki-werkstatt/
+    sudo cp /opt/ki-werkstatt/setup/ki-werkstatt.service /etc/systemd/system/
+    sudo systemctl daemon-reload
     sudo systemctl restart ki-werkstatt
     sleep 6
     journalctl -u ki-werkstatt -b --no-pager | \

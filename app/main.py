@@ -75,6 +75,9 @@ def main():
     pose, pose_status = vision.open_pose() if detector else (None, "ohne KI-Chip")
     log.info("Pose model: %s", pose_status)
 
+    if config.ADMIN_PIN == "2468":
+        log.warning("ADMIN_PIN ist noch der oeffentliche Standardwert — "
+                    "vor echten Veranstaltungen in app/config.py aendern!")
     pipeline = stations.Pipeline(source, detector, detector_status,
                                  pose, pose_status)
     log.info("Face guard backend: %s", pipeline.faces.backend)

@@ -209,6 +209,13 @@ Because there is no internet, Android may ask once "Stay connected?" —
 confirm. A few devices with strict private DNS won't show the sheet at
 all — scan the QR code or type the address as before.
 
+**Why other addresses don't redirect:** modern browsers force HTTPS —
+typing `google.com` or searching lands on port 443, where this exhibit
+deliberately does not answer (a fake certificate would be worse than an
+error page). Exactly two ways are reliable: the bare address
+`10.10.10.1` — and the **QR code on the poster**, which is the most
+convenient one for phones.
+
 **From now on the hotspot starts automatically on every boot** (taking
 priority over your home Wi-Fi) — just plugging in the power is enough;
 the exhibit is fully self-contained. To turn it off again (permanently,
@@ -225,6 +232,27 @@ After that, the Pi connects to your home Wi-Fi again as usual;
 [app/config.py](app/config.py) (`ADMIN_PIN`) and the hotspot password.
 After changes: run `bash setup/install.sh` again (copies the files to
 `/opt`) and `sudo systemctl restart ki-werkstatt`.
+While the default PIN is active, the `/system` window shows a warning —
+it is public in the repository.
+
+### Classroom security — what the Wi-Fi does on its own
+
+The guest Wi-Fi is built for strangers' devices and hardens itself
+(anchored in [setup/hotspot.sh](setup/hotspot.sh), survives reboots):
+
+- **Device isolation:** phones on the hotspot only ever reach the Pi,
+  never each other — nobody can poke at a classmate's device.
+- **No forwarding:** even with a maintenance ethernet cable plugged in
+  (home or school network!), hotspot devices are never routed there —
+  the class stays in its bubble.
+- **Key-only SSH:** password SSH login is disabled from the guest
+  Wi-Fi; guessing passwords from a student phone goes nowhere. (Over
+  ethernet, password login stays available as a rescue path.)
+- **PIN brake:** five wrong moderation PINs lock that device out for
+  60 seconds — brute-forcing does not pay.
+- Faces are anonymised by default in every station; the training
+  station stores **no images**, only abstract feature vectors, all in
+  RAM only (gone at power-off).
 
 ---
 

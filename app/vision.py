@@ -39,6 +39,21 @@ def hailo_temperature():
 
 # --- Object detection (AI HAT) ---------------------------------------------
 
+def _letterbox(frame, mw, mh):
+    """Fit the frame into the model canvas WITHOUT distortion: scale to
+    fit, pad bottom/right with YOLO's canonical gray. The old plain resize
+    squashed 16:9 into the square input (1.8x vertical stretch) and cost
+    real accuracy. Returns the canvas plus the (sx, sy) fraction the image
+    occupies, for mapping normalised model outputs back."""
+    h, w = frame.shape[:2]
+    scale = min(mw / w, mh / h)
+    nw, nh = int(round(w * scale)), int(round(h * scale))
+    canvas = np.full((mh, mw, 3), 114, np.uint8)
+    canvas[:nh, :nw] = cv2.resize(frame, (nw, nh),
+                                  interpolation=cv2.INTER_LINEAR)
+    return canvas, (nw / mw, nh / mh)
+
+
 class HailoDetector:
     """YOLO object detection on the Hailo accelerator via picamera2's wrapper.
 
@@ -53,14 +68,14 @@ class HailoDetector:
         self.height, self.width, _ = self.hailo.get_input_shape()
 
     def detect(self, frame_bgr):
-        model_frame = cv2.resize(frame_bgr, (self.width, self.height))
+        model_frame, span = _letterbox(frame_bgr, self.width, self.height)
         if config.MODEL_EXPECTS_RGB:
             model_frame = cv2.cvtColor(model_frame, cv2.COLOR_BGR2RGB)
         raw = self.hailo.run(model_frame)
-        return self._extract(raw)
+        return self._extract(raw, span)
 
     @staticmethod
-    def _extract(raw):
+    def _extract(raw, span=(1.0, 1.0)):
         # Some HailoRT versions wrap the per-class list in one more list.
         if isinstance(raw, list) and len(raw) == 1 and isinstance(raw[0], (list, np.ndarray)) \
                 and len(raw[0]) > 20:
@@ -71,7 +86,10 @@ class HailoDetector:
                 if len(det) < 5:
                     continue
                 y0, x0, y1, x1, score = (float(v) for v in det[:5])
-                detections.append((class_id, score, (x0, y0, x1, y1)))
+                sx, sy = span              # undo the letterbox padding
+                box = (min(x0 / sx, 1.0), min(y0 / sy, 1.0),
+                       min(x1 / sx, 1.0), min(y1 / sy, 1.0))
+                detections.append((class_id, score, box))
         return detections
 
     def close(self):
@@ -120,11 +138,16 @@ class PoseEstimator:
     def infer(self, frame_bgr):
         """Return persons as dicts: score, box (normalised x0,y0,x1,y1),
         kpts (17,3) array of normalised x, y and confidence."""
-        model = cv2.resize(frame_bgr, (self.width, self.height))
+        model, (sx, sy) = _letterbox(frame_bgr, self.width, self.height)
         if config.MODEL_EXPECTS_RGB:
             model = cv2.cvtColor(model, cv2.COLOR_BGR2RGB)
         raw = self.hailo.run(model)
-        return self._decode(raw)
+        persons = self._decode(raw)
+        for p in persons:                  # undo the letterbox padding
+            p["box"] = p["box"] / np.array([sx, sy, sx, sy])
+            p["kpts"][:, 0] /= sx
+            p["kpts"][:, 1] /= sy
+        return persons
 
     def _decode(self, raw):
         by_scale = {}

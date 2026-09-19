@@ -21,98 +21,115 @@
   the most restricted browsers we serve.
 -->
 <style>
+  /* One visual system, shared with the portal page: brand gradient
+     (#400b67 -> #c32683) for identity, ONE green element (the check) for
+     success. Compact on purpose — captive sheets are small windows that
+     often cannot scroll, so the whole card must fit ~560px of height. */
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
     font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
     background: #e8ecf5; color: #141a33;
     min-height: 100vh; min-height: 100dvh;
     display: flex; align-items: center; justify-content: center;
-    padding: 18px;
+    padding: 12px;
   }
   .card {
-    background: #fdfdfd; border-radius: 22px;
-    box-shadow: 0 18px 60px rgba(20, 26, 51, 0.18);
-    padding: 30px 24px 22px; max-width: 430px; width: 100%;
+    background: #fdfdfd; border-radius: 20px;
+    box-shadow: 0 14px 44px rgba(20, 26, 51, 0.16);
+    padding: 22px 22px 16px; max-width: 400px; width: 100%;
     text-align: center; overflow: hidden; position: relative;
   }
   .card::before { content: ""; position: absolute; left: 0; right: 0; top: 0;
-    height: 7px; background: linear-gradient(90deg, #0e6b47, #1fa877); }
+    height: 5px; background: linear-gradient(90deg, #400b67, #c32683); }
+  .top { display: flex; align-items: center; justify-content: center;
+         gap: 12px; margin-bottom: 4px; }
   .check {
-    width: 64px; height: 64px; border-radius: 50%;
+    flex: 0 0 auto; width: 44px; height: 44px; border-radius: 50%;
     background: linear-gradient(135deg, #0e6b47, #1fa877);
-    color: #fff; font-size: 2.1rem; line-height: 64px;
-    margin: 2px auto 14px;
+    color: #fff; font-size: 1.5rem; line-height: 44px;
   }
-  h1 { font-size: 1.5rem; font-weight: 800; margin-bottom: 4px; }
-  .sub { color: #5a6382; font-size: 0.92rem; line-height: 1.5; margin-bottom: 18px; }
+  h1 { font-size: 1.45rem; font-weight: 800; letter-spacing: -0.01em;
+       color: #400b67; }
+  @supports (-webkit-background-clip: text) {
+    h1 {
+      background: linear-gradient(90deg, #400b67, #c32683);
+      -webkit-background-clip: text; background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+  }
+  .sub { color: #5a6382; font-size: 0.9rem; line-height: 1.45;
+         margin-bottom: 14px; }
+  .sub .en { color: #8a91a8; font-size: 0.8rem; }
   .steps {
-    text-align: left; margin-bottom: 16px;
+    text-align: left; margin-bottom: 12px;
     counter-reset: step;
-    display: flex; flex-direction: column; gap: 8px;
+    display: flex; flex-direction: column; gap: 6px;
   }
   .step {
-    display: flex; align-items: center; gap: 12px;
-    background: #f2f5fb; border-radius: 14px; padding: 13px 14px;
-    font-size: 1rem; line-height: 1.45; color: #1c2440;
+    display: flex; align-items: center; gap: 11px;
+    background: #f2f5fb; border-radius: 12px; padding: 10px 12px;
+    font-size: 0.95rem; line-height: 1.4; color: #1c2440;
   }
+  .step small { color: #5a6382; }
   .step::before {
     counter-increment: step; content: counter(step);
-    flex: 0 0 auto; width: 30px; height: 30px; border-radius: 50%;
+    flex: 0 0 auto; width: 26px; height: 26px; border-radius: 50%;
     background: linear-gradient(135deg, #400b67, #c32683);
-    color: #fff; font-weight: 800; font-size: 0.95rem;
+    color: #fff; font-weight: 800; font-size: 0.85rem;
     display: flex; align-items: center; justify-content: center;
   }
   .step strong { font-weight: 800; }
   .addr {
     display: block; font-family: ui-monospace, Menlo, monospace;
-    font-size: 1.5rem; font-weight: 700; letter-spacing: 0.02em;
-    background: #141a33; color: #fff;
-    border-radius: 14px; padding: 15px 10px; margin-bottom: 14px;
+    font-size: 1.4rem; font-weight: 700; letter-spacing: 0.03em;
+    background: linear-gradient(120deg, #2a1245, #400b67);
+    color: #fff;
+    border-radius: 12px; padding: 13px 10px; margin-bottom: 10px;
     text-decoration: none;
   }
-  .fine { color: #6b7390; font-size: 0.8rem; line-height: 1.55; }
+  .fine { color: #6b7390; font-size: 0.76rem; line-height: 1.5; }
 </style>
 </head>
 <body>
   <main class="card">
-    <div class="check" aria-hidden="true">✓</div>
-    <h1>Verbunden!</h1>
-    <p class="sub">Dein Gerät ist im Werkstatt-WLAN angemeldet.
-      Noch zwei Fingertipps:<br>
-      <span lang="en">You're in — two taps to go.</span></p>
+    <div class="top">
+      <div class="check" aria-hidden="true">✓</div>
+      <h1>Verbunden!</h1>
+    </div>
+    <p class="sub">Noch zwei Schritte:
+      <span class="en" lang="en">· two steps to go</span></p>
 
     {% if platform == "ios" %}
     <div class="steps">
-      <div class="step"><span>Oben auf <strong>„Fertig"</strong> tippen —
-        das WLAN bleibt verbunden.<br><small>Fragt dein iPhone doch etwas:
-        <strong>„Ohne Internet verwenden"</strong> wählen.</small></span></div>
-      <div class="step"><span><strong>Safari öffnen</strong> und diese
-        Adresse eingeben:</span></div>
+      <div class="step"><span>Oben auf <strong>„Fertig"</strong> tippen.<br>
+        <small>Falls gefragt: <strong>„Ohne Internet
+        verwenden"</strong>.</small></span></div>
+      <div class="step"><span><strong>Safari öffnen</strong> und
+        eintippen:</span></div>
     </div>
     {% elif platform == "android" %}
     <div class="steps">
       <div class="step"><span>Oben rechts <strong>⋮</strong> →
-        <strong>„Im Browser öffnen"</strong> antippen.<br>
-        <small>Kein Menü? Dann Fenster schließen und den Browser selbst
-        öffnen. Fragt Android „Trotzdem verbunden bleiben?" →
+        <strong>„Im Browser öffnen"</strong>.<br>
+        <small>„Trotzdem verbunden bleiben?" →
         <strong>Ja</strong>.</small></span></div>
-      <div class="step"><span>Im Browser diese Adresse öffnen:</span></div>
+      <div class="step"><span>Dann diese Adresse öffnen:</span></div>
     </div>
     {% else %}
     <div class="steps">
-      <div class="step"><span>Dieses Fenster <strong>schließen</strong>
-        (im Netzwerk bleiben, falls gefragt).</span></div>
-      <div class="step"><span><strong>Browser öffnen</strong> und diese
-        Adresse eingeben:</span></div>
+      <div class="step"><span>Dieses Fenster <strong>schließen</strong>.<br>
+        <small>Falls gefragt: im Netzwerk bleiben.</small></span></div>
+      <div class="step"><span><strong>Browser öffnen</strong> und
+        eintippen:</span></div>
     </div>
     {% endif %}
 
     <a class="addr" href="{{ url }}">{{ url_short }}</a>
 
-    <p class="fine">Vertippt? Egal — in diesem WLAN führt <em>jede</em>
-      Web-Adresse zur Werkstatt. Die Adresse steht auch auf dem Poster.<br>
-      <span lang="en">Any web address typed in this Wi-Fi leads to the
-      exhibit — you can't get it wrong.</span></p>
+    <p class="fine">Genau diese Adresse tippen — andere erzwingen oft
+      HTTPS und scheitern. Abkürzung: <strong>Poster-QR scannen</strong>.
+      <span lang="en">· Type exactly this address, or scan the
+      poster&nbsp;QR.</span></p>
   </main>
 </body>
 </html>

@@ -105,7 +105,6 @@ class Pipeline:
         self.detector_status = detector_status
         self.pose = pose
         self.pose_status = pose_status
-        self.pose_ghost = False
         self._ch_idx = 0
         self._ch_done = 0
         self._ch_hold_since = None
@@ -118,10 +117,12 @@ class Pipeline:
         self.det_smooth = vision.DetectionSmoother()
 
         self.mode = config.DEFAULT_MODE
-        self.threshold = config.DETECT_THRESHOLD_DEFAULT
-        self.privacy_on = config.FACE_GUARD_GLOBAL_DEFAULT
-        self.privacy_style = "pixel"
+        self.reset_params()
         self.locked = False
+        # Room language: the beamer wall follows the LAST language toggle
+        # anyone clicked in the station UI. Deliberately not reset on
+        # station switches — a class works in one language throughout.
+        self.lang = "de"
 
         self.started = time.time()
         self.running = True
@@ -144,6 +145,14 @@ class Pipeline:
         self._attract_since = None
         self._attract_next = 0.0
 
+        # Video/AI decoupling: publishes run at PROCESS_MAX_FPS, the
+        # accelerator at INFER_MAX_FPS. Between AI passes these caches are
+        # drawn onto every fresh camera frame — smooth video, same heat.
+        self._last_infer = 0.0
+        self._last_dets = []
+        self._last_persons = []
+        self._own_cache = None
+
         self._throttled = None
         self._sys_cache = {}
         self._sys_ts = 0.0
@@ -163,9 +172,30 @@ class Pipeline:
     def stop(self):
         self.running = False
 
+    def reset_params(self):
+        """The knobs every station starts from. Mode and settings are ROOM
+        state shared by all phones, so a station switch wipes the previous
+        group's slider positions — each station begins at the same,
+        predictable defaults (and the face shield re-arms: safe direction)."""
+        self.threshold = config.DETECT_THRESHOLD_DEFAULT
+        self.privacy_on = config.FACE_GUARD_GLOBAL_DEFAULT
+        self.privacy_style = "pixel"
+        self.pose_ghost = False
+
     def set_mode(self, mode):
         if mode in MODES:
-            self.mode = mode
+            if mode != self.mode:
+                keep_privacy = self.privacy_on
+                self.mode = mode
+                self.reset_params()
+                if mode == "pose":
+                    # The skeleton mirror honours the CURRENT shield choice
+                    # instead of re-arming it: whoever switched the shield
+                    # off wants unobstructed skeletons, and pixel blobs on
+                    # top of the stick figures ruin the station. Every
+                    # other station re-arms the shield as usual.
+                    self.privacy_on = keep_privacy
+                self._last_infer = 0.0   # next pass infers immediately
             return True
         return False
 
@@ -196,7 +226,7 @@ class Pipeline:
                     nxt = tour[(tour.index(self.mode) + 1) % len(tour)]
                 except ValueError:
                     nxt = tour[0]
-                self.mode = nxt
+                self.set_mode(nxt)   # through the chokepoint: resets knobs
             self._attract_next = now + config.EXHIBIT_ROTATE_EVERY
 
     # -- main loop ----------------------------------------------------------
@@ -206,6 +236,7 @@ class Pipeline:
         last_error_log = 0.0
         set_standby = getattr(self.source, "set_standby", None)
         viewers_gone_since = None     # when the LAST viewer disconnected
+        self._last_full = 0.0         # last full processing pass
         while self.running:
             t0 = time.monotonic()
             # Camera standby: nobody connected for a while -> power down the
@@ -229,6 +260,27 @@ class Pipeline:
                 time.sleep(0.5)
                 continue
 
+            # Thermal pacing: the camera is drained at its native rate
+            # (above), but the expensive part — AI inference, overlays,
+            # JPEG — runs at most PROCESS_MAX_FPS. With no viewer at all
+            # it drops to a ~3 fps heartbeat: enough to keep the watchdog
+            # fed and hand the first joiner a fresh frame, while the Pi
+            # and the Hailo cool off between visitors.
+            now = time.monotonic()
+            min_gap = 1.0 / (3 if self.stream_clients == 0
+                             else config.PROCESS_MAX_FPS)
+            if now - self._last_full < min_gap:
+                # skipped frame: still pace the loop (a standby placeholder
+                # read returns instantly — without this sleep the skip path
+                # would busy-spin at 100 % CPU, the opposite of cooling)
+                time.sleep(max(0.0, 1 / 30 - (now - t0)))
+                continue
+            # honest fps: rate of full passes, not of camera reads — this is
+            # the number /system shows while debugging a warm exhibit
+            self.fps = 0.9 * self.fps + 0.1 * (
+                1.0 / max(now - self._last_full, 1e-3))
+            self._last_full = now
+
             try:
                 self._process(frame)
             except Exception:
@@ -239,13 +291,16 @@ class Pipeline:
                     log.exception("Frame processing failed — frame dropped")
 
             time.sleep(max(0.0, 1 / 30 - (time.monotonic() - t0)))
-            loop_dt = time.monotonic() - t0
-            self.fps = 0.9 * self.fps + 0.1 * (1.0 / max(loop_dt, 1e-3))
 
     def _process(self, frame):
             self.last_frame = frame.copy()  # clean copy for teach_capture
             self._attract_step()            # self-touring while nobody plays
             mode = self.mode  # snapshot: mode may change mid-frame
+
+            now = time.monotonic()
+            infer = now - self._last_infer >= 1.0 / config.INFER_MAX_FPS
+            if infer:
+                self._last_infer = now
 
             # Background bookkeeping that runs in *every* mode — on purpose:
             # the Datenspur station later reveals what was collected while
@@ -254,10 +309,16 @@ class Pipeline:
             # camera" text must not become heatmap blobs or HOG samples.
             self.camera_live = getattr(self.source, "connected", True)
             if self.camera_live:
-                self.heatmap.update(frame)
-                self.faces.update(frame)
-                self.faces_max = max(self.faces_max, len(self.faces.boxes))
-                self.frames_total += 1
+                if infer:
+                    # analysis belongs on the AI clock: face boxes and the
+                    # heatmap are cached state, redrawn/applied every frame.
+                    # Running yunet per VIDEO frame was what kept the loop
+                    # from reaching PROCESS_MAX_FPS.
+                    self.heatmap.update(frame)
+                    self.faces.update(frame)
+                    self.faces_max = max(self.faces_max,
+                                         len(self.faces.boxes))
+                    self.frames_total += 1
             else:
                 # placeholder phase: stale face boxes must not linger for
                 # hours (they would pixelate the sleep frame and report
@@ -265,25 +326,36 @@ class Pipeline:
                 self.faces.clear()
 
             detections = []
+            self._own_hit = None
             if mode in ("detektiv", "trick"):
-                # steadied, not raw: see vision.DetectionSmoother. On
-                # placeholder frames the accelerator gets the night off.
-                raw = self._detect(frame) if self.camera_live else []
-                detections = self.det_smooth.update(raw, self.threshold)
+                if infer:
+                    # steadied, not raw: see vision.DetectionSmoother. On
+                    # placeholder frames the accelerator gets the night off.
+                    raw = self._detect(frame) if self.camera_live else []
+                    self._last_dets = self.det_smooth.update(raw,
+                                                             self.threshold)
+                detections = self._last_dets
                 self._draw_detections(frame, detections)
+                if mode == "detektiv" and self.camera_live:
+                    self._own_hit = self._own_frame(frame, infer)
             elif mode == "trainer":
-                prediction = (self._trainer_frame(frame)
+                prediction = (self._trainer_frame(frame, infer)
                               if self.camera_live else None)
             elif mode == "spur":
                 frame = self.heatmap.render(frame)
             elif mode == "pose":
-                frame = self._pose_frame(frame) if self.camera_live else frame
-            elif mode == "start":
-                # the video frame is shared by every viewer → bilingual
-                cv2.putText(frame, "Willkommen! Waehle eine Station.",
-                            (14, 30), FONT, 0.65, (255, 255, 255), 2, cv2.LINE_AA)
-                cv2.putText(frame, "Welcome! Pick a station.",
-                            (14, 58), FONT, 0.55, (200, 200, 200), 1, cv2.LINE_AA)
+                frame = (self._pose_frame(frame, infer)
+                         if self.camera_live else frame)
+            elif mode == "start" and self.camera_live:
+                # Frosted glass until someone picks a station: shapes stay
+                # (the room is visibly live), details vanish. Down/up-scale
+                # is a near-free box blur. The welcome text stays a crisp
+                # client-side overlay — never burned into the frame; the
+                # standby/placeholder image is left readable.
+                h, w = frame.shape[:2]
+                frame = cv2.resize(cv2.resize(frame, (64, 36),
+                                              interpolation=cv2.INTER_AREA),
+                                   (w, h), interpolation=cv2.INTER_LINEAR)
 
             # Face shield: global best-effort anonymisation in every mode.
             # Only skipped in *working* ghost mode, where the frame is fully
@@ -355,10 +427,43 @@ class Pipeline:
             _label(frame, f"{de_ascii(name_de)} {int(conf * 100)}%",
                    p0[0], p0[1] - 4, color)
 
-    def _trainer_frame(self, frame):
+    def _own_frame(self, frame, infer):
+        """Station-2 fusion: the visitor-trained classifier joins the hunt.
+        The factory model (frozen COCO) and the exhibit's own training show
+        up side by side — train your dino at station 2, and the Detektiv
+        recognises it here, clearly marked as self-trained. Classifier, not
+        detector: it looks only inside the centre guide box, the exact crop
+        the station-2 samples were taken with. Classification runs on the
+        AI clock; every frame just redraws the cached hit."""
+        if len(self.teach.trained_slots) < 2:
+            self._own_cache = None
+            return None
+        x0, y0, x1, y1 = self.teach.guide_box(frame)
+        cv2.rectangle(frame, (x0, y0), (x1, y1), (150, 150, 150), 1)
+        if infer:
+            self._own_cache = None
+            pred = self.teach.predict(frame)
+            if pred is not None:
+                slot, conf = pred
+                if conf >= 0.7:           # only confident hits leave the box
+                    name = self.teach.names[slot]
+                    self._own_cache = {"emoji": "\u2728", "name": name,
+                                       "name_en": name,
+                                       "pct": int(conf * 100)}
+        hit = self._own_cache
+        if hit:
+            gold = (60, 200, 255)
+            cv2.rectangle(frame, (x0, y0), (x1, y1), gold, 2)
+            _label(frame,
+                   f"{de_ascii(hit['name'])} {hit['pct']}% - selbst trainiert",
+                   x0, y0 - 4, gold)
+        return hit
+
+    def _trainer_frame(self, frame, infer):
         x0, y0, x1, y1 = self.teach.guide_box(frame)
         cv2.rectangle(frame, (x0, y0), (x1, y1), (255, 200, 80), 2)
-        prediction = self.teach.predict(frame)
+        prediction = (self.teach.predict(frame) if infer
+                      else getattr(self, "_last_prediction", None))
         if prediction is not None:
             slot, conf = prediction
             name = self.teach.names[slot]
@@ -372,7 +477,7 @@ class Pipeline:
         self._last_prediction = prediction
         return prediction
 
-    def _pose_frame(self, frame):
+    def _pose_frame(self, frame, infer):
         h, w = frame.shape[:2]
         if self.pose is None:
             cv2.putText(frame, "Pose-Modell nicht verfuegbar", (14, 30),
@@ -380,13 +485,26 @@ class Pipeline:
             self._pose_count = 0
             return frame
 
-        try:
-            persons = self.pose.infer(frame)
-        except Exception:
-            # a dying Hailo must degrade to "no skeletons", never freeze
-            # the shared stream (see also the detection wrapper in _detect)
-            persons = []
+        if infer:
+            try:
+                self._last_persons = self.pose.infer(frame)
+            except Exception:
+                # a dying Hailo must degrade to "no skeletons", never freeze
+                # the shared stream (see also the detection wrapper in _detect)
+                self._last_persons = []
+        persons = self._last_persons
         self._pose_count = len(persons)
+
+        if (time.monotonic() < self._ch_flash_until
+                and not self.pose_ghost):
+            # Challenge passed: frost the CAMERA image for the celebration
+            # (skeletons are drawn after this, so they stay sharp on the
+            # soft background). The crisp "Geschafft!" text itself is a
+            # client-side overlay — never burned into the frame. Ghost
+            # mode needs no frosting: its frame is synthetic anyway.
+            frame = cv2.resize(cv2.resize(frame, (64, 36),
+                                          interpolation=cv2.INTER_AREA),
+                               (w, h), interpolation=cv2.INTER_LINEAR)
 
         if self.pose_ghost:
             # Geist-Modus: the camera image disappears entirely — the point
@@ -415,11 +533,6 @@ class Pipeline:
                 cv2.circle(frame, pts[0][:2], head_r, color, 2, cv2.LINE_AA)
 
         self._pose_challenge(persons)
-        if time.monotonic() < self._ch_flash_until:
-            text = "GESCHAFFT! - DONE!"   # shared frame → bilingual
-            (tw, _), _ = cv2.getTextSize(text, FONT, 1.2, 3)
-            cv2.putText(frame, text, ((w - tw) // 2, h // 2), FONT, 1.2,
-                        (90, 255, 120), 3, cv2.LINE_AA)
         return frame
 
     def _pose_challenge(self, persons):
@@ -441,7 +554,8 @@ class Pipeline:
                 self._ch_done += 1
                 self._ch_idx = (self._ch_idx + 1) % len(POSE_CHALLENGES)
                 self._ch_hold_since = None
-                self._ch_flash_until = time.monotonic() + 1.5
+                # 2.5 s: phones poll at ~0.8 s, every viewer must catch it
+                self._ch_flash_until = time.monotonic() + 2.5
         else:
             self._ch_hold_since = None
 
@@ -454,6 +568,9 @@ class Pipeline:
             panel.append({"emoji": emoji, "name": name_de,
                           "name_en": name_en.capitalize(),
                           "pct": int(conf * 100)})
+        own = getattr(self, "_own_hit", None)
+        if mode == "detektiv" and own:
+            panel.insert(0, own)          # own training tops the list
 
         prediction = getattr(self, "_last_prediction", None)
         teach_pred = None
@@ -464,6 +581,7 @@ class Pipeline:
 
         self.state = {
             "event_name": config.EVENT_NAME,
+            "lang": self.lang,
             "mode": mode,
             "locked": self.locked,
             "uptime_s": int(time.time() - self.started),
@@ -509,6 +627,7 @@ class Pipeline:
                 "persons": self._pose_count,
                 "ghost": self.pose_ghost,
                 "challenge": {
+                    "flash": time.monotonic() < self._ch_flash_until,
                     "emoji": POSE_CHALLENGES[self._ch_idx][0],
                     "text": POSE_CHALLENGES[self._ch_idx][1],
                     "idx": self._ch_idx + 1,
@@ -553,6 +672,9 @@ class Pipeline:
             "fan_rpm": fan,
             "hailo_c": vision.hailo_temperature(),
             "throttled": self._throttled,
+            # surfaces as a warning in /system: the default PIN is public
+            # (it is in the repo), so real events need their own
+            "default_pin": config.ADMIN_PIN == "2468",
         }
         self._sys_ts = now
         return self._sys_cache
@@ -592,6 +714,7 @@ class Pipeline:
         return self.teach.capture(frame, slot)
 
     def reset_all(self):
+        self.lang = "de"              # next class starts in German
         self.teach.reset()
         self.heatmap.reset()
         self.faces.protect_events = 0

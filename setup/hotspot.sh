@@ -9,9 +9,13 @@ set -euo pipefail
 # ── tweak these for your event ──────────────────────────────────────────
 SSID="KI-Werkstatt"
 PASSWORD="lernen-mit-ki"   # min. 8 characters, goes on the poster
-BAND="bg"                  # "bg" = 2.4 GHz (max compatibility & range)
-                           # "a"  = 5 GHz  (faster — better with >10 viewers,
-                           #                if all devices support it)
+BAND="a"                   # "a"  = 5 GHz  (faster — better with >10
+                           #        viewers; devices without 5 GHz won't
+                           #        see the SSID at all)
+                           # "bg" = 2.4 GHz (max compatibility & range)
+CHANNEL="36"               # 5 GHz needs an explicit channel for AP mode;
+                           # 36 is indoor-legal everywhere (DE incl.).
+                           # Ignored for band "bg" (auto-pick works there).
 CON_NAME="ki-werkstatt-hotspot"
 IP="10.10.10.1"            # short and easy to dictate; on the poster + QR
 # Changing it? Mirror it in app/config.py (PUBLIC_URL) and
@@ -45,8 +49,37 @@ sudo nmcli connection add type wifi ifname wlan0 mode ap \
     con-name "$CON_NAME" ssid "$SSID" autoconnect yes \
     connection.autoconnect-priority 100 \
     802-11-wireless.band "$BAND" \
+    $( [[ "$BAND" == "a" ]] && echo 802-11-wireless.channel "$CHANNEL" ) \
+    802-11-wireless.ap-isolation 1 \
     wifi-sec.key-mgmt wpa-psk wifi-sec.psk "$PASSWORD" \
     ipv4.method shared ipv4.addresses "$IP/24" ipv6.method disabled
+# ap-isolation 1: guests only ever talk to the Pi, never to each other —
+# in a class full of phones nobody can poke at a classmate's device.
+# Guests must never be ROUTED anywhere either: "shared" mode NATs the
+# hotspot onto any uplink, so a maintenance ethernet cable into a school
+# network would silently connect every student phone to that network.
+# The dispatcher drops all forwarding from wlan0, on every activation,
+# reboots included. Captive portal and exhibit need no forwarding at all.
+sudo tee /etc/NetworkManager/dispatcher.d/99-ki-werkstatt-no-forward >/dev/null << 'DISPATCH'
+#!/bin/bash
+# Own nftables table at priority -10: its drop verdict is final before
+# NetworkManager's shared-mode rules ever run. (Bookworm has no iptables.)
+[ "$CONNECTION_ID" = "ki-werkstatt-hotspot" ] || exit 0
+case "$2" in
+  up)
+    nft delete table ip ki_werkstatt 2>/dev/null || true
+    nft add table ip ki_werkstatt
+    nft add chain ip ki_werkstatt forward \
+        '{ type filter hook forward priority -10 ; policy accept ; }'
+    nft add rule ip ki_werkstatt forward iifname "wlan0" drop
+    ;;
+  down)
+    nft delete table ip ki_werkstatt 2>/dev/null || true
+    ;;
+esac
+DISPATCH
+sudo chmod 755 /etc/NetworkManager/dispatcher.d/99-ki-werkstatt-no-forward
+
 sudo nmcli connection up "$CON_NAME"
 
 echo

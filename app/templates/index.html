@@ -2,6 +2,7 @@
 <html lang="de">
 <head>
 <meta charset="utf-8">
+<meta name="theme-color" content="#0d1117">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>{{ event_name }}</title>
 <link rel="stylesheet" href="/static/style.css">
@@ -57,6 +58,22 @@
   <div class="video-wrap">
     <img id="stream" src="/stream.mjpg" alt="Live-Kamerabild">
     <div id="video-note" class="video-note hidden"></div>
+    <!-- Welcome text lives HERE, not burned into the stream: browser text
+         renders crisp at native resolution, and each device shows only
+         its own language. -->
+    <!-- Pose celebration: crisp browser text + CSS fireworks, shown on
+         the flash flag from /api/state; the stream underneath is frosted
+         server-side while it runs. -->
+    <div id="celebrate" class="celebrate hidden" aria-hidden="true">
+      <span class="spark s1">🎆</span><span class="spark s2">✨</span>
+      <span class="spark s3">🎇</span><span class="spark s4">⭐</span>
+      <span class="spark s5">✨</span><span class="spark s6">🎆</span>
+      <div class="celebrate-text" data-i18n="pose.done">🎉 Geschafft!</div>
+    </div>
+    <div id="start-overlay" class="start-overlay hidden" aria-hidden="true">
+      <div class="start-overlay-title" data-i18n="start.overlayTitle">👋 Willkommen!</div>
+      <div class="start-overlay-sub" data-i18n="start.overlaySub">Wähle eine Station</div>
+    </div>
   </div>
 
   <div id="panel">
@@ -101,10 +118,8 @@
         <label for="threshold"><span data-i18n="det.thrLabel">Wie sicher muss sich
           die KI sein?</span> <strong id="threshold-val">50&nbsp;%</strong></label>
         <input type="range" id="threshold" min="5" max="95" value="50">
-        <p class="hint" data-i18n="det.thrHint">⬅️ Niedrig: Die KI rät mehr — auch
-          Unsinn. &nbsp; Hoch: Sie meldet nur, was sie sicher weiß — und übersieht
-          dafür manches. ➡️<br>Diesen Kompromiss müssen echte KI-Entwickler:innen
-          ständig abwägen!</p>
+        <p class="hint" data-i18n="det.thrHint">⬅️ rät mehr — auch Unsinn
+          &nbsp;·&nbsp; meldet nur&nbsp;Sicheres&nbsp;➡️</p>
       </div>
 
       <h3 data-i18n="ui.nowDetected">Gerade erkannt:</h3>
@@ -117,7 +132,9 @@
           Texturen. Es <em>versteht</em> nicht, was eine Tasse ist — es erkennt
           Muster, die in seinen Trainingsdaten „Tasse“ hießen. Die Berechnung läuft
           auf dem <strong>Hailo-KI-Chip</strong> huckepack auf dem
-          Raspberry&nbsp;Pi — viele Milliarden Rechenschritte pro Sekunde.</p>
+          Raspberry&nbsp;Pi — viele Milliarden Rechenschritte pro Sekunde.
+          Und der Regler? Mehr erkennen oder weniger Fehler — diesen
+          Kompromiss müssen echte KI-Entwickler:innen ständig abwägen.</p>
       </details>
       <details>
         <summary data-i18n="det.cardSummary">📋 Modellkarte (Steckbrief der KI)</summary>
@@ -359,7 +376,6 @@
 <footer>
   <div class="stats">
     <span id="stat-ai" class="chip">⏳ …</span>
-    <span id="stat-fps" class="chip">– fps</span>
     <span id="stat-clients" class="chip">👀 –</span>
     <span id="stat-source" class="chip">📷 –</span>
     <span id="stat-lock" class="chip hidden"></span>

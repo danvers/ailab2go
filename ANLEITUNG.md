@@ -183,6 +183,13 @@ Ausstellung). Android fragt wegen des fehlenden Internets u. U. einmal
 privatem DNS zeigen das Fenster gar nicht — dann wie gehabt QR-Code
 scannen oder die Adresse eintippen.
 
+**Warum andere Adressen nicht umleiten:** Moderne Browser erzwingen
+HTTPS — wer `google.de` tippt oder etwas sucht, landet auf Port 443, wo
+diese Ausstellung bewusst nicht antwortet (ein gefälschtes Zertifikat
+wäre schlimmer als eine Fehlermeldung). Verlässlich sind genau zwei
+Wege: die nackte Adresse `10.10.10.1` — und der **QR-Code auf dem
+Poster**, der für Handys der bequemste ist.
+
 **Der Hotspot startet ab jetzt bei jedem Boot automatisch** (mit Vorrang
 vor deinem Heim-WLAN) — Strom an genügt, die Ausstellung ist komplett
 autark. Wieder ausschalten (dauerhaft, z. B. zum Updaten über WLAN):
@@ -198,6 +205,28 @@ Danach verbindet sich der Pi wieder normal mit dem Heim-WLAN;
 [app/config.py](app/config.py) (`ADMIN_PIN`) und das Hotspot-Passwort.
 Nach Änderungen: `bash setup/install.sh` erneut ausführen (kopiert die
 Dateien nach `/opt`) und `sudo systemctl restart ki-werkstatt`.
+Solange die Standard-PIN aktiv ist, warnt das `/system`-Fenster —
+sie steht öffentlich im Repository.
+
+### Sicherheit im Klassenbetrieb — was das WLAN von sich aus tut
+
+Das Gäste-WLAN ist bewusst für fremde Geräte gebaut und härtet sich
+selbst (alles in [setup/hotspot.sh](setup/hotspot.sh) verankert,
+überlebt Neustarts):
+
+- **Geräte-Isolation:** Handys im Hotspot erreichen nur den Pi, nie
+  einander — niemand kann am Gerät der Sitznachbarin schnüffeln.
+- **Keine Weiterleitung:** Selbst wenn zur Wartung ein Ethernet-Kabel
+  steckt (Heim- oder Schulnetz!), werden Hotspot-Geräte nie dorthin
+  geroutet — die Klasse bleibt in ihrer Blase.
+- **SSH nur mit Schlüssel:** Aus dem Gäste-WLAN ist Passwort-Login per
+  SSH abgeschaltet; Passwort-Raten vom Schülerhandy läuft ins Leere.
+  (Über Ethernet bleibt Passwort-Login als Rettungsanker erlaubt.)
+- **PIN-Bremse:** Fünf falsche Moderations-PINs sperren das Gerät für
+  60 Sekunden — Durchprobieren lohnt nicht.
+- Gesichter werden standardmäßig in jeder Station anonymisiert; die
+  Trainings-Station speichert **keine Bilder**, nur abstrakte
+  Merkmalsvektoren, alles nur im Arbeitsspeicher (weg beim Ausschalten).
 
 ---
 

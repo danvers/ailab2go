@@ -38,6 +38,9 @@ window.I18N = (() => {
       "don’t be surprised if things move “on their own”!",
     "banner.sharedOk": "Got it",
 
+    "pose.done": "🎉 You did it!",
+    "start.overlayTitle": "👋 Welcome!",
+    "start.overlaySub": "Pick a station",
     "start.h2": "👋 Welcome to the KI-Werkstatt!",
     "start.intro": "The picture above is live from a camera in this room — processed " +
       "by a mini computer (Raspberry&nbsp;Pi&nbsp;5) with its own AI chip. Everything " +
@@ -53,15 +56,15 @@ window.I18N = (() => {
     "det.intro": "The AI searches every frame for <strong>80 things</strong> it knows: " +
       "people, cups, books, bananas… Hold something up to the camera — does it get it?",
     "det.thrLabel": "How sure does the AI have to be?",
-    "det.thrHint": "⬅️ Low: the AI guesses more — including nonsense. &nbsp; High: it " +
-      "only reports what it’s sure about — and misses things. ➡️<br>Real AI developers " +
-      "weigh this trade-off all the time!",
+    "det.thrHint": "⬅️ guesses more — even nonsense &nbsp;·&nbsp; " +
+      "only reports what it’s&nbsp;sure&nbsp;of&nbsp;➡️",
     "det.howBody": "A <strong>neural network</strong> (YOLO) has seen millions of " +
       "example photos and learned patterns from them: edges, shapes, textures. It " +
       "doesn’t <em>understand</em> what a cup is — it recognises patterns that were " +
       "labelled “cup” in its training data. The maths runs on the " +
       "<strong>Hailo AI chip</strong> piggybacking on the Raspberry&nbsp;Pi — many " +
-      "billions of operations per second.",
+      "billions of operations per second. And the slider? Spot more or make " +
+      "fewer mistakes — real AI developers weigh that trade-off all the time.",
     "det.cardSummary": "📋 Model card (the AI’s fact sheet)",
     "det.cardBody": "<li><strong>Model:</strong> YOLOv8 (object detection)</li>" +
       "<li><strong>Trained on:</strong> COCO — about 330,000 photos from the internet</li>" +

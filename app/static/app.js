@@ -117,6 +117,8 @@ function armButton(btn, labelKey, action) {
 
 let shownMode = null;   // what the DOM currently displays (may be optimistic)
 function showMode(mode) {
+  $("#start-overlay").classList.toggle("hidden", mode !== "start");
+  if (mode !== "pose") $("#celebrate").classList.add("hidden");
   shownMode = mode;
   $$("#tiles .tile").forEach((tile) => {
     const on = tile.dataset.mode === mode;
@@ -324,6 +326,17 @@ function renderPose(pose) {
   $("#pose-content").classList.toggle("hidden", !pose.available);
   if (!pose.available) return;
   const ch = pose.challenge;
+  // celebration: retrigger the CSS show once per flash rising edge
+  if (ch.flash && !renderPose._flashSeen) {
+    const cel = $("#celebrate");
+    cel.classList.remove("hidden");
+    void cel.offsetWidth;               // restart the animations
+    clearTimeout(renderPose._flashTimer);
+    renderPose._flashTimer = setTimeout(() =>
+      cel.classList.add("hidden"), 2200);
+  }
+  renderPose._flashSeen = ch.flash;
+
   $("#pose-ch-idx").textContent = ch.idx;
   $("#pose-ch-total").textContent = ch.total;
   $("#pose-ch-emoji").textContent = ch.emoji;
@@ -436,7 +449,7 @@ function render(s) {
   ai.textContent = s.ai.ok ? t("aiOk", trStatus(s.ai.status))
                            : t("aiDemo", trStatus(s.ai.status));
   ai.className = s.ai.ok ? "chip good" : "chip warn";
-  $("#stat-fps").textContent = `${s.fps} fps`;
+  // fps chip removed from the visitor footer — that's /system diagnostics
   $("#stat-clients").textContent = t("devices", s.clients);
   const srcChip = $("#stat-source");
   const asleep = s.camera_standby === true;
@@ -451,6 +464,7 @@ function render(s) {
 // language switch: invalidate every change-guard cache, repaint idle labels,
 // re-render the last known state in the new language
 document.addEventListener("kiw:lang", () => {
+  post("/api/params", { lang: I18N.lang });  // the beamer wall follows
   ["#detections", "#detections-trick"].forEach((sel) => { $(sel)._html = null; });
   $("#teach-slots")._key = null;
   $("#teach-prediction")._last = null;

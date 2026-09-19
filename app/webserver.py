@@ -14,8 +14,31 @@ import vision
 def create_app(pipeline):
     app = Flask(__name__)
 
+    # A 4-digit PIN survives about 3 minutes of curl from a bored student
+    # unless guessing costs something: 5 wrong tries lock that device out
+    # for 60 s (even a correct PIN is refused during the lockout, so the
+    # search cannot continue). Requests without a pin never count — every
+    # guest tap while locked passes through here.
+    pin_fails = {}      # client IP -> [wrong tries, locked-out until]
+
     def _pin_ok(payload):
-        return payload.get("pin") == config.ADMIN_PIN
+        pin = payload.get("pin")
+        if pin is None:
+            return False
+        ip = request.remote_addr
+        now = time.monotonic()
+        tries, until = pin_fails.get(ip, (0, 0.0))
+        if tries >= 5:
+            if now < until:
+                return False
+            tries = 0                     # lockout expired — fresh start
+        if pin == config.ADMIN_PIN:
+            pin_fails.pop(ip, None)
+            return True
+        if len(pin_fails) > 256:          # ponytail: tiny LAN, wholesale
+            pin_fails.clear()             # prune beats bookkeeping
+        pin_fails[ip] = (tries + 1, now + 60)
+        return False
 
     def _allowed(payload):
         """Station switching etc. — blocked for guests while locked."""
@@ -111,8 +134,12 @@ def create_app(pipeline):
             if probe is not None:
                 body, code, headers = probe
                 return Response(body, code, headers)
-            # signed in + typing any address in the real browser → straight
-            # to the exhibit; the welcome sheet is for first contact only
+            # signed in + typing an address in the real browser → straight
+            # to the exhibit. Honest limit: this only catches PLAIN-HTTP
+            # attempts. Modern browsers try https first (and never fall
+            # back for HSTS-preloaded sites like google/youtube), so in
+            # practice only the bare IP — or the poster QR — is reliable;
+            # the portal pages say exactly that.
             return redirect(config.PUBLIC_URL.rstrip("/") + "/", code=302)
         return redirect(config.PUBLIC_URL.rstrip("/") + "/portal", code=302)
 
@@ -209,17 +236,31 @@ def create_app(pipeline):
 
         def generate():
             try:
-                min_interval = 1.0 / config.STREAM_MAX_FPS
                 last = 0.0
+                last_seq = -1
                 while pipeline.running:
+                    # Scaling cap: few viewers get the full frame rate, a
+                    # class splits the radio fairly. Per-viewer bandwidth
+                    # (~2-5 Mbit/s at full rate) times 15 phones would
+                    # saturate the 2.4 GHz hotspot, so everyone drops to a
+                    # still-fluid rate instead of everyone stuttering.
+                    n = pipeline.stream_clients
+                    cap = min(config.STREAM_MAX_FPS,
+                              24 if n <= 4 else 15 if n <= 8 else 10)
+                    # Pace FIRST, then take the newest frame — sleeping
+                    # after the condition-wait made the generator miss the
+                    # next notify and beat down to half the publish rate.
+                    wait_s = last + 1.0 / cap - time.monotonic()
+                    if wait_s > 0:
+                        time.sleep(wait_s)
                     with pipeline.frame_ready:
-                        pipeline.frame_ready.wait(timeout=2.0)
+                        if pipeline.published_total == last_seq:
+                            pipeline.frame_ready.wait(timeout=2.0)
                         jpeg = pipeline.jpeg
-                    if jpeg is None:
+                        seq = pipeline.published_total
+                    if jpeg is None or seq == last_seq:
                         continue
-                    now = time.monotonic()
-                    if now - last < min_interval:
-                        time.sleep(min_interval - (now - last))
+                    last_seq = seq
                     last = time.monotonic()
                     yield (b"--frame\r\n"
                            b"Content-Type: image/jpeg\r\n\r\n" + jpeg + b"\r\n")
@@ -248,6 +289,11 @@ def create_app(pipeline):
     @app.post("/api/params")
     def set_params():
         payload = request.get_json(force=True, silent=True) or {}
+        if payload.get("lang") in ("de", "en"):
+            # room language for the beamer wall — like the threshold it is
+            # harmless and never locked (each phone keeps its own language;
+            # this only follows the latest toggle in the room)
+            pipeline.lang = payload["lang"]
         if "threshold" in payload:  # pedagogical, harmless — never locked
             try:
                 pipeline.threshold = min(0.95, max(0.05, float(payload["threshold"])))

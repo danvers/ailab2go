@@ -45,7 +45,12 @@
   --dur: 0.18s;
 }
 
-html { -webkit-text-size-adjust: 100%; }
+html {
+  -webkit-text-size-adjust: 100%;
+  /* iOS rubber-band overscroll reveals the HTML element's background —
+     without this it flashes white above/below the dark page */
+  background: var(--bg);
+}
 
 body {
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
@@ -246,6 +251,62 @@ main {
   .video-wrap { position: relative; top: 0; }
 }
 #stream { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: cover; }
+.celebrate {
+  position: absolute; inset: 0; pointer-events: none;
+  display: flex; align-items: center; justify-content: center;
+  overflow: hidden;
+}
+.celebrate-text {
+  color: #fff; font-size: clamp(1.6rem, 6vw, 2.8rem); font-weight: 800;
+  letter-spacing: -0.01em;
+  text-shadow: 0 2px 18px rgba(0, 0, 0, 0.6);
+  animation: celebrate-pop 0.55s cubic-bezier(0.2, 1.6, 0.4, 1) both;
+}
+@keyframes celebrate-pop {
+  from { transform: scale(0.3); opacity: 0; }
+  to   { transform: scale(1);   opacity: 1; }
+}
+.celebrate .spark {
+  position: absolute;
+  font-size: clamp(1.2rem, 4vw, 2rem);
+  /* bottom is animated in CONTAINER percent — viewport units would
+     overshoot the small video box instantly and get clipped */
+  animation: spark-rise 1.9s ease-out both;
+}
+.celebrate .s1 { left: 12%; animation-delay: 0s; }
+.celebrate .s2 { left: 28%; animation-delay: 0.25s; }
+.celebrate .s3 { left: 47%; animation-delay: 0.1s; }
+.celebrate .s4 { left: 63%; animation-delay: 0.35s; }
+.celebrate .s5 { left: 78%; animation-delay: 0.2s; }
+.celebrate .s6 { left: 90%; animation-delay: 0.45s; }
+@keyframes spark-rise {
+  0%   { bottom: 8%;  transform: scale(0.6);  opacity: 0; }
+  15%  { opacity: 1; }
+  100% { bottom: 82%; transform: scale(1.35); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .celebrate-text, .celebrate .spark { animation: none; }
+  .celebrate .spark { display: none; }
+}
+
+.start-overlay {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; gap: 6px;
+  text-align: center; pointer-events: none;
+  background: linear-gradient(180deg, rgba(10, 14, 20, 0.10),
+                                      rgba(10, 14, 20, 0.45));
+  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.55);
+}
+.start-overlay-title {
+  color: #fff; font-size: clamp(1.4rem, 4.5vw, 2.2rem); font-weight: 800;
+  letter-spacing: -0.01em;
+}
+.start-overlay-sub {
+  color: rgba(255, 255, 255, 0.85);
+  font-size: clamp(0.9rem, 2.6vw, 1.15rem); font-weight: 600;
+}
+
 .video-note {
   position: absolute;
   left: 10px; bottom: 10px;
@@ -613,8 +674,13 @@ footer {
   gap: 10px;
   align-items: center;
   flex-wrap: wrap;
+  /* one-time hint (dismiss persists) — keep it visibly smaller than the
+     station card it sits above: it must never win the attention contest */
+  font-size: 0.8rem;
+  padding: 8px 10px;
 }
-.hint-banner button { margin-left: auto; font-size: 0.79rem; min-height: 32px; }
+.hint-banner button { margin-left: auto; font-size: 0.76rem;
+                      min-height: 28px; padding: 4px 10px; }
 
 /* inline notices: the ONLY bordered-text signal left, so warnings pop */
 .notice {
@@ -628,6 +694,9 @@ footer {
   background: rgba(255, 214, 102, 0.09);
   border-left: 3px solid #ffd666;
   color: #ffd666;
+  /* status, not story: the footer chip carries the same fact */
+  font-size: 0.78rem;
+  padding: 7px 10px;
 }
 .notice.error {
   background: rgba(248, 81, 73, 0.10);
