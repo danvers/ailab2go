@@ -184,13 +184,18 @@ The poster automatically picks up the logo from `app/static/logo.png` —
 to swap it, just replace that file (and `logo-icon.png` for the browser
 icon) and regenerate the poster.
 
-Adjust the Wi-Fi name and password in [setup/hotspot.sh](setup/hotspot.sh)
-(and identically in [setup/make_poster.py](setup/make_poster.py)!), then:
+Wi-Fi name and password live in [setup/hotspot.sh](setup/hotspot.sh);
+for the password: change it identically in
+[setup/make_poster.py](setup/make_poster.py) (the QR code encodes it — a
+mismatch means nobody can join). Then:
 
 ```bash
 bash setup/hotspot.sh
 python3 setup/make_poster.py
 ```
+
+A different network name no longer needs any file edit — see
+"Several rooms at once" below.
 
 The script writes both language versions: `material/poster/poster_de.pdf`
 (title “KI-Werkstatt”) and `material/poster/poster_en.pdf` (title
@@ -236,6 +241,41 @@ restart the service, then the value from
 [app/config.py](app/config.py) applies again). Also change the hotspot
 password (`setup/hotspot.sh`). While the default PIN is active, the
 System window shows a warning — it is public in the repository.
+
+### Several rooms at once (two workshops, two Pis)
+
+Two Pis broadcasting the same network name in the same building work —
+unfortunately a little too well: phones treat both as **one** network and
+silently hop to the stronger transmitter, straight through the wall. A
+device in room 1 then suddenly controls the beamer and teach station of
+room 2. So each room gets its own name and its own radio channel — no
+file edits needed:
+
+```bash
+HOTSPOT_SSID="Obi-WLAN Kenobi" HOTSPOT_CHANNEL=36 bash setup/hotspot.sh
+```
+
+```bash
+HOTSPOT_SSID="LAN Solo" HOTSPOT_CHANNEL=44 bash setup/hotspot.sh
+```
+
+The chosen name is recorded in `/var/lib/ki-werkstatt/ssid` and appears
+on the beamer wall automatically after a service restart
+(`sudo systemctl restart ki-werkstatt`). The matching poster per room:
+
+```bash
+bash setup/tools.sh poster --ssid "LAN Solo"
+```
+
+It gets its own filenames (`poster_de_lan-solo.pdf` …), the default
+posters stay untouched; only the Wi-Fi QR and the network line differ.
+Password and address `10.10.10.1` stay the same in every room — the
+networks are strictly separate. Also per room: set a distinct moderator
+PIN and label the Pis on the outside, so device and poster end up in the
+right room. Free 5 GHz channels for up to four rooms: 36, 40, 44, 48
+(all indoor-legal in Germany). And never broadcast the same network name
+with *different* passwords — that only gifts participants mysterious
+password errors.
 
 ### Classroom security — what the Wi-Fi does on its own
 

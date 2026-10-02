@@ -5,9 +5,15 @@
     → material/poster/poster_de.html + .pdf   (title: KI-Werkstatt)
     → material/poster/poster_en.html + .pdf   (title: AI-Lab2go)
 
+    python3 setup/make_poster.py --ssid "LAN Solo"
+    → material/poster/poster_de_lan-solo.html + .pdf   (and _en_…)
+      Per-room posters for multi-room events: only the Wi-Fi QR and the
+      network line change, filenames carry the name so variants coexist.
+
 Open in a browser and print on A4. Keep SSID/PASSWORD in sync with
 setup/hotspot.sh — the QR code encodes them, so a mismatch means visitors
-cannot join.
+cannot join. (A renamed hotspot is started the same way:
+HOTSPOT_SSID="LAN Solo" bash setup/hotspot.sh.)
 
 Layout note: the page is one flex column at exactly A4 size with
 `justify-content: space-between`, so free space is distributed between the
@@ -15,8 +21,10 @@ blocks instead of piling up at the bottom. Everything is sized in mm — what
 you see is what the printer puts on the sheet.
 """
 
+import argparse
 import base64
 import io
+import re
 import sys
 from pathlib import Path
 
@@ -24,6 +32,19 @@ from pathlib import Path
 SSID = "KI-Werkstatt"
 PASSWORD = "lernen-mit-ki"
 URL = "http://10.10.10.1"
+
+# Per-room overrides (parsed before the qrcode import so --help needs no
+# dependencies). A non-default SSID gets its own output filenames.
+_DEFAULT_SSID = SSID
+_parser = argparse.ArgumentParser(
+    description="Generate the printable A4 event posters (DE + EN).")
+_parser.add_argument("--ssid", default=SSID,
+                     help="Wi-Fi name on the poster + in the QR code "
+                          "(must match setup/hotspot.sh)")
+_parser.add_argument("--password", default=PASSWORD,
+                     help="Wi-Fi password on the poster + in the QR code")
+_args = _parser.parse_args()
+SSID, PASSWORD = _args.ssid, _args.password
 
 try:
     import qrcode
@@ -55,7 +76,13 @@ def _data_uri(path: Path) -> str:
             base64.b64encode(path.read_bytes()).decode()) if path.exists() else ""
 
 
-wifi_qr = qr_data_uri(f"WIFI:T:WPA;S:{SSID};P:{PASSWORD};;")
+def _wifi_escape(value: str) -> str:
+    # The WIFI: QR scheme (ZXing de-facto spec) wants \ ; , : " escaped in
+    # S:/P: values. Identity for every sane name — insurance for exotic ones.
+    return re.sub(r'([\\;,:"])', r"\\\1", value)
+
+
+wifi_qr = qr_data_uri(f"WIFI:T:WPA;S:{_wifi_escape(SSID)};P:{_wifi_escape(PASSWORD)};;")
 url_qr = qr_data_uri(URL)
 
 # The posters must stay single self-contained files → embed the logos.
@@ -306,13 +333,17 @@ def render_pdf(html_path):
 def main():
     out_dir = Path(__file__).parent.parent / "material" / "poster"
     out_dir.mkdir(parents=True, exist_ok=True)
+    # Default SSID keeps the classic filenames; a renamed room gets its own
+    # files next to them (poster_de_lan-solo.html …), nothing is overwritten.
+    suffix = ("" if SSID == _DEFAULT_SSID
+              else "_" + re.sub(r"[^a-z0-9]+", "-", SSID.lower()).strip("-"))
     for lang, s in STRINGS.items():
-        out = out_dir / f"poster_{lang}.html"
+        out = out_dir / f"poster_{lang}{suffix}.html"
         out.write_text(build(s), encoding="utf-8")
         pdf = render_pdf(out)
         where = f"material/poster/{pdf.name}" if pdf else f"material/poster/{out.name}"
         hint = "print A4" if pdf else "open in a browser, print A4"
-        print(f"✓ {where} — “{s['title']}” ({hint})")
+        print(f"✓ {where} — “{s['title']}”, Wi-Fi “{SSID}” ({hint})")
 
 
 if __name__ == "__main__":

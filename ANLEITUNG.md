@@ -157,13 +157,18 @@ Das Poster übernimmt automatisch das Logo aus `app/static/logo.png` —
 zum Austauschen einfach diese Datei (und `logo-icon.png` fürs
 Browser-Symbol) ersetzen und das Poster neu erzeugen.
 
-WLAN-Name und Passwort in [setup/hotspot.sh](setup/hotspot.sh) anpassen
-(und identisch in [setup/make_poster.py](setup/make_poster.py)!), dann:
+WLAN-Name und Passwort stehen in [setup/hotspot.sh](setup/hotspot.sh);
+beim Passwort gilt: identisch in
+[setup/make_poster.py](setup/make_poster.py) ändern (der QR-Code kodiert
+es — bei Abweichung kommt niemand ins Netz). Dann:
 
 ```bash
 bash setup/hotspot.sh
 python3 setup/make_poster.py
 ```
+
+Ein abweichender Netzname braucht keine Dateiänderung mehr — siehe
+„Mehrere Räume gleichzeitig" weiter unten.
 
 Das Skript erzeugt beide Sprachfassungen: `material/poster/poster_de.pdf`
 (Titel „KI-Werkstatt“) und `material/poster/poster_en.pdf` (Titel
@@ -209,6 +214,42 @@ Pi löschen und den Dienst neu starten, dann gilt wieder der Wert aus
 [app/config.py](app/config.py)). Auch das Hotspot-Passwort anpassen
 (`setup/hotspot.sh`). Solange die Standard-PIN aktiv ist, warnt das
 System-Fenster — sie steht öffentlich im Repository.
+
+### Mehrere Räume gleichzeitig (zwei Workshops, zwei Pis)
+
+Zwei Pis mit demselben Netznamen im selben Gebäude funktionieren — nur
+leider zu gut: Handys halten beide für **ein** Netz und wechseln
+unbemerkt zum stärkeren Sender, auch durch die Wand. Dann steuert ein
+Gerät aus Raum 1 plötzlich Beamer und Teach-Station von Raum 2. Darum
+bekommt jeder Raum einen eigenen Namen und einen eigenen Funkkanal —
+ganz ohne Dateiänderung:
+
+```bash
+HOTSPOT_SSID="Obi-WLAN Kenobi" HOTSPOT_CHANNEL=36 bash setup/hotspot.sh
+```
+
+```bash
+HOTSPOT_SSID="LAN Solo" HOTSPOT_CHANNEL=44 bash setup/hotspot.sh
+```
+
+Der gewählte Name wird in `/var/lib/ki-werkstatt/ssid` hinterlegt und
+erscheint nach einem Dienst-Neustart (`sudo systemctl restart
+ki-werkstatt`) automatisch auf der Beamer-Wand. Das passende Poster pro
+Raum:
+
+```bash
+bash setup/tools.sh poster --ssid "LAN Solo"
+```
+
+Es bekommt eigene Dateinamen (`poster_de_lan-solo.pdf` …), die
+Standard-Poster bleiben unberührt; nur WLAN-QR und Netz-Zeile
+unterscheiden sich. Passwort und Adresse `10.10.10.1` bleiben in allen
+Räumen gleich — die Netze sind strikt getrennt. Außerdem pro Raum: eine
+eigene Moderations-PIN setzen und die Pis außen beschriften, damit Gerät
+und Poster im richtigen Raum stehen. Freie 5-GHz-Kanäle für bis zu vier
+Räume: 36, 40, 44, 48 (alle in DE indoor erlaubt). Und niemals denselben
+Netznamen mit *unterschiedlichen* Passwörtern funken — das beschert den
+Teilnehmenden nur rätselhafte Passwortfehler.
 
 ### Sicherheit im Klassenbetrieb — was das WLAN von sich aus tut
 

@@ -67,8 +67,12 @@ bash setup/hotspot.sh
 python3 setup/make_poster.py
 ```
 
-Visitors join Wi-Fi **KI-Werkstatt** and open **<http://10.10.10.1>**. Change
-SSID/password in `setup/hotspot.sh` (and re-run the poster script).
+Visitors join Wi-Fi **KI-Werkstatt** and open **<http://10.10.10.1>**.
+Renaming the network needs no file edit — `HOTSPOT_SSID="LAN Solo" bash
+setup/hotspot.sh`, matching poster via `bash setup/tools.sh poster --ssid
+"LAN Solo"` (see MANUAL.md § 6, incl. running several rooms side by side).
+A new password goes into `setup/hotspot.sh` **and** `setup/make_poster.py`
+— the poster QR encodes it, a mismatch locks visitors out.
 
 ## Try it on your laptop first (no Pi needed)
 

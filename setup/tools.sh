@@ -3,6 +3,7 @@
 #
 #   bash setup/tools.sh                 # set up .venv-tools, then build everything
 #   bash setup/tools.sh poster          # only the two posters
+#       … poster --ssid "LAN Solo"      # per-room variant (multi-room events)
 #   bash setup/tools.sh cards           # card PDFs from the PowerPoint masters
 #   bash setup/tools.sh card-layers     # 300-dpi backgrounds used inside them
 #   bash setup/tools.sh cards-html      # alternative HTML deck (other design)
@@ -29,10 +30,10 @@ echo "→ checking dependencies"
 "$VENV/bin/pip" install --quiet -r "$ROOT/dev/requirements-tools.txt"
 
 target="${1:-all}"; shift || true
-run() { echo; echo "── $1"; "$PY" "$ROOT/setup/$1" "$@"; }
+run() { local script="$1"; shift; echo; echo "── $script"; "$PY" "$ROOT/setup/$script" "$@"; }
 
 case "$target" in
-    poster)   run make_poster.py ;;
+    poster)   run make_poster.py "$@" ;;
     # The card DESIGN lives in material/source/cards/cards_*.pptx (hand-made
     # in PowerPoint). "cards" only converts them to print-ready PDFs — it
     # never re-designs. "card-layers" regenerates the 300-dpi backgrounds

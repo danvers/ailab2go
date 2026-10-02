@@ -101,6 +101,16 @@ EXHIBIT_TOUR = ["detektiv", "schild", "pose", "spur"]  # the visual ones
 # What the wall display tells passers-by (must match setup/hotspot.sh)
 PUBLIC_URL = "http://10.10.10.1"
 HOTSPOT_SSID = "KI-Werkstatt"
+# setup/hotspot.sh records the SSID it actually broadcasts in SSID_FILE —
+# a renamed hotspot (two rooms, two names: HOTSPOT_SSID=... bash
+# setup/hotspot.sh) shows up here automatically, so wall display and radio
+# cannot drift apart. Restart the service after a rename.
+SSID_FILE = "/var/lib/ki-werkstatt/ssid"
+try:
+    with open(SSID_FILE) as _f:
+        HOTSPOT_SSID = _f.read().strip() or HOTSPOT_SSID
+except OSError:
+    pass
 
 # --- Exhibit / admin -------------------------------------------------------
 ADMIN_PIN = "2468"          # unlocks the moderator bar in the web UI.

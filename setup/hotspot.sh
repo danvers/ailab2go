@@ -7,14 +7,25 @@
 set -euo pipefail
 
 # ── tweak these for your event ──────────────────────────────────────────
-SSID="KI-Werkstatt"
+# SSID and CHANNEL take overrides from the environment, so one Pi can be
+# renamed without editing this file — that is how two workshops run side
+# by side in two rooms (each Pi its own name, its own channel):
+#   HOTSPOT_SSID="LAN Solo" HOTSPOT_CHANNEL=44 bash setup/hotspot.sh
+# The broadcast SSID is recorded in /var/lib/ki-werkstatt/ssid; the app
+# reads it so the beamer wall always shows the real network name (restart
+# it after a rename: sudo systemctl restart ki-werkstatt). Matching poster:
+#   bash setup/tools.sh poster --ssid "LAN Solo"
+SSID="${HOTSPOT_SSID:-KI-Werkstatt}"
 PASSWORD="lernen-mit-ki"   # min. 8 characters, goes on the poster
 BAND="a"                   # "a"  = 5 GHz  (faster — better with >10
                            #        viewers; devices without 5 GHz won't
                            #        see the SSID at all)
                            # "bg" = 2.4 GHz (max compatibility & range)
-CHANNEL="36"               # 5 GHz needs an explicit channel for AP mode;
-                           # 36 is indoor-legal everywhere (DE incl.).
+CHANNEL="${HOTSPOT_CHANNEL:-36}"
+                           # 5 GHz needs an explicit channel for AP mode;
+                           # 36 is indoor-legal everywhere (DE incl.), and
+                           # so are 40/44/48 — spread neighbouring rooms
+                           # across them instead of sharing one channel.
                            # Ignored for band "bg" (auto-pick works there).
 CON_NAME="ki-werkstatt-hotspot"
 IP="10.10.10.1"            # short and easy to dictate; on the poster + QR
@@ -79,6 +90,12 @@ case "$2" in
 esac
 DISPATCH
 sudo chmod 755 /etc/NetworkManager/dispatcher.d/99-ki-werkstatt-no-forward
+
+# Remember which name this device actually broadcasts — app/config.py reads
+# the file at startup, so the beamer wall shows the real SSID even after a
+# rename (two-room setups) without touching any code.
+sudo mkdir -p /var/lib/ki-werkstatt
+echo "$SSID" | sudo tee /var/lib/ki-werkstatt/ssid >/dev/null
 
 sudo nmcli connection up "$CON_NAME"
 
