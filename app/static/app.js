@@ -477,11 +477,13 @@ document.addEventListener("kiw:lang", () => {
 });
 
 let pollFailures = 0;
+let lastPollOk = 0;        // the stall watchdog only acts on a live link
 async function poll() {
   try {
     const res = await fetch("/api/state");
     if (res.ok) {
       render(await res.json());
+      lastPollOk = Date.now();
       if (pollFailures >= 3) videoNote(null);
       pollFailures = 0;
     }
@@ -518,5 +520,46 @@ $("#stream").addEventListener("load", () => videoNote(null));
 document.addEventListener("visibilitychange", () => {
   if (!document.hidden) bumpStream();
 });
+
+// Silent-stall watchdog. Some phones (Xiaomi/HyperOS power management on
+// internet-less Wi-Fi) pause the radio for seconds: the MJPEG TCP stream
+// stalls WITHOUT ever firing 'error', the picture just freezes while the
+// short /api/state polls recover instantly. Nothing above catches that, so
+// sample the <img> onto a tiny canvas every 2 s and reconnect once three
+// consecutive samples are pixel-identical — but only while the link is
+// provably alive (fresh poll) and the frame is not legitimately static
+// (camera asleep/unplugged, or ghost mode with nobody on stage).
+(() => {
+  const img = $("#stream");
+  const canvas = document.createElement("canvas");
+  canvas.width = 48; canvas.height = 27;
+  const ctx = canvas.getContext("2d", { willReadFrequently: true });
+  let lastHash = null, still = 0, cooldownUntil = 0;
+  setInterval(() => {
+    if (document.hidden || !state || !img.naturalWidth) return;
+    if (Date.now() - lastPollOk > 2500) return;   // link down → connNote path
+    if (Date.now() < cooldownUntil) return;       // one reconnect at a time
+    if (state.camera_standby === true || state.camera_ok === false) return;
+    if (state.mode === "pose" && state.pose && state.pose.ghost
+        && !state.pose.persons) return;           // fully synthetic frame
+    let hash = 0;
+    try {
+      // clearRect first: without it, any transparency in the image would
+      // composite over the previous sample and never settle byte-exact
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      const d = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+      for (let i = 0; i < d.length; i += 4) hash = (hash * 31 + d[i] + d[i + 2]) | 0;
+    } catch (e) { return; }                       // decoder mid-frame etc.
+    if (hash === lastHash) {
+      if (++still >= 3) {                         // ~6 s frozen → reconnect
+        videoNote("imgReload");
+        bumpStream();
+        still = 0; lastHash = null;
+        cooldownUntil = Date.now() + 15000;
+      }
+    } else { still = 0; lastHash = hash; }
+  }, 2000);
+})();
 
 poll();

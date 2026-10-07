@@ -9,6 +9,7 @@ Dev on a laptop:    python3 app/main.py --source webcam   (or --source fake)
 import argparse
 import logging
 import os
+import socket
 import threading
 import time
 
@@ -95,6 +96,28 @@ def main():
 
     class TimeoutHandler(WSGIRequestHandler):
         timeout = 30
+
+        def setup(self):
+            super().setup()
+            try:
+                # Cap the kernel send buffer: Linux autotuning grows it to
+                # megabytes, which lets SECONDS of stale video queue up for
+                # a phone that naps its Wi-Fi (Xiaomi/HyperOS power
+                # management does, screen-on) — the viewer sees a long
+                # freeze, then a fast-forward burst. A small buffer blocks
+                # the MJPEG generator early instead, pacing it to the
+                # phone's real drain rate: a radio nap now costs fractions
+                # of a second. (The kernel doubles this value.)
+                self.connection.setsockopt(
+                    socket.SOL_SOCKET, socket.SO_SNDBUF, 96 * 1024)
+                # Drop peers that stop ACKing for 10 s: the <img> error
+                # handler reconnects, and the dead connection's stream
+                # slot frees long before the 30 s read timeout above.
+                if hasattr(socket, "TCP_USER_TIMEOUT"):   # Linux only
+                    self.connection.setsockopt(
+                        socket.IPPROTO_TCP, socket.TCP_USER_TIMEOUT, 10_000)
+            except OSError:
+                pass   # tuning is best-effort, never fail the request
 
     try:
         app.run(host=args.host, port=args.port, threaded=True,

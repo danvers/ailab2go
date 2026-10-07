@@ -471,6 +471,18 @@ ls /usr/share/hailo-models/
 - After config changes: `bash setup/install.sh` +
   `sudo systemctl restart ki-werkstatt`
 
+**If the picture freezes for seconds at a time on *one* device only**
+(neighbouring devices stay fluid), it is almost always that phone's power
+management: because the exhibit Wi-Fi has no internet, some devices
+(frequently: Xiaomi/HyperOS) keep napping the radio or scanning for
+"better" networks. The app now detects the stall itself and reconnects
+the stream after about 6–8 s — on the affected device it additionally
+helps to
+choose **"Stay connected"** on the "no internet" prompt, to switch off
+*Wi-Fi assistant* / *network acceleration* / *dual Wi-Fi* in the Wi-Fi
+settings, and to set the browser to "No restrictions" in the battery
+settings.
+
 ### 9.5 Colors look wrong (red/blue swapped)
 
 In [app/config.py](app/config.py), flip `MODEL_EXPECTS_RGB` to the

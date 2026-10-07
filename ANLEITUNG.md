@@ -449,6 +449,17 @@ ls /usr/share/hailo-models/
 - Nach Config-Änderungen: `bash setup/install.sh` +
   `sudo systemctl restart ki-werkstatt`
 
+**Friert das Bild nur auf *einem* Gerät regelmäßig für Sekunden ein**
+(Nachbargeräte laufen flüssig), ist fast immer das Energiemanagement
+dieses Telefons schuld: Weil das Ausstellungs-WLAN kein Internet hat,
+pausieren manche Geräte (häufig: Xiaomi/HyperOS) den Funk immer wieder
+kurz oder suchen nach „besseren" Netzen. Die App erkennt den Stillstand
+inzwischen selbst und verbindet den Stream nach ca. 6–8 s neu — auf dem
+betroffenen Gerät helfen zusätzlich: beim „Kein Internet"-Hinweis
+**„Verbunden bleiben"** wählen, *WLAN-Assistent* / *Netzwerkbeschleunigung*
+/ *Dual-WLAN* in den WLAN-Einstellungen abschalten und dem Browser in den
+Akku-Einstellungen „Keine Einschränkungen" geben.
+
 ### 9.5 Farben sehen falsch aus (rot/blau vertauscht)
 
 In [app/config.py](app/config.py) `MODEL_EXPECTS_RGB` auf den anderen

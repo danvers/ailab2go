@@ -297,7 +297,7 @@ def create_app(pipeline):
                     # Scaling cap: few viewers get the full frame rate, a
                     # class splits the radio fairly. Per-viewer bandwidth
                     # (~2-5 Mbit/s at full rate) times 15 phones would
-                    # saturate the 2.4 GHz hotspot, so everyone drops to a
+                    # saturate the hotspot radio, so everyone drops to a
                     # still-fluid rate instead of everyone stuttering.
                     n = pipeline.stream_clients
                     cap = min(config.STREAM_MAX_FPS,

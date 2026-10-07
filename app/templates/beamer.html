@@ -256,9 +256,16 @@ function fmtMB(mb) {
   return mb >= 1000 ? (mb / 1000).toFixed(1) + " GB" : Math.round(mb) + " MB";
 }
 
+let lastState = null, lastPollOk = 0;   // for the stream watchdog below
 async function poll() {
   try {
     const s = await (await fetch("/api/state")).json();
+    lastState = s; lastPollOk = Date.now();
+    // Server restarted → the old MJPEG connection is dead. The phone UI
+    // has this guard too; the wall needs it even more, because it is
+    // visible 24/7 and visibilitychange never fires here.
+    if (poll._uptime !== undefined && s.uptime_s < poll._uptime) bumpStream();
+    poll._uptime = s.uptime_s;
     const lang = s.lang === "en" ? "en" : "de";
     document.body.classList.toggle("lang-de", lang === "de");
     document.body.classList.toggle("lang-en", lang === "en");
@@ -302,11 +309,48 @@ cursorTimer = setTimeout(cursorIdle, 3000);
 
 // stream self-healing (projector browsers left alone for hours)
 const stream = $("#stream");
-stream.addEventListener("error", () =>
-  setTimeout(() => { stream.src = "/stream.mjpg?" + Date.now(); }, 2000));
+function bumpStream() { stream.src = "/stream.mjpg?" + Date.now(); }
+stream.addEventListener("error", () => setTimeout(bumpStream, 2000));
 document.addEventListener("visibilitychange", () => {
-  if (!document.hidden) stream.src = "/stream.mjpg?" + Date.now();
+  if (!document.hidden) bumpStream();
 });
+
+// Silent-stall watchdog — same logic as app.js (this page is deliberately
+// self-contained): a stalled MJPEG TCP stream never fires 'error', so
+// sample the <img> onto a tiny canvas and reconnect after ~6 s of
+// pixel-identical frames, unless the frame is legitimately static
+// (camera asleep/unplugged, ghost mode with nobody on stage) or the
+// server link itself is down (then reconnecting cannot help).
+(() => {
+  const canvas = document.createElement("canvas");
+  canvas.width = 48; canvas.height = 27;
+  const ctx = canvas.getContext("2d", { willReadFrequently: true });
+  let lastHash = null, still = 0, cooldownUntil = 0;
+  setInterval(() => {
+    const s = lastState;
+    if (document.hidden || !s || !stream.naturalWidth) return;
+    if (Date.now() - lastPollOk > 3000) return;
+    if (Date.now() < cooldownUntil) return;
+    if (s.camera_standby === true || s.camera_ok === false) return;
+    if (s.mode === "pose" && s.pose && s.pose.ghost && !s.pose.persons) return;
+    let hash = 0;
+    try {
+      // clearRect first: without it, any transparency in the image would
+      // composite over the previous sample and never settle byte-exact
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(stream, 0, 0, canvas.width, canvas.height);
+      const d = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+      for (let i = 0; i < d.length; i += 4) hash = (hash * 31 + d[i] + d[i + 2]) | 0;
+    } catch (e) { return; }
+    if (hash === lastHash) {
+      if (++still >= 3) {
+        bumpStream();
+        still = 0; lastHash = null;
+        cooldownUntil = Date.now() + 15000;
+      }
+    } else { still = 0; lastHash = hash; }
+  }, 2000);
+})();
 </script>
 </body>
 </html>
